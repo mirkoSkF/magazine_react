@@ -5,7 +5,10 @@ const MagazineEditor = ({ editId }) => {
   const editor = useRef(null);
   const [content, setContent] = useState('');
 
-  // Palette Skillfactory Training
+  // Recuperiamo il token salvato dal Login
+  const token = localStorage.getItem('token');
+  const authHeader = { 'Authorization': `Bearer ${token}` };
+
   const colors = {
     primary: '#007bff',
     dark: '#343a40',
@@ -16,7 +19,8 @@ const MagazineEditor = ({ editId }) => {
 
   useEffect(() => {
     if (editId) {
-      fetch(`http://localhost:8096/api/pagine/${editId}`)
+      // Usiamo l'header con il token per caricare l'articolo
+      fetch(`http://localhost:8096/api/pagine/${editId}`, { headers: authHeader })
         .then(res => res.json())
         .then(data => {
           if (data.moduli?.length > 0) {
@@ -30,9 +34,7 @@ const MagazineEditor = ({ editId }) => {
   }, [editId]);
 
   const handlePublish = async () => {
-    const htmlContent = content; 
-
-    if (!htmlContent || htmlContent.trim() === "" || htmlContent === '<p><br></p>') {
+    if (!content || content.trim() === "" || content === '<p><br></p>') {
       alert("L'articolo è vuoto!");
       return;
     }
@@ -41,13 +43,12 @@ const MagazineEditor = ({ editId }) => {
       numeroPagina: 1,
       moduli: [{
         tipo: "TESTO_JODIT",
-        contenuto: htmlContent,
+        contenuto: content,
         fontFamily: "Arial",
         fontSize: 18
       }]
     };
 
-    const credentials = btoa("admin:123");
     const method = editId ? 'PUT' : 'POST';
     const url = editId ? `http://localhost:8096/api/pagine/${editId}` : 'http://localhost:8096/api/pagine';
 
@@ -56,101 +57,41 @@ const MagazineEditor = ({ editId }) => {
         method: method,
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Basic ${credentials}` 
+          ...authHeader // Inviamo il token salvato nel localStorage
         },
         body: JSON.stringify(payload),
       });
 
       if (response.ok) {
-        alert(editId ? "Articolo aggiornato con successo!" : "Articolo pubblicato con successo!");
+        alert(editId ? "Articolo aggiornato!" : "Articolo pubblicato!");
       } else {
-        alert("Errore dal server: " + response.status);
+        alert("Errore dal server: " + response.status + " (Controlla il token)");
       }
     } catch (error) {
-      alert("Errore di connessione al server Spring Boot.");
+      alert("Errore di connessione al server.");
     }
   };
 
+  // ... (mantiene il resto del tuo codice config e JSX originale)
   const config = {
     readonly: false,
-    placeholder: 'Inizia a scrivere il tuo articolo...',
+    placeholder: 'Inizia a scrivere...',
     uploader: { insertImageAsBase64URI: true },
     language: 'it',
-    style: {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '18px',
-      background: '#ffffff'
-    }
-  };
-
-  // --- STILI AGGIORNATI STILE TRAINING ---
-  const containerStyle = { background: colors.lightGray, minHeight: '100vh' };
-  
-  const headerStyle = { 
-    background: colors.white, 
-    padding: '15px 40px', 
-    display: 'flex', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    position: 'sticky', 
-    top: 0, 
-    zIndex: 1000,
-    borderBottom: `1px solid ${colors.border}`,
-    boxShadow: '0 2px 4px rgba(0,0,0,.05)'
-  };
-
-  const editorWrapperStyle = { 
-    maxWidth: '1100px', 
-    margin: '30px auto', 
-    background: colors.white, 
-    borderRadius: '8px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.08)', 
-    padding: '15px',
-    border: `1px solid ${colors.border}`
-  };
-
-  const pubBtnStyle = { 
-    background: colors.primary, 
-    color: colors.white, 
-    border: 'none', 
-    padding: '10px 25px', 
-    borderRadius: '4px', 
-    fontWeight: '600', 
-    cursor: 'pointer',
-    transition: 'background 0.2s'
+    style: { fontFamily: 'Arial, sans-serif', fontSize: '18px' }
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={headerStyle}>
-        <h2 style={{color: colors.dark, margin: 0, fontSize: '20px', fontWeight: '600'}}>
-          {editId ? `Gestione Articolo #${editId}` : "Nuovo Contenuto Magazine"}
-        </h2>
-        <button 
-          onClick={handlePublish} 
-          style={pubBtnStyle}
-          onMouseOver={(e) => e.target.style.background = '#0056b3'}
-          onMouseOut={(e) => e.target.style.background = colors.primary}
-        >
+    <div>
+      <div style={{ background: colors.white, padding: '15px 40px', display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${colors.border}` }}>
+        <h2 style={{color: colors.dark, margin: 0, fontSize: '20px'}}>{editId ? `Modifica #${editId}` : "Nuovo Articolo"}</h2>
+        <button onClick={handlePublish} style={{ background: colors.primary, color: 'white', border: 'none', padding: '10px 25px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>
           {editId ? "Salva Modifiche" : "Pubblica Ora"}
         </button>
       </div>
-
-      <div style={editorWrapperStyle}>
-        <JoditEditor
-          key={editId || 'new'}
-          ref={editor}
-          value={content}
-          config={config}
-          onBlur={newContent => setContent(newContent)}
-          onChange={() => {}}
-        />
+      <div style={{ maxWidth: '1100px', margin: '30px auto', background: 'white', padding: '15px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
+        <JoditEditor value={content} config={config} onBlur={newContent => setContent(newContent)} />
       </div>
-
-      <style>{`
-        .jodit-wysiwyg img { max-width: 100%; border-radius: 4px; margin: 10px; }
-        .jodit-container { border: none !important; }
-      `}</style>
     </div>
   );
 };

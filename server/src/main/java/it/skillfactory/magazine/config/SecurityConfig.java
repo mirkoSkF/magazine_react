@@ -1,18 +1,19 @@
 package it.skillfactory.magazine.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -20,49 +21,46 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Autowired
+    private JwtFilter jwtFilter;
+
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable()) 
             .cors(Customizer.withDefaults()) 
+            // JWT non usa le sessioni, quindi la policy deve essere STATELESS
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Accesso pubblico per la lettura
+                // Accesso pubblico per la lettura e per l'autenticazione
                 .requestMatchers(HttpMethod.GET, "/api/pagine/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll() 
+                
                 // Accesso protetto per scrittura, modifica e cancellazione (EDITORE)
                 .requestMatchers(HttpMethod.POST, "/api/pagine/**").hasRole("EDITORE")
                 .requestMatchers(HttpMethod.PUT, "/api/pagine/**").hasRole("EDITORE")
                 .requestMatchers(HttpMethod.DELETE, "/api/pagine/**").hasRole("EDITORE")
+                
                 .anyRequest().authenticated()
             )
-            .httpBasic(Customizer.withDefaults()); 
+            // Inseriamo il nostro filtro JWT prima del filtro di autenticazione standard
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
             
         return http.build();
     }
 
     @Bean
-    UserDetailsService userDetailsService() {
-        UserDetails admin = User.builder()
-            .username("admin")
-            .password(passwordEncoder().encode("123"))
-            .roles("EDITORE")
-            .build();
-
-        UserDetails user = User.builder()
-            .username("user")
-            .password(passwordEncoder().encode("123"))
-            .roles("USER")
-            .build();
-
-        return new InMemoryUserDetailsManager(admin, user);
-    }
-
-    @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    WebMvcConfigurer corsConfigurer() {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {

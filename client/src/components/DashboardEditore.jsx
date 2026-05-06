@@ -34,7 +34,6 @@ const DashboardEditore = ({ onEdit }) => {
 
   return (
     <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-      {/* Iniezione CSS per gestire gli stati Hover in modo fluido */}
       <style>{`
         .btn-sf-primary:hover {
           background-color: ${colors.primary} !important;
@@ -108,24 +107,9 @@ const DashboardEditore = ({ onEdit }) => {
   );
 };
 
-// --- STILI INTERNI (IMMUTATI) ---
-const thStyle = {
-  padding: '15px 20px',
-  fontSize: '13px',
-  textTransform: 'uppercase',
-  letterSpacing: '0.5px',
-  color: '#495057'
-};
-
-const tdStyle = {
-  padding: '18px 20px',
-  borderBottom: '1px solid #eee'
-};
-
-const rowStyle = {
-  transition: 'background-color 0.2s ease'
-};
-
+const thStyle = { padding: '15px 20px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#495057' };
+const tdStyle = { padding: '18px 20px', borderBottom: '1px solid #eee' };
+const rowStyle = { transition: 'background-color 0.2s ease' };
 const actionBtnStyle = (color) => ({
   background: 'transparent',
   color: color,
