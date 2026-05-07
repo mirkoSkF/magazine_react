@@ -2,6 +2,8 @@ package it.skillfactory.magazine.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +18,8 @@ public class PaginaMagazine {
     private Long id;
     
     private int numeroPagina;
+    
+    private LocalDateTime dataPubblicazione = LocalDateTime.now();
 
     @OneToMany(mappedBy = "pagina", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ModuloEditor> moduli = new ArrayList<>();
