@@ -14,7 +14,8 @@ const MagazineEditor = ({ editId }) => {
     dark: '#343a40',
     lightGray: '#f1f3f4',
     border: '#dee2e6',
-    white: '#ffffff'
+    white: '#ffffff',
+    success: '#28a745'
   };
 
   useEffect(() => {
@@ -32,8 +33,16 @@ const MagazineEditor = ({ editId }) => {
     }
   }, [editId]);
 
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 10, 200));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 10, 50));
+  const updateEditorZoom = (newZoom) => {
+    setZoom(newZoom);
+    if (editorRef.current) {
+      const body = editorRef.current.getDoc().body;
+      body.style.zoom = newZoom / 100;
+    }
+  };
+
+  const handleZoomIn = () => updateEditorZoom(Math.min(zoom + 10, 200));
+  const handleZoomOut = () => updateEditorZoom(Math.max(zoom - 10, 50));
 
   const handlePublish = async () => {
     const currentContent = editorRef.current ? editorRef.current.getContent() : content;
@@ -47,7 +56,7 @@ const MagazineEditor = ({ editId }) => {
       moduli: [{
         tipo: "TESTO_TINY",
         contenuto: currentContent,
-        fontFamily: "Arial",
+        fontFamily: "Arial, Helvetica, sans-serif",
         fontSize: 18
       }]
     };
@@ -56,7 +65,11 @@ const MagazineEditor = ({ editId }) => {
     const url = editId ? `http://localhost:8096/api/pagine/${editId}` : 'http://localhost:8096/api/pagine';
 
     try {
-      const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json', ...authHeader }, body: JSON.stringify(payload) });
+      const response = await fetch(url, { 
+        method, 
+        headers: { 'Content-Type': 'application/json', ...authHeader }, 
+        body: JSON.stringify(payload) 
+      });
       if (response.ok) alert(editId ? "Articolo aggiornato!" : "Articolo pubblicato!");
       else alert("Errore dal server: " + response.status);
     } catch (error) {
@@ -65,126 +78,119 @@ const MagazineEditor = ({ editId }) => {
   };
 
   return (
-    <div style={{ backgroundColor: colors.lightGray, minHeight: '100vh', overflowX: 'auto' }}>
-      <div style={{ 
-        background: colors.white, 
-        padding: '10px 40px', 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        borderBottom: `1px solid ${colors.border}`,
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <h2 style={{color: colors.dark, margin: 0, fontSize: '18px'}}>{editId ? `Modifica #${editId}` : "Nuovo Articolo"}</h2>
-          <div style={{ display: 'flex', alignItems: 'center', background: '#eee', borderRadius: '4px', padding: '2px' }}>
-            <button onClick={handleZoomOut} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '5px 10px', fontSize: '16px' }}>−</button>
-            <span style={{ fontSize: '14px', minWidth: '45px', textAlign: 'center', fontWeight: 'bold' }}>{zoom}%</span>
-            <button onClick={handleZoomIn} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '5px 10px', fontSize: '16px' }}>+</button>
-          </div>
-        </div>
-        <button onClick={handlePublish} style={{ background: colors.primary, color: 'white', border: 'none', padding: '8px 20px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>
-          {editId ? "Salva Modifiche" : "Pubblica Ora"}
-        </button>
-      </div>
+    <div style={{ backgroundColor: colors.lightGray, minHeight: '100vh', position: 'relative' }}>
       
-      <div style={{ 
-        width: '210mm',
-        minHeight: '297mm',
-        margin: '30px auto', 
-        background: 'white', 
-        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-        border: `1px solid ${colors.border}`
+      <div style={{
+        position: 'fixed',
+        right: '25px',
+        top: '100px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '15px',
+        zIndex: 2000
       }}>
-        <Editor
-          tinymceScriptSrc="/tinymce/tinymce.min.js"
-          onInit={(evt, editor) => editorRef.current = editor}
-          value={content}
-          init={{
-            height: '297mm',
-            menubar: true,
-            language: 'it', 
-            branding: false,
-            promotion: false,
-            license_key: 'gpl',
-            resize: false,
+        <button onClick={handlePublish} style={floatingButtonStyle(colors.primary)} title="Salva">💾</button>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', background: 'white', padding: '10px', borderRadius: '30px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+          <button onClick={handleZoomIn} style={zoomButtonStyle}>+</button>
+          <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#666' }}>{zoom}%</span>
+          <button onClick={handleZoomOut} style={zoomButtonStyle}>−</button>
+        </div>
+      </div>
 
-            image_advtab: true,
-            image_dimensions: true,
-            image_margins: true,
-            
-            // --- SBLOCCO GIUSTIFICAZIONE E ALTRI STILI ---
-            // Aggiungiamo 'text-align' alla lista degli stili validi per tutti gli elementi (*)
-            valid_styles: {
-              '*': 'font-family,font-size,color,background-color,text-align,margin,margin-top,margin-right,margin-bottom,margin-left,padding,float,display,width,height,border'
-            },
-            
-            // Permettiamo esplicitamente l'attributo style su P e DIV
-            extended_valid_elements: 'p[style|align],div[style|align],img[class|src|border=0|alt|title|hspace|vspace|width|height|align|style]',
-            
-            // Evita che TinyMCE rimuova gli stili che non riconosce immediatamente
-            verify_html: false, 
-
-            forced_root_block: 'p',
-            forced_root_block_attrs: {
-              'style': 'font-family: Arial, Helvetica, sans-serif; font-size: 18px;'
-            },
-
-            setup: (editor) => {
-              editor.on('init', () => {
-                editor.getDoc().body.style.fontFamily = 'Arial, Helvetica, sans-serif';
-                editor.getDoc().body.style.fontSize = '18px';
-              });
+      <div style={{ padding: '40px 20px' }}>
+        <div style={{ 
+          maxWidth: '900px', // Allineato all'Index
+          margin: '0 auto', 
+          background: 'white', 
+          boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+          borderRadius: '12px',
+          border: `1px solid ${colors.border}`,
+          overflow: 'hidden'
+        }}>
+          <Editor
+            tinymceScriptSrc="/tinymce/tinymce.min.js"
+            onInit={(evt, editor) => {
+                editorRef.current = editor;
+                editor.getDoc().body.style.zoom = zoom / 100;
+            }}
+            value={content}
+            init={{
+              min_height: 600,
+              menubar: true,
+              language: 'it', 
+              branding: false,
+              promotion: false,
+              license_key: 'gpl',
+              statusbar: true,
+              elementpath: true, // Ripristinato percorso elementi
+              image_advtab: true,
+              image_margins: true,
               
-              editor.on('GetContent', (e) => {
-                const div = document.createElement('div');
-                div.innerHTML = e.content;
-                div.querySelectorAll('p, span, div, li, td').forEach(el => {
-                  el.style.fontFamily = 'Arial, Helvetica, sans-serif';
-                  el.style.fontSize = '18px';
-                  // Se un elemento ha già un text-align, lo preserviamo
-                });
-                e.content = div.innerHTML;
-              });
-            },
+              // PRESERVAZIONE FONT E STILI (Fix bug perdita font)
+              valid_children: '+body[style],+p[style],+span[style]',
+              valid_styles: {
+                '*': 'font-family,font-size,color,background-color,text-align,margin,margin-top,margin-right,margin-bottom,margin-left,padding,float,display,width,height,border'
+              },
+              extended_valid_elements: 'p[style|align],div[style|align],span[style],img[class|src|border=0|alt|title|hspace|vspace|width|height|align|style]',
+              verify_html: false,
+              inline_styles: true,
 
-            plugins: [
-              'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-              'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-              'insertdatetime', 'media', 'table', 'wordcount', 'help', 'emoticons',
-              'autosave', 'directionality', 'pagebreak', 'nonbreaking', 'visualchars'
-            ],
-            
-            toolbar_mode: 'wrap',
-            toolbar: 'undo redo | blocks fontfamily fontsize | ' +
-              'bold italic underline strikethrough | forecolor backcolor emoticons | ' +
-              'alignleft aligncenter alignright alignjustify | ' +
-              'bullist numlist outdent indent | link image media table | ' +
-              'lineheight removeformat | charmap anchor pagebreak | ' +
-              'visualblocks visualchars code fullscreen preview | help',
-            
-            content_style: `
-              body { 
-                font-family: Arial, Helvetica, sans-serif; 
-                font-size: 18px; 
-                padding: 20mm; 
-                background-color: white;
-                zoom: ${zoom / 100};
-                -moz-transform: scale(${zoom / 100});
-                -moz-transform-origin: top left;
+              forced_root_block: 'p',
+              font_family_formats: 'Arial=arial,helvetica,sans-serif; Georgia=georgia,palatino,serif; Courier New=courier new,courier,monospace;',
+
+              plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'wordcount', 'help', 'emoticons',
+                'autosave', 'directionality', 'pagebreak', 'nonbreaking', 'visualchars', 'autoresize'
+              ],
+              toolbar_mode: 'wrap',
+              toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor emoticons | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | code fullscreen preview',
+              
+              content_style: `
+                body { 
+                  font-family: Arial, Helvetica, sans-serif; 
+                  font-size: 18px; 
+                  line-height: 1.8; 
+                  color: #333; 
+                  padding: 40px !important; /* Margini interni identici all'Index */
+                  text-align: justify;
+                  margin: 0 !important;
+                  box-sizing: border-box;
+                }
+                img { max-width: 100%; height: auto; display: block; margin: 25px auto; border-radius: 8px; }
+              `,
+              setup: (editor) => {
+                // Fix: Impedisce la sovrascrittura se il font è già impostato (es. Arial)
+                editor.on('GetContent', (e) => {
+                  const div = document.createElement('div');
+                  div.innerHTML = e.content;
+                  div.querySelectorAll('p, span, div, li, td').forEach(el => {
+                    if (!el.style.fontFamily) {
+                      el.style.fontFamily = 'Arial, Helvetica, sans-serif';
+                    }
+                    if (!el.style.fontSize) {
+                      el.style.fontSize = '18px';
+                    }
+                  });
+                  e.content = div.innerHTML;
+                });
               }
-              /* Assicura che la giustificazione sia visibile nell'editor */
-              p { text-align: inherit; } 
-              img { max-width: 100%; height: auto; }
-            `,
-          }}
-          onEditorChange={(newContent) => setContent(newContent)}
-        />
+            }}
+            onEditorChange={(newContent) => setContent(newContent)}
+          />
+        </div>
       </div>
     </div>
   );
 };
+
+const floatingButtonStyle = (color) => ({
+  background: color, color: 'white', border: 'none', width: '45px', height: '45px', borderRadius: '12px',
+  cursor: 'pointer', fontSize: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center'
+});
+
+const zoomButtonStyle = { background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#555', padding: '5px' };
 
 export default MagazineEditor;
