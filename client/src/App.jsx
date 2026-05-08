@@ -75,7 +75,7 @@ function App() {
 
       <nav className="nav-bar" style={navBarStyle}>
         <div style={{ fontWeight: '700', fontSize: '22px', color: colors.primary }}>
-          MAGAZINE.<span style={{ color: colors.dark }}>SKILLFACTORY</span>
+          MAGAZINE.<span style={{ color: colors.dark }}>SKILLFACTORY.IT</span>
         </div>
         
         <div className="nav-links" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
