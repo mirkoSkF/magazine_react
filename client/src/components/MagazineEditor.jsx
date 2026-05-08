@@ -32,7 +32,7 @@ const MagazineEditor = ({ editId }) => {
     }
   }, [editId]);
 
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 10, 150));
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 10, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 10, 50));
 
   const handlePublish = async () => {
@@ -91,11 +91,9 @@ const MagazineEditor = ({ editId }) => {
       </div>
       
       <div style={{ 
-        width: `${210 * (zoom / 100)}mm`,
-        minHeight: `${297 * (zoom / 100)}mm`,
+        width: '210mm',
+        minHeight: '297mm',
         margin: '30px auto', 
-        transition: 'all 0.1s linear', 
-        transformOrigin: 'top center',
         background: 'white', 
         boxShadow: '0 0 10px rgba(0,0,0,0.1)',
         border: `1px solid ${colors.border}`
@@ -105,7 +103,7 @@ const MagazineEditor = ({ editId }) => {
           onInit={(evt, editor) => editorRef.current = editor}
           value={content}
           init={{
-            height: `${297 * (zoom / 100)}mm`, 
+            height: '297mm',
             menubar: true,
             language: 'it', 
             branding: false,
@@ -113,43 +111,40 @@ const MagazineEditor = ({ editId }) => {
             license_key: 'gpl',
             resize: false,
 
-            // --- CONFIGURAZIONE MARGINI ANALITICI ---
-            image_advtab: true, 
+            image_advtab: true,
             image_dimensions: true,
-            // SBLOCCA I 4 INPUT SEPARATI (Top, Right, Bottom, Left)
-            image_margins: true, 
+            image_margins: true,
             
-            // Permettiamo esplicitamente gli stili di margine nel codice HTML
-            extended_valid_elements: 'img[class|src|border=0|alt|title|hspace|vspace|width|height|align|onmouseover|onmouseout|name|style]',
+            // --- SBLOCCO GIUSTIFICAZIONE E ALTRI STILI ---
+            // Aggiungiamo 'text-align' alla lista degli stili validi per tutti gli elementi (*)
+            valid_styles: {
+              '*': 'font-family,font-size,color,background-color,text-align,margin,margin-top,margin-right,margin-bottom,margin-left,padding,float,display,width,height,border'
+            },
             
-            // --- PROTEZIONE FONT ARIAL (Mantieni intatto) ---
+            // Permettiamo esplicitamente l'attributo style su P e DIV
+            extended_valid_elements: 'p[style|align],div[style|align],img[class|src|border=0|alt|title|hspace|vspace|width|height|align|style]',
+            
+            // Evita che TinyMCE rimuova gli stili che non riconosce immediatamente
+            verify_html: false, 
+
             forced_root_block: 'p',
             forced_root_block_attrs: {
               'style': 'font-family: Arial, Helvetica, sans-serif; font-size: 18px;'
             },
-            invalid_styles: 'font-family font-size',
-            
+
             setup: (editor) => {
               editor.on('init', () => {
                 editor.getDoc().body.style.fontFamily = 'Arial, Helvetica, sans-serif';
                 editor.getDoc().body.style.fontSize = '18px';
-                editor.getContainer().style.border = 'none';
               });
-
-              editor.on('NodeChange', () => {
-                const node = editor.selection.getNode();
-                if (node && (node.nodeName === 'P' || node.nodeName === 'DIV') && !node.style.fontFamily) {
-                    node.style.fontFamily = 'Arial, Helvetica, sans-serif';
-                    node.style.fontSize = '18px';
-                }
-              });
-
+              
               editor.on('GetContent', (e) => {
                 const div = document.createElement('div');
                 div.innerHTML = e.content;
                 div.querySelectorAll('p, span, div, li, td').forEach(el => {
                   el.style.fontFamily = 'Arial, Helvetica, sans-serif';
                   el.style.fontSize = '18px';
+                  // Se un elemento ha già un text-align, lo preserviamo
                 });
                 e.content = div.innerHTML;
               });
@@ -177,10 +172,13 @@ const MagazineEditor = ({ editId }) => {
                 padding: 20mm; 
                 background-color: white;
                 zoom: ${zoom / 100};
+                -moz-transform: scale(${zoom / 100});
+                -moz-transform-origin: top left;
               }
+              /* Assicura che la giustificazione sia visibile nell'editor */
+              p { text-align: inherit; } 
               img { max-width: 100%; height: auto; }
             `,
-            media_live_embeds: true
           }}
           onEditorChange={(newContent) => setContent(newContent)}
         />
