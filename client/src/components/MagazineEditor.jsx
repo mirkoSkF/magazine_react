@@ -99,7 +99,7 @@ const MagazineEditor = ({ editId }) => {
 
       <div style={{ padding: '40px 20px' }}>
         <div style={{ 
-          maxWidth: '900px', // Allineato all'Index
+          maxWidth: '900px', 
           margin: '0 auto', 
           background: 'white', 
           boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
@@ -122,11 +122,10 @@ const MagazineEditor = ({ editId }) => {
               promotion: false,
               license_key: 'gpl',
               statusbar: true,
-              elementpath: true, // Ripristinato percorso elementi
+              elementpath: true,
               image_advtab: true,
               image_margins: true,
               
-              // PRESERVAZIONE FONT E STILI (Fix bug perdita font)
               valid_children: '+body[style],+p[style],+span[style]',
               valid_styles: {
                 '*': 'font-family,font-size,color,background-color,text-align,margin,margin-top,margin-right,margin-bottom,margin-left,padding,float,display,width,height,border'
@@ -145,7 +144,8 @@ const MagazineEditor = ({ editId }) => {
                 'autosave', 'directionality', 'pagebreak', 'nonbreaking', 'visualchars', 'autoresize'
               ],
               toolbar_mode: 'wrap',
-              toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor emoticons | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | code fullscreen preview',
+              // RIPRISTINATA TOOLBAR COMPLETA (inclusi Caratteri Speciali, Pagebreak, Anchor)
+              toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor emoticons | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | charmap anchor pagebreak | visualblocks visualchars code fullscreen preview | help',
               
               content_style: `
                 body { 
@@ -153,7 +153,7 @@ const MagazineEditor = ({ editId }) => {
                   font-size: 18px; 
                   line-height: 1.8; 
                   color: #333; 
-                  padding: 40px !important; /* Margini interni identici all'Index */
+                  padding: 40px !important; 
                   text-align: justify;
                   margin: 0 !important;
                   box-sizing: border-box;
@@ -161,7 +161,6 @@ const MagazineEditor = ({ editId }) => {
                 img { max-width: 100%; height: auto; display: block; margin: 25px auto; border-radius: 8px; }
               `,
               setup: (editor) => {
-                // Fix: Impedisce la sovrascrittura se il font è già impostato (es. Arial)
                 editor.on('GetContent', (e) => {
                   const div = document.createElement('div');
                   div.innerHTML = e.content;
