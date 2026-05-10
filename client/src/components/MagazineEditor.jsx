@@ -31,7 +31,7 @@ const MagazineEditor = ({ editId }) => {
         .then(data => {
           setTitolo(data.titolo || '');
           setCopertina(data.copertina || null);
-          setTipo(data.tipo || 'ARTICOLO'); // Carica il tipo dal DB
+          setTipo(data.tipo || 'ARTICOLO'); 
           if (data.moduli?.length > 0) {
             setContent(data.moduli[0].contenuto);
           }
@@ -57,11 +57,25 @@ const MagazineEditor = ({ editId }) => {
     }
   };
 
+  // FUNZIONE AGGIORNATA PER IL ZOOM DELLE IMMAGINI
   const updateEditorZoom = (newZoom) => {
     setZoom(newZoom);
     if (editorRef.current) {
-      const body = editorRef.current.getDoc().body;
-      body.style.zoom = newZoom / 100;
+      const doc = editorRef.current.getDoc();
+      const body = doc.body;
+      const zoomValue = newZoom / 100;
+      
+      // Applica lo zoom al body
+      body.style.zoom = zoomValue;
+      
+      // Forza le immagini a seguire lo zoom se necessario
+      const images = body.querySelectorAll('img');
+      images.forEach(img => {
+        img.style.height = 'auto'; // Mantiene le proporzioni
+        // Se l'immagine ha una max-width del 100%, lo zoom del body dovrebbe bastare,
+        // ma forziamo la trasformazione per i browser che faticano a gestire img + zoom
+        img.style.maxWidth = '100%';
+      });
     }
   };
 
@@ -84,7 +98,7 @@ const MagazineEditor = ({ editId }) => {
     const payload = {
       titolo: titolo,
       copertina: copertina,
-      tipo: tipo, // Invio del tipo (ARTICOLO o SONDAGGIO)
+      tipo: tipo,
       numeroPagina: 1,
       moduli: [{
         tipo: "TESTO_TINY",
@@ -113,7 +127,6 @@ const MagazineEditor = ({ editId }) => {
   return (
     <div style={{ backgroundColor: colors.lightGray, minHeight: '100vh', position: 'relative' }}>
       
-      {/* Bottoni Floating */}
       <div style={{
         position: 'fixed',
         right: '25px',
@@ -134,14 +147,19 @@ const MagazineEditor = ({ editId }) => {
       <div style={{ padding: '40px 20px' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* SEZIONE EDITORIALE AGGIORNATA CON SELETTORE TIPO */}
           <div style={{ background: 'white', padding: '30px', borderRadius: '12px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <label style={{ fontSize: '12px', fontWeight: 'bold', color: colors.primary, textTransform: 'uppercase', fontFamily: 'Arial' }}>Tipo di Contenuto</label>
               <select 
                 value={tipo} 
-                onChange={(e) => setTipo(e.target.value)}
+                onChange={(e) => {
+                    const nuovoTipo = e.target.value;
+                    setTipo(nuovoTipo);
+                    if (nuovoTipo === "SONDAGGIO" && (!content || content === '<p></p>')) {
+                        setContent('<ul><li>Opzione 1</li><li>Opzione 2</li></ul>');
+                    }
+                }}
                 style={{ padding: '5px 10px', borderRadius: '4px', border: `1px solid ${colors.border}`, fontFamily: 'Arial', fontSize: '12px', fontWeight: 'bold' }}
               >
                 <option value="ARTICOLO">📰 Articolo Standard</option>
@@ -180,7 +198,6 @@ const MagazineEditor = ({ editId }) => {
             </div>
           </div>
 
-          {/* EDITOR TINYMCE */}
           <div style={{ 
             background: 'white', 
             boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
@@ -189,19 +206,22 @@ const MagazineEditor = ({ editId }) => {
             overflow: 'hidden'
           }}>
             <div style={{ padding: '10px 20px', background: colors.lightGray, borderBottom: `1px solid ${colors.border}`, fontSize: '13px', color: '#666', fontFamily: 'Arial' }}>
-              {tipo === "ARTICOLO" ? "Scrivi il corpo dell'articolo qui sotto" : "Elenca le opzioni di voto (es. ogni riga una scelta o usa un elenco puntato)"}
+              {tipo === "ARTICOLO" ? "Scrivi il corpo dell'articolo qui sotto" : "⚠️ Importante: Elenca le opzioni di voto usando un elenco puntato"}
             </div>
             <Editor
               tinymceScriptSrc="/tinymce/tinymce.min.js"
               onInit={(evt, editor) => {
                   editorRef.current = editor;
-                  editor.getDoc().body.style.zoom = zoom / 100;
+                  // Applichiamo lo zoom iniziale
+                  const body = editor.getDoc().body;
+                  body.style.zoom = zoom / 100;
               }}
               value={content}
               init={{
                 min_height: 600,
                 menubar: true,
-                language: 'it', 
+                language: 'it',
+                language_url: '/tinymce/langs/it.js', 
                 branding: false,
                 promotion: false,
                 license_key: 'gpl',
@@ -237,7 +257,13 @@ const MagazineEditor = ({ editId }) => {
                     margin: 0 !important;
                     box-sizing: border-box;
                   }
-                  img { max-width: 100%; height: auto; display: block; margin: 25px auto; border-radius: 8px; }
+                  img { 
+                    max-width: 100%; 
+                    height: auto !important; 
+                    display: block; 
+                    margin: 25px auto; 
+                    border-radius: 8px; 
+                  }
                 `,
                 setup: (editor) => {
                   editor.on('GetContent', (e) => {
