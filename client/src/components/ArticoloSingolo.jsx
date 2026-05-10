@@ -6,7 +6,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
   const [stats, setStats] = useState({});
   const [isVoting, setIsVoting] = useState(false);
 
-  // 1. Generatore di Fingerprint
+  // 1. Generiamo il Fingerprint (Indipendente dall'articolo)
   const deviceId = useMemo(() => {
     const nav = window.navigator;
     const screen = window.screen;
@@ -19,28 +19,33 @@ const ArticoloSingolo = ({ id, onBack }) => {
     return `dev_${Math.abs(hash)}`;
   }, []);
 
+  // 2. Definiamo la chiave del voto (Dipende da id e deviceId, che sono già disponibili)
   const voteKey = useMemo(() => `poll_voted_${id}_${deviceId}`, [id, deviceId]);
 
-  // EFFETTO PER INCREMENTARE LE VISUALIZZAZIONI (Logica mantenuta per la dashboard)
-  useEffect(() => {
-    if (id) {
-      fetch(`http://localhost:8096/api/pagine/${id}/view`, {
-        method: 'PUT'
-      })
-      .then(res => {
-        if (!res.ok) console.warn("Impossibile aggiornare le visualizzazioni");
-      })
-      .catch(err => console.error("Errore contatore visite:", err));
-    }
-  }, [id]);
+  // 3. Funzione di Sillabazione Avanzata (per eliminare gli spazi bianchi enormi)
+  const forceHyphenation = (html) => {
+    if (!html) return "";
+    // Trasforma spazi bloccanti in spazi normali e inserisce soft-hyphen in parole lunghe
+    let processed = html.replace(/&nbsp;/g, ' ');
+    return processed.replace(/([a-zA-ZàèéìòùÀÈÉÌÒÙ]{5,})/g, (word) => {
+      if (word.length < 9) return word;
+      // Inserisce il trattino invisibile dopo la 5a o 6a lettera
+      return word.slice(0, 6) + '&shy;' + word.slice(6);
+    });
+  };
 
+  // Caricamento Dati
   useEffect(() => {
     if (id) {
+      // Incremento visualizzazioni
+      fetch(`http://localhost:8096/api/pagine/${id}/view`, { method: 'PUT' })
+        .catch(err => console.error("Errore contatore visite:", err));
+
+      // Controllo voto locale
       const giaVotatoLocal = localStorage.getItem(voteKey) === 'true';
-      if (giaVotatoLocal) {
-        setVotoEffettuato(true);
-      }
+      if (giaVotatoLocal) setVotoEffettuato(true);
 
+      // Fetch articolo
       fetch(`http://localhost:8096/api/pagine/${id}?fingerprint=${deviceId}`)
         .then(res => res.json())
         .then(data => {
@@ -51,29 +56,24 @@ const ArticoloSingolo = ({ id, onBack }) => {
             localStorage.setItem(voteKey, 'true');
           }
         })
-        .catch(err => console.error("Errore caricamento articolo:", err));
+        .catch(err => console.error("Errore caricamento:", err));
     }
   }, [id, voteKey, deviceId]);
 
   const handleVote = (opzione) => {
     if (votoEffettuato || isVoting) return;
-
     setIsVoting(true);
     fetch(`http://localhost:8096/api/pagine/${id}/vota`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        scelta: opzione,
-        fingerprint: deviceId 
-      })
+      body: JSON.stringify({ scelta: opzione, fingerprint: deviceId })
     })
     .then(async (res) => {
       if (res.status === 403) {
         setVotoEffettuato(true);
         localStorage.setItem(voteKey, 'true');
-        return null; 
+        return null;
       }
-      if (!res.ok) throw new Error("Errore durante l'invio del voto");
       return res.json();
     })
     .then(nuoviVoti => {
@@ -93,13 +93,14 @@ const ArticoloSingolo = ({ id, onBack }) => {
     return items.length > 0 ? items : htmlContent.replace(/<[^>]*>/g, '').split('\n').filter(t => t.trim() !== '');
   };
 
+  // Guard Clause: Se articolo non è ancora caricato, non renderizziamo il corpo
   if (!articolo) return <div style={{ textAlign: 'center', padding: '50px' }}>Caricamento...</div>;
 
   const totalVoti = Object.values(stats).reduce((a, b) => a + b, 0);
   const autore = articolo.autore;
 
   return (
-    <div style={{ backgroundColor: '#fff', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
+    <div lang="it" style={{ backgroundColor: '#fff', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
       <nav style={{ padding: '20px', borderBottom: '1px solid #eee', maxWidth: '900px', margin: '0 auto' }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#007bff', fontWeight: 'bold', cursor: 'pointer', fontSize: '16px' }}>
           ← Torna al Magazine
@@ -107,8 +108,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
       </nav>
 
       <article style={{ maxWidth: '900px', margin: '40px auto', padding: '0 40px' }}>
-        
-        {/* BOX AUTORE */}
         <div style={{ display: 'flex', alignItems: 'center', background: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #dee2e6', marginBottom: '30px' }}>
           {autore?.fotoProfilo ? (
             <img src={`data:image/jpeg;base64,${autore.fotoProfilo}`} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginRight: '20px' }} alt="Avatar" />
@@ -120,28 +119,23 @@ const ArticoloSingolo = ({ id, onBack }) => {
           <div>
             <h3 style={{ margin: 0 }}>{autore?.nome} {autore?.cognome}</h3>
             <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>
-              {/* RIMOSSO IL TESTO DELLE VISITE, MANTENUTA SOLO LA DATA */}
               Pubblicato il {new Date(articolo.dataPubblicazione).toLocaleDateString('it-IT')}
             </p>
           </div>
         </div>
 
-        <h1 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '30px', lineHeight: '1.2' }}>{articolo.titolo}</h1>
+        <h1 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '30px', lineHeight: '1.2', hyphens: 'auto' }}>{articolo.titolo}</h1>
 
-        <div>
+        <div className="article-body">
           {articolo.moduli?.map((m, i) => {
             if (articolo.tipo === "SONDAGGIO") {
               const opzioni = parsePollOptions(m.contenuto);
               return (
                 <div key={i} style={{ background: '#f8f9fa', padding: '30px', borderRadius: '15px', border: '2px solid #007bff', marginBottom: '40px' }}>
-                  <h3 style={{ marginBottom: '25px', color: '#333' }}>
-                    {votoEffettuato ? "Risultati del sondaggio" : "Cosa ne pensi?"}
-                  </h3>
-                  
+                  <h3 style={{ marginBottom: '25px', color: '#333' }}>{votoEffettuato ? "Risultati del sondaggio" : "Cosa ne pensi?"}</h3>
                   {opzioni.map((opt, idx) => {
                     const nVoti = stats[opt] || 0;
                     const percent = totalVoti > 0 ? Math.round((nVoti / totalVoti) * 100) : 0;
-
                     return votoEffettuato ? (
                       <div key={idx} style={{ marginBottom: '15px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
@@ -151,21 +145,10 @@ const ArticoloSingolo = ({ id, onBack }) => {
                         <div style={{ height: '12px', background: '#e9ecef', borderRadius: '6px', overflow: 'hidden' }}>
                           <div style={{ width: `${percent}%`, height: '100%', background: '#007bff', transition: 'width 1s ease-out' }} />
                         </div>
-                        <small style={{ color: '#888' }}>{nVoti} voti</small>
                       </div>
                     ) : (
-                      <button 
-                        key={idx} 
-                        onClick={() => handleVote(opt)} 
-                        disabled={isVoting} 
-                        style={{ 
-                          display: 'block', width: '100%', padding: '16px', marginBottom: '10px', 
-                          backgroundColor: '#fff', border: '2px solid #007bff', color: '#007bff', 
-                          borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px',
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        {isVoting ? "Elaborazione..." : opt}
+                      <button key={idx} onClick={() => handleVote(opt)} disabled={isVoting} style={{ display: 'block', width: '100%', padding: '16px', marginBottom: '10px', backgroundColor: '#fff', border: '2px solid #007bff', color: '#007bff', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        {opt}
                       </button>
                     );
                   })}
@@ -175,8 +158,20 @@ const ArticoloSingolo = ({ id, onBack }) => {
             return (
               <div 
                 key={i} 
-                style={{ fontSize: '19px', lineHeight: '1.8', marginBottom: '25px', textAlign: 'justify', color: '#333' }} 
-                dangerouslySetInnerHTML={{ __html: m.contenuto }} 
+                style={{ 
+                  fontSize: '19px', 
+                  lineHeight: '1.8', 
+                  marginBottom: '25px', 
+                  textAlign: 'justify', 
+                  color: '#333',
+                  hyphens: 'auto',
+                  WebkitHyphens: 'auto',
+                  textJustify: 'distribute', // Migliore per evitare buchi bianchi
+                  wordBreak: 'normal',
+                  overflowWrap: 'break-word',
+                  letterSpacing: '-0.01em' // Aiuta a compattare le righe difficili
+                }} 
+                dangerouslySetInnerHTML={{ __html: forceHyphenation(m.contenuto) }} 
               />
             );
           })}
