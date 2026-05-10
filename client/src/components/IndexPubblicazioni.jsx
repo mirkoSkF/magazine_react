@@ -4,6 +4,7 @@ const IndexPubblicazioni = ({ onReadArticle }) => {
   const [tuttiContenuti, setTuttiContenuti] = useState([]);
   const [pageArticoli, setPageArticoli] = useState(1);
   const [pageSondaggi, setPageSondaggi] = useState(1);
+  const [isHovered, setIsHovered] = useState(false); // Stato per l'hover del bottone
   const itemsPerPage = 5;
 
   const colors = {
@@ -22,54 +23,51 @@ const IndexPubblicazioni = ({ onReadArticle }) => {
       .catch((err) => console.error("Errore:", err));
   }, []);
 
-  // 1. FILTRI INDISTRUTTIBILI
+  const extractText = (articolo, length) => {
+    if (!articolo.moduli || articolo.moduli.length === 0) return "";
+    const testoCompleto = articolo.moduli
+      .filter(m => m.tipo !== "IMMAGINE")
+      .map(m => m.contenuto)
+      .join(" ");
+    const temp = document.createElement('div');
+    temp.innerHTML = testoCompleto;
+    const plainText = temp.innerText || temp.textContent || "";
+    return plainText.length > length ? plainText.substring(0, length) + "..." : plainText;
+  };
+
   const soloArticoli = tuttiContenuti.filter(c => c.tipo?.toUpperCase() !== "SONDAGGIO");
   const soloSondaggi = tuttiContenuti.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
 
-  // 2. LOGICA ARTICOLI (Archivio inizia dal 5° elemento in poi)
   const archivioArtBase = soloArticoli.slice(4);
   const totalPagesArt = Math.ceil(archivioArtBase.length / itemsPerPage);
   const currentArchivioArt = archivioArtBase.slice((pageArticoli - 1) * itemsPerPage, pageArticoli * itemsPerPage);
 
-  // 3. LOGICA SONDAGGI (Archivio inizia dal 2° elemento in poi)
   const archivioSonBase = soloSondaggi.slice(1);
   const totalPagesSon = Math.ceil(archivioSonBase.length / itemsPerPage);
   const currentSondaggi = archivioSonBase.slice((pageSondaggi - 1) * itemsPerPage, pageSondaggi * itemsPerPage);
 
-  if (tuttiContenuti.length === 0) return <div style={{ textAlign: "center", padding: "50px" }}>Caricamento...</div>;
+  if (tuttiContenuti.length === 0) return <div style={{ textAlign: "center", padding: "50px", fontFamily: "Arial" }}>Caricamento...</div>;
 
   const ultimoArticolo = soloArticoli[0] || {};
   const evidenza = soloArticoli.slice(1, 4);
   const ultimoSondaggio = soloSondaggi[0];
 
-  const listItemStyle = { 
-    marginBottom: '12px', 
-    paddingBottom: '8px', 
-    borderBottom: '1px solid #f0f0f0' 
-  };
+  const listItemStyle = { marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid #f0f0f0' };
 
-  // Componente interno per i bottoni della paginazione
   const Pagination = ({ total, current, setPage }) => {
-    if (total <= 1) return null; // Non mostra nulla se c'è solo una pagina
+    if (total <= 1) return null; 
     return (
       <div style={{ display: 'flex', gap: '5px', marginTop: '15px', flexWrap: 'wrap', paddingBottom: '20px' }}>
         {[...Array(total)].map((_, i) => (
           <button
             key={i}
-            onClick={() => {
-                setPage(i + 1);
-                window.scrollTo({ top: 400, behavior: 'smooth' }); // Feedback: torna su all'inizio dell'archivio
-            }}
+            onClick={() => { setPage(i + 1); window.scrollTo({ top: 400, behavior: 'smooth' }); }}
             style={{
-              padding: '5px 12px',
-              cursor: 'pointer',
+              padding: '5px 12px', cursor: 'pointer',
               backgroundColor: current === i + 1 ? colors.primary : 'white',
               color: current === i + 1 ? 'white' : colors.dark,
               border: `1px solid ${current === i + 1 ? colors.primary : colors.border}`,
-              borderRadius: '4px',
-              fontSize: '13px',
-              fontWeight: 'bold',
-              transition: 'all 0.2s'
+              borderRadius: '4px', fontSize: '13px', fontWeight: 'bold', transition: 'all 0.2s'
             }}
           >
             {i + 1}
@@ -82,34 +80,64 @@ const IndexPubblicazioni = ({ onReadArticle }) => {
   return (
     <div style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif" }}>
       
-      {/* Top Cards (Evidenza) */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px", marginBottom: "40px" }}>
+      {/* SEZIONE TOP (IN EVIDENZA) */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
         {evidenza.map((a) => (
-          <div key={a.id} style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px' }}>
+          <div key={a.id} style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ width: '100%', height: '140px', backgroundColor: '#eee', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}>
               {a.copertina && <img src={`data:image/jpeg;base64,${a.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Cover" />}
             </div>
-            <h3 style={{ fontSize: '18px', margin: '10px 0', fontWeight: '700' }}>{a.titolo}</h3>
-            <span onClick={() => onReadArticle(a.id)} style={{ color: colors.primary, cursor: 'pointer', fontWeight: 'bold' }}>Leggi →</span>
+            <span style={{ fontSize: '11px', fontWeight: '700', color: colors.primary, textTransform: 'uppercase', marginBottom: '5px' }}>In Evidenza</span>
+            <h3 style={{ fontSize: '18px', margin: '5px 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2' }}>{a.titolo}</h3>
+            <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>{extractText(a, 80)}</p>
+            <span onClick={() => onReadArticle(a.id)} style={{ color: colors.primary, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>Leggi →</span>
           </div>
         ))}
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
         
-        {/* Main Content */}
+        {/* MAIN CONTENT */}
         <section>
-          <h1 style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px' }}>{ultimoArticolo.titolo}</h1>
+          <div style={{ backgroundColor: colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
+            ULTIM'ORA
+          </div>
+          
+          <h1 style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>{ultimoArticolo.titolo}</h1>
+          
           <div style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px' }}>
             {ultimoArticolo.copertina && <img src={`data:image/jpeg;base64,${ultimoArticolo.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Main" />}
           </div>
-          <button onClick={() => onReadArticle(ultimoArticolo.id)} style={{ padding: '12px 30px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Continua a leggere</button>
+
+          <div style={{ fontSize: '18px', color: '#333', lineHeight: '1.7', marginBottom: '30px', textAlign: 'justify' }}>
+            {extractText(ultimoArticolo, 600)}
+          </div>
+
+          {/* BOTTONE CON EFFETTO HOVER */}
+          <button 
+            onClick={() => onReadArticle(ultimoArticolo.id)} 
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{ 
+              padding: '15px 35px', 
+              backgroundColor: isHovered ? "#333" : colors.dark, 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '4px', 
+              cursor: 'pointer', 
+              fontWeight: 'bold', 
+              fontSize: '16px',
+              transition: 'all 0.3s ease',
+              transform: isHovered ? 'scale(1.05)' : 'scale(1)', // Si allarga leggermente
+              boxShadow: isHovered ? '0 4px 15px rgba(0,0,0,0.2)' : 'none'
+            }}
+          >
+            Continua a leggere
+          </button>
         </section>
 
-        {/* Sidebar */}
+        {/* SIDEBAR */}
         <aside style={{ borderLeft: `1px solid ${colors.border}`, paddingLeft: '30px' }}>
-          
-          {/* ARCHIVIO ARTICOLI */}
           <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>Archivio Articoli</h2>
           {currentArchivioArt.length > 0 ? (
             <>
@@ -126,23 +154,18 @@ const IndexPubblicazioni = ({ onReadArticle }) => {
             <p style={{ fontSize: '13px', color: '#999' }}>Nessun articolo precedente.</p>
           )}
 
-          {/* SEZIONE SONDAGGI */}
           <div style={{ marginTop: '40px' }}>
             <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.primary}`, paddingBottom: '8px', marginBottom: '15px' }}>Sondaggi</h2>
-            
             {ultimoSondaggio && (
               <div onClick={() => onReadArticle(ultimoSondaggio.id)} style={{ backgroundColor: colors.pollFocus, padding: '20px', borderRadius: '8px', color: 'white', cursor: 'pointer', marginBottom: '20px', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform='scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform='scale(1)'}>
                 <h3 style={{ fontSize: '18px', margin: 0 }}>{ultimoSondaggio.titolo}</h3>
                 <p style={{ fontSize: '12px', marginTop: '10px', opacity: 0.8 }}>Vota ora →</p>
               </div>
             )}
-
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {currentSondaggi.map(s => (
                 <li key={s.id} style={listItemStyle}>
-                  <span onClick={() => onReadArticle(s.id)} style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#444' }}>
-                    📊 {s.titolo}
-                  </span>
+                  <span onClick={() => onReadArticle(s.id)} style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#444' }}>📊 {s.titolo}</span>
                 </li>
               ))}
             </ul>
