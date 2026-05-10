@@ -4,7 +4,7 @@ const IndexPubblicazioni = ({ onReadArticle }) => {
   const [tuttiContenuti, setTuttiContenuti] = useState([]);
   const [pageArticoli, setPageArticoli] = useState(1);
   const [pageSondaggi, setPageSondaggi] = useState(1);
-  const [isHovered, setIsHovered] = useState(false); // Stato per l'hover del bottone
+  const [isHovered, setIsHovered] = useState(false);
   const itemsPerPage = 5;
 
   const colors = {
@@ -80,8 +80,43 @@ const IndexPubblicazioni = ({ onReadArticle }) => {
   return (
     <div style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif" }}>
       
-      {/* SEZIONE TOP (IN EVIDENZA) */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
+      {/* BLOCCO CSS RESPONSIVE */}
+      <style>{`
+        /* Tablet e Desktop piccoli */
+        @media (max-width: 992px) {
+          .grid-evidenza {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .main-layout {
+            grid-template-columns: 1fr !important;
+          }
+          .sidebar-aside {
+            border-left: none !important;
+            border-top: 1px solid ${colors.border};
+            padding-left: 0 !important;
+            padding-top: 30px;
+          }
+        }
+
+        /* Smartphone */
+        @media (max-width: 600px) {
+          .grid-evidenza {
+            grid-template-columns: 1fr !important;
+          }
+          .main-title {
+            font-size: 32px !important;
+          }
+          .main-image-container {
+            height: 250px !important;
+          }
+          .read-more-btn {
+            width: 100%;
+          }
+        }
+      `}</style>
+
+      {/* SEZIONE TOP (IN EVIDENZA) - Aggiunta classe grid-evidenza */}
+      <div className="grid-evidenza" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
         {evidenza.map((a) => (
           <div key={a.id} style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ width: '100%', height: '140px', backgroundColor: '#eee', borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}>
@@ -95,17 +130,17 @@ const IndexPubblicazioni = ({ onReadArticle }) => {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
+      {/* MAIN CONTENT + SIDEBAR - Aggiunta classe main-layout */}
+      <div className="main-layout" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
         
-        {/* MAIN CONTENT */}
         <section>
           <div style={{ backgroundColor: colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
             ULTIM'ORA
           </div>
           
-          <h1 style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>{ultimoArticolo.titolo}</h1>
+          <h1 className="main-title" style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>{ultimoArticolo.titolo}</h1>
           
-          <div style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px' }}>
+          <div className="main-image-container" style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px' }}>
             {ultimoArticolo.copertina && <img src={`data:image/jpeg;base64,${ultimoArticolo.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Main" />}
           </div>
 
@@ -113,8 +148,8 @@ const IndexPubblicazioni = ({ onReadArticle }) => {
             {extractText(ultimoArticolo, 600)}
           </div>
 
-          {/* BOTTONE CON EFFETTO HOVER */}
           <button 
+            className="read-more-btn"
             onClick={() => onReadArticle(ultimoArticolo.id)} 
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -128,7 +163,7 @@ const IndexPubblicazioni = ({ onReadArticle }) => {
               fontWeight: 'bold', 
               fontSize: '16px',
               transition: 'all 0.3s ease',
-              transform: isHovered ? 'scale(1.05)' : 'scale(1)', // Si allarga leggermente
+              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
               boxShadow: isHovered ? '0 4px 15px rgba(0,0,0,0.2)' : 'none'
             }}
           >
@@ -136,8 +171,8 @@ const IndexPubblicazioni = ({ onReadArticle }) => {
           </button>
         </section>
 
-        {/* SIDEBAR */}
-        <aside style={{ borderLeft: `1px solid ${colors.border}`, paddingLeft: '30px' }}>
+        {/* SIDEBAR - Aggiunta classe sidebar-aside */}
+        <aside className="sidebar-aside" style={{ borderLeft: `1px solid ${colors.border}`, paddingLeft: '30px' }}>
           <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>Archivio Articoli</h2>
           {currentArchivioArt.length > 0 ? (
             <>

@@ -6,10 +6,9 @@ const MagazineEditor = ({ editId }) => {
   const [content, setContent] = useState('');
   const [zoom, setZoom] = useState(100);
   
-  // STATI PER TITOLO, COPERTINA E TIPO
   const [titolo, setTitolo] = useState('');
   const [copertina, setCopertina] = useState(null);
-  const [tipo, setTipo] = useState('ARTICOLO'); // Default su ARTICOLO
+  const [tipo, setTipo] = useState('ARTICOLO');
 
   const token = localStorage.getItem('token');
   const authHeader = { 'Authorization': `Bearer ${token}` };
@@ -57,23 +56,16 @@ const MagazineEditor = ({ editId }) => {
     }
   };
 
-  // FUNZIONE AGGIORNATA PER IL ZOOM DELLE IMMAGINI
   const updateEditorZoom = (newZoom) => {
     setZoom(newZoom);
     if (editorRef.current) {
       const doc = editorRef.current.getDoc();
       const body = doc.body;
       const zoomValue = newZoom / 100;
-      
-      // Applica lo zoom al body
       body.style.zoom = zoomValue;
-      
-      // Forza le immagini a seguire lo zoom se necessario
       const images = body.querySelectorAll('img');
       images.forEach(img => {
-        img.style.height = 'auto'; // Mantiene le proporzioni
-        // Se l'immagine ha una max-width del 100%, lo zoom del body dovrebbe bastare,
-        // ma forziamo la trasformazione per i browser che faticano a gestire img + zoom
+        img.style.height = 'auto';
         img.style.maxWidth = '100%';
       });
     }
@@ -84,12 +76,7 @@ const MagazineEditor = ({ editId }) => {
 
   const handlePublish = async () => {
     const currentContent = editorRef.current ? editorRef.current.getContent() : content;
-    
-    if (!titolo.trim()) {
-      alert("Inserisci un titolo!");
-      return;
-    }
-
+    if (!titolo.trim()) { alert("Inserisci un titolo!"); return; }
     if (!currentContent || currentContent.trim() === "" || currentContent === '<p></p>') {
       alert("Il contenuto è vuoto!");
       return;
@@ -119,28 +106,107 @@ const MagazineEditor = ({ editId }) => {
       });
       if (response.ok) alert(editId ? "Aggiornato con successo!" : "Pubblicato con successo!");
       else alert("Errore dal server: " + response.status);
-    } catch (error) {
-      alert("Errore di connessione.");
-    }
+    } catch (error) { alert("Errore di connessione."); }
   };
 
   return (
     <div style={{ backgroundColor: colors.lightGray, minHeight: '100vh', position: 'relative' }}>
       
-      <div style={{
-        position: 'fixed',
-        right: '25px',
-        top: '100px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '15px',
-        zIndex: 2000
-      }}>
-        <button onClick={handlePublish} style={floatingButtonStyle(colors.primary)} title="Salva">💾</button>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', background: 'white', padding: '10px', borderRadius: '30px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-          <button onClick={handleZoomIn} style={zoomButtonStyle}>+</button>
-          <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#666', fontFamily: 'Arial, sans-serif' }}>{zoom}%</span>
+      <style>
+        {`
+          .mobile-warning {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: ${colors.dark};
+            color: white;
+            z-index: 9999;
+            padding: 40px;
+            text-align: center;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+          }
+
+          .floating-controls {
+            position: fixed;
+            right: 25px;
+            top: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 15px;
+            z-index: 2000;
+          }
+
+          .zoom-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: white;
+            padding: 10px;
+            border-radius: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          }
+
+          @media (max-width: 768px) {
+            .mobile-warning { display: flex; }
+            body { overflow: hidden; }
+          }
+
+          @media (max-width: 1024px) {
+            .floating-controls {
+              position: sticky;
+              top: 10px;
+              right: 0;
+              flex-direction: row;
+              justify-content: center;
+              margin-bottom: 20px;
+              width: 100%;
+              padding: 10px;
+              box-sizing: border-box;
+            }
+            .zoom-container {
+              flex-direction: row !important;
+              padding: 5px 15px !important;
+              border-radius: 50px !important;
+            }
+          }
+        `}
+      </style>
+
+      {/* MESSAGGIO PER MOBILE */}
+      <div className="mobile-warning">
+        <div style={{ fontSize: '50px', marginBottom: '20px' }}>📱</div>
+        <h2>Editor non disponibile</h2>
+        <p>L'interfaccia di scrittura richiede uno schermo più ampio (Tablet o PC).</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          style={{ 
+            marginTop: '20px', padding: '12px 25px', borderRadius: '8px', border: 'none', 
+            background: colors.primary, color: 'white', fontWeight: 'bold', cursor: 'pointer' 
+          }}
+        >
+          Torna alla Home
+        </button>
+      </div>
+
+      {/* CONTROLLI FLOTTANTI CON TESTO */}
+      <div className="floating-controls">
+        <button 
+          onClick={handlePublish} 
+          style={floatingButtonStyle(editId ? colors.success : colors.primary)}
+        >
+          {editId ? "Modifica Articolo" : "Pubblica Articolo"}
+        </button>
+        <div className="zoom-container">
           <button onClick={handleZoomOut} style={zoomButtonStyle}>−</button>
+          <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#666', fontFamily: 'Arial', minWidth: '35px', textAlign: 'center' }}>
+            {zoom}%
+          </span>
+          <button onClick={handleZoomIn} style={zoomButtonStyle}>+</button>
         </div>
       </div>
 
@@ -173,15 +239,9 @@ const MagazineEditor = ({ editId }) => {
               value={titolo}
               onChange={(e) => setTitolo(e.target.value)}
               style={{ 
-                width: '100%', 
-                fontSize: '28px', 
-                fontWeight: 'bold', 
-                border: 'none', 
+                width: '100%', fontSize: '28px', fontWeight: 'bold', border: 'none', 
                 borderBottom: `2px solid ${tipo === "SONDAGGIO" ? colors.accent : colors.border}`,
-                outline: 'none',
-                marginBottom: '20px',
-                paddingBottom: '10px',
-                fontFamily: 'Arial, Helvetica, sans-serif' 
+                outline: 'none', marginBottom: '20px', paddingBottom: '10px', fontFamily: 'Arial, Helvetica, sans-serif' 
               }}
             />
             
@@ -198,13 +258,7 @@ const MagazineEditor = ({ editId }) => {
             </div>
           </div>
 
-          <div style={{ 
-            background: 'white', 
-            boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-            borderRadius: '12px',
-            border: `1px solid ${colors.border}`,
-            overflow: 'hidden'
-          }}>
+          <div style={{ background: 'white', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', borderRadius: '12px', border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
             <div style={{ padding: '10px 20px', background: colors.lightGray, borderBottom: `1px solid ${colors.border}`, fontSize: '13px', color: '#666', fontFamily: 'Arial' }}>
               {tipo === "ARTICOLO" ? "Scrivi il corpo dell'articolo qui sotto" : "⚠️ Importante: Elenca le opzioni di voto usando un elenco puntato"}
             </div>
@@ -212,7 +266,6 @@ const MagazineEditor = ({ editId }) => {
               tinymceScriptSrc="/tinymce/tinymce.min.js"
               onInit={(evt, editor) => {
                   editorRef.current = editor;
-                  // Applichiamo lo zoom iniziale
                   const body = editor.getDoc().body;
                   body.style.zoom = zoom / 100;
               }}
@@ -287,9 +340,22 @@ const MagazineEditor = ({ editId }) => {
 };
 
 const floatingButtonStyle = (color) => ({
-  background: color, color: 'white', border: 'none', width: '45px', height: '45px', borderRadius: '12px',
-  cursor: 'pointer', fontSize: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center'
+  background: color, 
+  color: 'white', 
+  border: 'none', 
+  padding: '0 20px', 
+  height: '45px', 
+  borderRadius: '8px',
+  cursor: 'pointer', 
+  fontSize: '14px', 
+  fontWeight: 'bold',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+  display: 'flex', 
+  alignItems: 'center', 
+  justifyContent: 'center',
+  whiteSpace: 'nowrap',
+  fontFamily: 'Arial, sans-serif',
+  transition: 'all 0.3s ease'
 });
 
 const zoomButtonStyle = { background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#555', padding: '5px' };

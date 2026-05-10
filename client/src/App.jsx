@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MagazineEditor from './components/MagazineEditor';
 import DashboardEditore from './components/DashboardEditore';
 import IndexPubblicazioni from './components/IndexPubblicazioni';
-import ArticoloSingolo from './components/ArticoloSingolo'; // Nuovo Componente
+import ArticoloSingolo from './components/ArticoloSingolo'; 
 import Login from './components/Login';
 
 const colors = {
@@ -15,8 +15,8 @@ const colors = {
 
 function App() {
   const [view, setView] = useState('index'); 
-  const [selectedArticleId, setSelectedArticleId] = useState(null); // ID per la lettura
-  const [editId, setEditId] = useState(null); // ID per la modifica
+  const [selectedArticleId, setSelectedArticleId] = useState(null);
+  const [editId, setEditId] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
 
   useEffect(() => {
@@ -41,11 +41,10 @@ function App() {
     setView('index');
   };
 
-  // Funzione per andare a leggere un articolo
   const handleReadArticle = (id) => {
     setSelectedArticleId(id);
     setView('articolo');
-    window.scrollTo(0, 0); // Torna in alto
+    window.scrollTo(0, 0);
   };
 
   const handleEdit = (id) => {
@@ -66,6 +65,7 @@ function App() {
       display: 'flex',
       flexDirection: 'column'
     }}>
+      {/* SEZIONE CSS AGGIORNATA PER RESPONSIVE */}
       <style>{`
         .nav-btn { transition: all 0.3s ease-in-out !important; }
         .nav-btn:hover {
@@ -77,6 +77,36 @@ function App() {
           background-color: ${colors.primary} !important;
           color: ${colors.white} !important;
           cursor: default;
+        }
+
+        /* Regole Responsive */
+        @media (max-width: 992px) {
+          .nav-bar {
+            flex-direction: column !important;
+            padding: 15px 20px !important;
+            gap: 15px;
+          }
+          .nav-links {
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap; /* Permette ai bottoni di andare a capo */
+            gap: 8px !important;
+          }
+          .nav-btn {
+            flex: 1 1 auto; /* I bottoni si adattano allo spazio */
+            padding: 8px 12px !important;
+            font-size: 13px !important;
+            text-align: center;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .nav-links {
+            flex-direction: column; /* Su telefoni piccoli, i tasti diventano una lista */
+          }
+          .nav-btn {
+            width: 100%;
+          }
         }
       `}</style>
 
@@ -135,10 +165,8 @@ function App() {
       </nav>
 
       <main style={{ paddingBottom: '40px', flex: '1' }}>
-        {/* Passiamo handleReadArticle all'indice per gestire i click */}
         {view === 'index' && <IndexPubblicazioni onReadArticle={handleReadArticle} />}
         
-        {/* Vista Articolo Singolo */}
         {view === 'articolo' && (
           <ArticoloSingolo 
             id={selectedArticleId} 
@@ -163,7 +191,6 @@ function App() {
   );
 }
 
-// ... (stili invariati)
 const navBarStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 60px', background: colors.white, boxShadow: '0 2px 10px rgba(0,0,0,.05)', position: 'sticky', top: 0, zIndex: 1000 };
 const footerStyle = { background: colors.dark, color: colors.white, textAlign: 'center', padding: '20px 10px', fontSize: '14px', borderTop: `3px solid ${colors.primary}` };
 const btnStyle = { background: 'transparent', color: colors.primary, border: `1px solid ${colors.primary}`, padding: '8px 22px', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', fontSize: '14px', outline: 'none', whiteSpace: 'nowrap' };

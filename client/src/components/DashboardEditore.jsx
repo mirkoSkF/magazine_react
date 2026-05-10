@@ -6,7 +6,6 @@ const DashboardEditore = ({ onEdit }) => {
   const [pwdForm, setPwdForm] = useState({ vecchiaPassword: '', nuovaPassword: '' });
   const [pwdMsg, setPwdMsg] = useState({ testo: '', tipo: '' });
 
-  // Recupero del token dal localStorage
   const token = localStorage.getItem('token');
   
   const colors = {
@@ -21,49 +20,34 @@ const DashboardEditore = ({ onEdit }) => {
   };
 
   const caricaDati = async () => {
-    if (!token) {
-      console.warn("Nessun token trovato. Effettua il login.");
-      return;
-    }
-
+    if (!token) return;
     try {
-      // 1. Caricamento Profilo Utente
       const resUser = await fetch('http://localhost:8096/api/profilo', { 
         headers: { 'Authorization': `Bearer ${token}` } 
       });
       if (resUser.ok) {
         const dataUser = await resUser.json();
         setUtente(dataUser);
-      } else {
-        console.error("Errore profilo:", resUser.status);
       }
-
-      // 2. Caricamento Articoli Personali (mie)
       const resArt = await fetch('http://localhost:8096/api/pagine/mie', { 
         headers: { 'Authorization': `Bearer ${token}` } 
       });
       if (resArt.ok) {
         const dataArt = await resArt.json();
         setArticoli(dataArt);
-      } else {
-        console.error("Errore articoli:", resArt.status);
       }
     } catch (err) { 
-      console.error("Errore di connessione al server:", err); 
+      console.error("Errore di connessione:", err); 
     }
   };
 
-  useEffect(() => { 
-    caricaDati(); 
-  }, []);
+  useEffect(() => { caricaDati(); }, []);
 
   const handleFotoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
     const formData = new FormData();
     formData.append('file', file);
-    
     try {
       const res = await fetch('http://localhost:8096/api/profilo/upload-foto', {
         method: 'POST',
@@ -71,9 +55,7 @@ const DashboardEditore = ({ onEdit }) => {
         body: formData
       });
       if (res.ok) caricaDati();
-    } catch (err) {
-      console.error("Errore upload:", err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const handleCambiaPassword = async (e) => {
@@ -93,9 +75,7 @@ const DashboardEditore = ({ onEdit }) => {
       } else {
         setPwdMsg({ testo: "Errore: vecchia password errata", tipo: 'danger' });
       }
-    } catch (err) { 
-      setPwdMsg({ testo: "Errore connessione", tipo: 'danger' }); 
-    }
+    } catch (err) { setPwdMsg({ testo: "Errore connessione", tipo: 'danger' }); }
   };
 
   const elimina = async (id) => {
@@ -106,49 +86,85 @@ const DashboardEditore = ({ onEdit }) => {
           headers: { 'Authorization': `Bearer ${token}` } 
         });
         if (res.ok) caricaDati();
-      } catch (err) {
-        console.error("Errore eliminazione:", err);
-      }
+      } catch (err) { console.error(err); }
     }
   };
 
   return (
-    <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
+    <div className="dashboard-container" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
       
       <style>
         {`
-          .btn-modifica { background: transparent; color: ${colors.primary}; border: 1px solid ${colors.primary}; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.3s ease; margin-left: 10px; }
+          .dashboard-header { display: flex; gap: 20px; margin-bottom: 30px; }
+          
+          .btn-aggiorna { transition: all 0.3s ease; }
+          .btn-aggiorna:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+          .btn-aggiorna:active { transform: translateY(0); }
+
+          .btn-modifica { background: transparent; color: ${colors.primary}; border: 1px solid ${colors.primary}; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.3s ease; }
           .btn-modifica:hover { background: ${colors.primary}; color: white; }
+          
           .btn-elimina { background: transparent; color: ${colors.danger}; border: 1px solid ${colors.danger}; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.3s ease; margin-left: 10px; }
           .btn-elimina:hover { background: ${colors.danger}; color: white; }
+          
+          .table-responsive { width: 100%; overflow-x: auto; background: ${colors.white}; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid ${colors.border}; }
+          
+          /* GESTIONE AZIONI: Garantisce distanza tra i bottoni */
+          .actions-cell { 
+            display: flex; 
+            justify-content: flex-end; 
+            align-items: center; 
+            gap: 10px; /* Distanza minima garantita */
+          }
+
+          /* RESPONSIVE RULES */
+          @media (max-width: 900px) {
+            .dashboard-header { flex-direction: column; }
+            .user-panel, .security-panel { flex: none !important; width: 100% !important; box-sizing: border-box; }
+            
+            /* In colonna su schermi piccoli per evitare sovrapposizioni orizzontali */
+            .actions-cell { 
+              flex-direction: column; 
+              gap: 8px; 
+              align-items: flex-end; 
+            }
+            .btn-elimina { margin-left: 0; }
+          }
+
+          @media (max-width: 600px) {
+            .user-info-container { flex-direction: column; text-align: center; }
+            .user-info-container img, .user-info-container .placeholder-avatar { margin-right: 0 !important; margin-bottom: 15px; }
+            .dashboard-container { padding: 10px !important; }
+            th, td { padding: 10px !important; font-size: 13px; }
+          }
         `}
       </style>
 
       {/* PANNELLO UTENTE */}
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ flex: 2, display: 'flex', alignItems: 'center', background: colors.white, padding: '20px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
-          <div>
+      <div className="dashboard-header">
+        <div className="user-panel" style={{ flex: 2, display: 'flex', alignItems: 'center', background: colors.white, padding: '20px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
+          <div className="user-info-container" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
             {utente?.fotoProfilo ? (
               <img src={`data:image/jpeg;base64,${utente.fotoProfilo}`} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginRight: '20px' }} alt="Avatar" />
             ) : (
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#ccc', marginRight: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
+              <div className="placeholder-avatar" style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#ccc', marginRight: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
                 {utente?.nome?.charAt(0)}{utente?.cognome?.charAt(0)}
               </div>
             )}
-          </div>
-          <div>
-            <h3 style={{ margin: 0 }}>{utente?.nome} {utente?.cognome}</h3>
-            <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>{utente?.ruolo}</p>
-            <input type="file" onChange={handleFotoUpload} style={{ fontSize: '11px' }} />
+            <div>
+              <h3 style={{ margin: 0 }}>{utente?.nome} {utente?.cognome}</h3>
+              <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>{utente?.ruolo}</p>
+              <input type="file" onChange={handleFotoUpload} style={{ fontSize: '11px', maxWidth: '100%' }} />
+            </div>
           </div>
         </div>
 
-        <div style={{ flex: 1, background: colors.white, padding: '20px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
+        <div className="security-panel" style={{ flex: 1, background: colors.white, padding: '20px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
           <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', textTransform: 'uppercase', color: colors.dark }}>Sicurezza</h4>
           <form onSubmit={handleCambiaPassword} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <input type="password" placeholder="Vecchia password" value={pwdForm.vecchiaPassword} onChange={e => setPwdForm({...pwdForm, vecchiaPassword: e.target.value})} style={inputStyle} required />
             <input type="password" placeholder="Nuova password" value={pwdForm.nuovaPassword} onChange={e => setPwdForm({...pwdForm, nuovaPassword: e.target.value})} style={inputStyle} required />
-            <button type="submit" style={btnPwdStyle(colors.primary)}>Aggiorna</button>
+            <button type="submit" className="btn-aggiorna" style={btnPwdStyle(colors.primary)}>Aggiorna</button>
           </form>
           {pwdMsg.testo && <p style={{ fontSize: '11px', color: colors[pwdMsg.tipo], marginTop: '5px', fontWeight: '600' }}>{pwdMsg.testo}</p>}
         </div>
@@ -156,9 +172,8 @@ const DashboardEditore = ({ onEdit }) => {
 
       <h2 style={{ color: colors.dark, fontWeight: '600', marginBottom: '20px' }}>Gestione Contenuti</h2>
 
-      {/* TABELLA CONTENUTI */}
-      <div style={{ background: colors.white, borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', overflow: 'hidden', border: `1px solid ${colors.border}` }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+      <div className="table-responsive">
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
           <thead>
             <tr style={{ background: colors.lightGray, borderBottom: `2px solid ${colors.border}` }}>
               <th style={thStyle}>Tipo</th>
@@ -192,7 +207,7 @@ const DashboardEditore = ({ onEdit }) => {
                   <td style={{ ...tdStyle, textAlign: 'center' }}>
                     <span style={{ fontWeight: 'bold', color: colors.primary }}>{a.visualizzazioni || 0}</span>
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'right' }}>
+                  <td className="actions-cell" style={{ ...tdStyle, textAlign: 'right' }}>
                     <button onClick={() => onEdit(a.id)} className="btn-modifica">Modifica</button>
                     <button onClick={() => elimina(a.id)} className="btn-elimina">Elimina</button>
                   </td>
@@ -200,9 +215,7 @@ const DashboardEditore = ({ onEdit }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="5" style={{ padding: '30px', textAlign: 'center', color: '#999' }}>
-                  Nessun contenuto trovato. Assicurati di aver effettuato il login correttamente.
-                </td>
+                <td colSpan="5" style={{ padding: '30px', textAlign: 'center', color: '#999' }}>Nessun contenuto trovato.</td>
               </tr>
             )}
           </tbody>
