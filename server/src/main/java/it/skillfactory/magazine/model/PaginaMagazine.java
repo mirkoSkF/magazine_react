@@ -5,8 +5,10 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Entity
 @Data 
@@ -41,13 +43,24 @@ public class PaginaMagazine {
     private Utente autore;
 
     // --- AGGIUNTA PER IL SONDAGGIO ---
-    /**
-     * Questa mappa memorizza la scelta (chiave) e il numero di voti (valore).
-     * Esempio: {"Java": 15, "C#": 10, "Python": 30}
-     */
     @ElementCollection
     @CollectionTable(name = "pagina_voti_sondaggio", joinColumns = @JoinColumn(name = "pagina_id"))
     @MapKeyColumn(name = "opzione_scelta")
     @Column(name = "conteggio_voti")
     private Map<String, Integer> votiSondaggio = new HashMap<>();
+
+    // --- TRACCIAMENTO VOTANTI ---
+    @ElementCollection
+    @CollectionTable(name = "pagina_identificativi_votanti", joinColumns = @JoinColumn(name = "pagina_id"))
+    @Column(name = "identificativo_utente")
+    private Set<String> identificativiVotanti = new HashSet<>();
+
+    // --- INTEGRAZIONE PER UI FLUIDA ---
+    /**
+     * Campo non persistente sul database. 
+     * Viene popolato al volo dal Controller per dire al frontend 
+     * se l'utente corrente ha già votato.
+     */
+    @Transient
+    private boolean giaVotato;
 }

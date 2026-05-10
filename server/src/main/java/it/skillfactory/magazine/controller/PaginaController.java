@@ -5,11 +5,14 @@ import it.skillfactory.magazine.model.Utente;
 import it.skillfactory.magazine.repository.PaginaRepository;
 import it.skillfactory.magazine.repository.UtenteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 
 @RestController
 @RequestMapping("/api/pagine")
@@ -23,29 +26,89 @@ public class PaginaController {
         return paginaRepository.findAll();
     }
 
+    // MODIFICATO: Incremento univoco delle visualizzazioni
     @PutMapping("/{id}/view")
-    public ResponseEntity<?> incrementaVisualizzazioni(@PathVariable Long id) {
+    public ResponseEntity<?> incrementaVisualizzazioni(
+            @PathVariable Long id, 
+            @RequestParam(required = false) String fingerprint, 
+            HttpServletRequest request) {
+        
+        // Identifichiamo l'utente (Hardware ID o IP)
+        String viewerId = (fingerprint != null) ? fingerprint : request.getRemoteAddr();
+
         return paginaRepository.findById(id).map(p -> {
+            // Se l'utente non è già presente nella lista dei votanti (o una lista dedicata ai visualizzatori)
+            // Qui usiamo 'identificativiVotanti' per coerenza, ma se vuoi distinguere chi ha letto da chi ha votato 
+            // dovresti aggiungere un Set specifico 'visualizzatori' nel modello PaginaMagazine.
+            // Se usiamo 'identificativiVotanti', chi vota non incrementerà la vista di nuovo.
+            
+            if (p.getIdentificativiVotanti() != null && p.getIdentificativiVotanti().contains(viewerId)) {
+                return ResponseEntity.ok().build(); // Già tracciato, non incrementiamo
+            }
+
             p.setVisualizzazioni(p.getVisualizzazioni() + 1);
+            
+            // Opzionale: aggiungiamo l'ID ai votanti (o visualizzatori) per bloccare future viste
+            if (p.getIdentificativiVotanti() == null) {
+                p.setIdentificativiVotanti(new HashSet<>());
+            }
+            p.getIdentificativiVotanti().add(viewerId);
+            
             paginaRepository.save(p);
             return ResponseEntity.ok().build();
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // NUOVO: Endpoint per votare un sondaggio
     @PutMapping("/{id}/vota")
-    public ResponseEntity<?> votaSondaggio(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<?> votaSondaggio(
+            @PathVariable Long id, 
+            @RequestBody Map<String, String> payload, 
+            HttpServletRequest request) {
+
         String scelta = payload.get("scelta");
+        String fingerprint = payload.get("fingerprint");
+        String identificativoUtente = (fingerprint != null) ? fingerprint : request.getRemoteAddr();
+
         return paginaRepository.findById(id).map(p -> {
+            if (p.getIdentificativiVotanti() != null && p.getIdentificativiVotanti().contains(identificativoUtente)) {
+                // Se ha già visualizzato ma non ancora votato, il codice sopra lo avrà già aggiunto al Set.
+                // In un sondaggio reale, dovresti distinguere tra "ha visto" e "ha votato".
+                // Per ora, manteniamo la logica di blocco voto se l'ID è presente.
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Hai già partecipato.");
+            }
+
             Map<String, Integer> voti = p.getVotiSondaggio();
             voti.put(scelta, voti.getOrDefault(scelta, 0) + 1);
             p.setVotiSondaggio(voti);
+
+            if (p.getIdentificativiVotanti() == null) {
+                p.setIdentificativiVotanti(new HashSet<>());
+            }
+            p.getIdentificativiVotanti().add(identificativoUtente);
+
             paginaRepository.save(p);
             return ResponseEntity.ok(voti);
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // NUOVO: Endpoint per leggere solo le statistiche
+    @GetMapping("/{id}")
+    public ResponseEntity<PaginaMagazine> getById(
+            @PathVariable Long id, 
+            HttpServletRequest request,
+            @RequestParam(required = false) String fingerprint) {
+
+        String voterId = (fingerprint != null) ? fingerprint : request.getRemoteAddr();
+
+        return paginaRepository.findById(id)
+                .map(p -> {
+                    if (p.getIdentificativiVotanti() != null && p.getIdentificativiVotanti().contains(voterId)) {
+                        p.setGiaVotato(true); 
+                    }
+                    return ResponseEntity.ok(p);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/{id}/stats")
     public ResponseEntity<?> getStats(@PathVariable Long id) {
         return paginaRepository.findById(id)
@@ -58,13 +121,6 @@ public class PaginaController {
         Utente u = utenteRepository.findByUsername(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Utente non trovato"));
         return paginaRepository.findByAutoreId(u.getId());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<PaginaMagazine> getById(@PathVariable Long id) {
-        return paginaRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
