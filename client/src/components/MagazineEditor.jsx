@@ -199,7 +199,7 @@ const MagazineEditor = ({ editId }) => {
           onClick={handlePublish} 
           style={floatingButtonStyle(editId ? colors.success : colors.primary)}
         >
-          {editId ? "Modifica Articolo" : "Pubblica Articolo"}
+          {editId ? "Salva Modifiche" : "Pubblica Articolo"}
         </button>
         <div className="zoom-container">
           <button onClick={handleZoomOut} style={zoomButtonStyle}>−</button>
@@ -290,7 +290,30 @@ const MagazineEditor = ({ editId }) => {
                 verify_html: false,
                 inline_styles: true,
                 forced_root_block: 'p',
-                font_family_formats: 'Arial=arial,helvetica,sans-serif; Georgia=georgia,palatino,serif; Courier New=courier new,courier,monospace;',
+                
+                // 1. ELENCO DEI 20 FONT PIÙ UTILIZZATI (CONFIGURAZIONE MENU)
+                font_family_formats: 
+                    "Arial=arial,helvetica,sans-serif;" +
+                    "Arial Black=arial black,avant garde;" +
+                    "Book Antiqua=book antiqua,palatino;" +
+                    "Comic Sans MS=comic sans ms,sans-serif;" +
+                    "Courier New=courier new,courier;" +
+                    "Georgia=georgia,palatino;" +
+                    "Helvetica=helvetica;" +
+                    "Impact=impact,chicago;" +
+                    "Inter=Inter,sans-serif;" +
+                    "Lato=Lato,sans-serif;" +
+                    "Montserrat=Montserrat,sans-serif;" +
+                    "Open Sans=Open Sans,sans-serif;" +
+                    "Oswald=Oswald,sans-serif;" +
+                    "Playfair Display=playfair display,serif;" +
+                    "Poppins=Poppins,sans-serif;" +
+                    "Roboto=Roboto,sans-serif;" +
+                    "Tahoma=tahoma,arial,helvetica,sans-serif;" +
+                    "Times New Roman=times new roman,times;" +
+                    "Trebuchet MS=trebuchet ms,geneva;" +
+                    "Verdana=verdana,geneva;",
+
                 plugins: [
                   'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                   'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
@@ -299,7 +322,11 @@ const MagazineEditor = ({ editId }) => {
                 ],
                 toolbar_mode: 'wrap',
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor emoticons | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | charmap anchor pagebreak | visualblocks visualchars code fullscreen preview | help',
+                
+                // 2. IMPORTAZIONE E STILE (CONFIGURAZIONE VISUALIZZAZIONE)
                 content_style: `
+                  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Playfair+Display:wght@700&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap');
+                  
                   body { 
                     font-family: Arial, Helvetica, sans-serif; 
                     font-size: 18px; 
