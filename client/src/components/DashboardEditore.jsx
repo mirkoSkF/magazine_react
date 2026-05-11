@@ -109,20 +109,16 @@ const DashboardEditore = ({ onEdit }) => {
           
           .table-responsive { width: 100%; overflow-x: auto; background: ${colors.white}; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid ${colors.border}; }
           
-          /* GESTIONE AZIONI: Garantisce distanza tra i bottoni */
           .actions-cell { 
             display: flex; 
             justify-content: flex-end; 
             align-items: center; 
-            gap: 10px; /* Distanza minima garantita */
+            gap: 10px; 
           }
 
-          /* RESPONSIVE RULES */
           @media (max-width: 900px) {
             .dashboard-header { flex-direction: column; }
             .user-panel, .security-panel { flex: none !important; width: 100% !important; box-sizing: border-box; }
-            
-            /* In colonna su schermi piccoli per evitare sovrapposizioni orizzontali */
             .actions-cell { 
               flex-direction: column; 
               gap: 8px; 
@@ -162,7 +158,7 @@ const DashboardEditore = ({ onEdit }) => {
         <div className="security-panel" style={{ flex: 1, background: colors.white, padding: '20px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
           <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', textTransform: 'uppercase', color: colors.dark }}>Sicurezza</h4>
           <form onSubmit={handleCambiaPassword} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <input type="password" placeholder="Vecchia password" value={pwdForm.vecchiaPassword} onChange={e => setPwdForm({...pwdForm, vecchiaPassword: e.target.value})} style={inputStyle} required />
+            <input type="password" placeholder="Vecchia password" value={pwdForm.vecciaPassword} onChange={e => setPwdForm({...pwdForm, vecchiaPassword: e.target.value})} style={inputStyle} required />
             <input type="password" placeholder="Nuova password" value={pwdForm.nuovaPassword} onChange={e => setPwdForm({...pwdForm, nuovaPassword: e.target.value})} style={inputStyle} required />
             <button type="submit" className="btn-aggiorna" style={btnPwdStyle(colors.primary)}>Aggiorna</button>
           </form>
@@ -188,13 +184,15 @@ const DashboardEditore = ({ onEdit }) => {
               articoli.map(a => (
                 <tr key={a.id} style={rowStyle}>
                   <td style={tdStyle}>
+                    {/* Badge testuale senza icone grafiche che possono rompersi */}
                     <span style={{ 
-                      fontSize: '10px', padding: '3px 8px', borderRadius: '12px', 
-                      background: a.tipo === 'SONDAGGIO' ? '#f3f0ff' : '#f1f3f5',
-                      color: a.tipo === 'SONDAGGIO' ? colors.accent : '#495057',
-                      fontWeight: 'bold', border: `1px solid ${a.tipo === 'SONDAGGIO' ? colors.accent : '#dee2e6'}`
+                      fontSize: '10px', padding: '4px 10px', borderRadius: '4px', 
+                      background: a.tipo === 'SONDAGGIO' ? colors.accent : '#6c757d',
+                      color: colors.white,
+                      letterSpacing: '0.5px',
+                      fontWeight: 'bold'
                     }}>
-                      {a.tipo === 'SONDAGGIO' ? '📊 POLL' : '📰 ART'}
+                      {a.tipo === 'SONDAGGIO' ? 'POLL' : 'ART'}
                     </span>
                   </td>
                   <td style={tdStyle}>

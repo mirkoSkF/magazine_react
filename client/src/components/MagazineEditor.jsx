@@ -291,7 +291,6 @@ const MagazineEditor = ({ editId }) => {
                 inline_styles: true,
                 forced_root_block: 'p',
                 
-                // 1. ELENCO DEI 20 FONT PIÙ UTILIZZATI (CONFIGURAZIONE MENU)
                 font_family_formats: 
                     "Arial=arial,helvetica,sans-serif;" +
                     "Arial Black=arial black,avant garde;" +
@@ -323,7 +322,6 @@ const MagazineEditor = ({ editId }) => {
                 toolbar_mode: 'wrap',
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor emoticons | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | charmap anchor pagebreak | visualblocks visualchars code fullscreen preview | help',
                 
-                // 2. IMPORTAZIONE E STILE (CONFIGURAZIONE VISUALIZZAZIONE)
                 content_style: `
                   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Playfair+Display:wght@700&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap');
                   
@@ -337,12 +335,27 @@ const MagazineEditor = ({ editId }) => {
                     margin: 0 !important;
                     box-sizing: border-box;
                   }
+
+                  /* MARGINI PROFESSIONALI PER L'EDITOR */
                   img { 
                     max-width: 100%; 
                     height: auto !important; 
                     display: block; 
                     margin: 25px auto; 
                     border-radius: 8px; 
+                    transition: margin 0.2s ease;
+                  }
+
+                  /* Stile quando l'immagine è flottata a sinistra */
+                  img[style*="float: left"] {
+                    margin: 10px 25px 15px 0 !important;
+                    float: left;
+                  }
+
+                  /* Stile quando l'immagine è flottata a destra */
+                  img[style*="float: right"] {
+                    margin: 10px 0 15px 25px !important;
+                    float: right;
                   }
                 `,
                 setup: (editor) => {

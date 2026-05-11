@@ -6,7 +6,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
   const [stats, setStats] = useState({});
   const [isVoting, setIsVoting] = useState(false);
 
-  // 1. Generiamo il Fingerprint (Indipendente dall'articolo)
   const deviceId = useMemo(() => {
     const nav = window.navigator;
     const screen = window.screen;
@@ -19,33 +18,37 @@ const ArticoloSingolo = ({ id, onBack }) => {
     return `dev_${Math.abs(hash)}`;
   }, []);
 
-  // 2. Definiamo la chiave del voto (Dipende da id e deviceId, che sono già disponibili)
   const voteKey = useMemo(() => `poll_voted_${id}_${deviceId}`, [id, deviceId]);
 
-  // 3. Funzione di Sillabazione Avanzata (per eliminare gli spazi bianchi enormi)
   const forceHyphenation = (html) => {
     if (!html) return "";
-    // Trasforma spazi bloccanti in spazi normali e inserisce soft-hyphen in parole lunghe
-    let processed = html.replace(/&nbsp;/g, ' ');
-    return processed.replace(/([a-zA-ZàèéìòùÀÈÉÌÒÙ]{5,})/g, (word) => {
-      if (word.length < 9) return word;
-      // Inserisce il trattino invisibile dopo la 5a o 6a lettera
-      return word.slice(0, 6) + '&shy;' + word.slice(6);
-    });
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    const processNode = (node) => {
+      if (node.nodeType === 3) {
+        let text = node.nodeValue.replace(/&nbsp;/g, ' ');
+        node.nodeValue = text.replace(/([a-zA-ZàèéìòùÀÈÉÌÒÙ]{5,})/g, (word) => {
+          if (word.length < 9) return word;
+          return word.slice(0, 6) + '\u00AD' + word.slice(6);
+        });
+      } else if (node.nodeType === 1 && node.tagName !== 'IMG') {
+        node.childNodes.forEach(child => processNode(child));
+      }
+    };
+
+    processNode(doc.body);
+    return doc.body.innerHTML;
   };
 
-  // Caricamento Dati
   useEffect(() => {
     if (id) {
-      // Incremento visualizzazioni
       fetch(`http://localhost:8096/api/pagine/${id}/view`, { method: 'PUT' })
         .catch(err => console.error("Errore contatore visite:", err));
 
-      // Controllo voto locale
       const giaVotatoLocal = localStorage.getItem(voteKey) === 'true';
       if (giaVotatoLocal) setVotoEffettuato(true);
 
-      // Fetch articolo
       fetch(`http://localhost:8096/api/pagine/${id}?fingerprint=${deviceId}`)
         .then(res => res.json())
         .then(data => {
@@ -93,7 +96,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
     return items.length > 0 ? items : htmlContent.replace(/<[^>]*>/g, '').split('\n').filter(t => t.trim() !== '');
   };
 
-  // Guard Clause: Se articolo non è ancora caricato, non renderizziamo il corpo
   if (!articolo) return <div style={{ textAlign: 'center', padding: '50px' }}>Caricamento...</div>;
 
   const totalVoti = Object.values(stats).reduce((a, b) => a + b, 0);
@@ -101,6 +103,50 @@ const ArticoloSingolo = ({ id, onBack }) => {
 
   return (
     <div lang="it" style={{ backgroundColor: '#fff', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
+      <style>{`
+        /* Configurazione Base: Giustificato ovunque */
+        .module-text {
+          text-align: justify !important;
+          text-justify: inter-word;
+          hyphens: auto !important;
+          -webkit-hyphens: auto !important;
+          word-break: break-word;
+        }
+
+        /* Immagini: Default a centro pagina per Tablet e Mobile */
+        .article-body img {
+          max-width: 100% !important;
+          height: auto !important;
+          border-radius: 8px;
+          margin: 20px auto !important;
+          display: block !important;
+          float: none !important; 
+        }
+
+        /* Desktop Mode: Riabilita float solo sopra i 1024px */
+        @media (min-width: 1024px) {
+          .article-body img[style*="float: left"], 
+          .article-body img[align="left"] {
+            margin: 10px 25px 15px 0 !important;
+            display: inline !important;
+            float: left !important;
+            max-width: 45% !important;
+          }
+          .article-body img[style*="float: right"], 
+          .article-body img[align="right"] {
+            margin: 10px 0 15px 25px !important;
+            display: inline !important;
+            float: right !important;
+            max-width: 45% !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          article { padding: 0 20px !important; }
+          h1 { font-size: 30px !important; }
+        }
+      `}</style>
+
       <nav style={{ padding: '20px', borderBottom: '1px solid #eee', maxWidth: '900px', margin: '0 auto' }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#007bff', fontWeight: 'bold', cursor: 'pointer', fontSize: '16px' }}>
           ← Torna al Magazine
@@ -124,7 +170,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
           </div>
         </div>
 
-        <h1 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '30px', lineHeight: '1.2', hyphens: 'auto' }}>{articolo.titolo}</h1>
+        <h1 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '30px', lineHeight: '1.2', hyphens: 'auto', WebkitHyphens: 'auto' }}>{articolo.titolo}</h1>
 
         <div className="article-body">
           {articolo.moduli?.map((m, i) => {
@@ -158,18 +204,13 @@ const ArticoloSingolo = ({ id, onBack }) => {
             return (
               <div 
                 key={i} 
+                className="module-text"
                 style={{ 
                   fontSize: '19px', 
                   lineHeight: '1.8', 
                   marginBottom: '25px', 
-                  textAlign: 'justify', 
                   color: '#333',
-                  hyphens: 'auto',
-                  WebkitHyphens: 'auto',
-                  textJustify: 'distribute', // Migliore per evitare buchi bianchi
-                  wordBreak: 'normal',
-                  overflowWrap: 'break-word',
-                  letterSpacing: '-0.01em' // Aiuta a compattare le righe difficili
+                  overflowWrap: 'anywhere'
                 }} 
                 dangerouslySetInnerHTML={{ __html: forceHyphenation(m.contenuto) }} 
               />
