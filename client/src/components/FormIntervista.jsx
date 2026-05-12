@@ -7,14 +7,16 @@ const FormIntervista = () => {
     telefono: '',
     messaggio: '',
     referente: '',
-    website: '' // HONEYPOT
+    website: '', // HONEYPOT
+    accettaPrivacy: false,      // Obbligatorio
+    accettaMarketing: false,    // Facoltativo
+    accettaCessioneTerzi: false  // Facoltativo
   });
 
   const [status, setStatus] = useState({ type: '', msg: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0); 
 
-  // 1. Logica di Fingerprinting per identificare il dispositivo
   const deviceId = useMemo(() => {
     const nav = window.navigator;
     const screen = window.screen;
@@ -27,15 +29,13 @@ const FormIntervista = () => {
     return `dev_form_${Math.abs(hash)}`;
   }, []);
 
-  // 2. Controllo del blocco temporale (10 minuti)
   useEffect(() => {
     const checkCooldown = () => {
       const lastSubmit = localStorage.getItem(`last_submit_${deviceId}`);
       if (lastSubmit) {
         const now = Date.now();
         const diff = now - parseInt(lastSubmit);
-        const cooldown = 600000; // 10 minuti in millisecondi (10 * 60 * 1000)
-
+        const cooldown = 600000; 
         if (diff < cooldown) {
           setTimeLeft(Math.ceil((cooldown - diff) / 60000));
         } else {
@@ -43,26 +43,25 @@ const FormIntervista = () => {
         }
       }
     };
-
     checkCooldown();
-    const timer = setInterval(checkCooldown, 30000); // Controlla ogni 30 secondi
+    const timer = setInterval(checkCooldown, 30000);
     return () => clearInterval(timer);
   }, [deviceId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // 3. Controllo HONEYPOT
-    if (formData.website) {
-      console.warn("Spam detectato tramite honeypot");
-      return;
+    if (formData.website) return;
+
+    if (!formData.accettaPrivacy) {
+        setStatus({ type: 'error', msg: 'Devi accettare l\'informativa sulla privacy per procedere.' });
+        return;
     }
 
-    // 4. Controllo Cooldown
     if (timeLeft > 0) {
       setStatus({ 
         type: 'error', 
-        msg: `Per motivi di sicurezza, puoi inviare una sola richiesta ogni 10 minuti. Riprova tra ${timeLeft} min.` 
+        msg: `Attendi ${timeLeft} min prima di un nuovo invio.` 
       });
       return;
     }
@@ -78,131 +77,92 @@ const FormIntervista = () => {
       });
 
       if (response.ok) {
-        setStatus({ type: 'success', msg: 'Richiesta inviata con successo! Verrai ricontattato dalla redazione.' });
-        
-        // 5. Imposta il timestamp nel localStorage per attivare il blocco
-        const now = Date.now().toString();
-        localStorage.setItem(`last_submit_${deviceId}`, now);
-        setTimeLeft(10); // Blocca subito per 10 minuti
-        
-        setFormData({ azienda: '', email: '', telefono: '', messaggio: '', referente: '', website: '' });
+        setStatus({ type: 'success', msg: 'Richiesta inviata con successo!' });
+        localStorage.setItem(`last_submit_${deviceId}`, Date.now().toString());
+        setTimeLeft(10);
+        setFormData({ 
+            azienda: '', email: '', telefono: '', messaggio: '', referente: '', website: '',
+            accettaPrivacy: false, accettaMarketing: false, accettaCessioneTerzi: false 
+        });
       } else {
         throw new Error();
       }
     } catch (err) {
-      setStatus({ type: 'error', msg: 'Si è verificato un errore durante l\'invio. Riprova più tardi.' });
+      setStatus({ type: 'error', msg: 'Errore durante l\'invio.' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const checkboxContainerStyle = { display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '15px', cursor: 'pointer' };
+  const checkboxLabelStyle = { fontSize: '13px', color: '#444', lineHeight: '1.4' };
+
   return (
     <div style={{ maxWidth: '600px', margin: '40px auto', padding: '30px', backgroundColor: '#f8f9fa', borderRadius: '15px', border: '1px solid #dee2e6', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '10px', color: '#333', fontWeight: '800' }}>Racconta la tua Azienda</h2>
-      <p style={{ textAlign: 'center', fontSize: '14px', color: '#666', marginBottom: '30px' }}>
-        Invia la tua candidatura per un'intervista dedicata.
-      </p>
+      {/* CORRETTO marginBottom da 300px a 20px */}
+      <p style={{ textAlign: 'center', fontSize: '14px', color: '#666', marginBottom: '20px' }}>Invia la candidatura per un'intervista dedicata.</p>
 
       <form onSubmit={handleSubmit}>
-        {/* Campo Honeypot - Invisibile all'utente */}
-        <input 
-          type="text" 
-          name="website" 
-          value={formData.website} 
-          onChange={(e) => setFormData({...formData, website: e.target.value})}
-          style={{ display: 'none' }} 
-          tabIndex="-1" 
-          autoComplete="off" 
-        />
+        <input type="text" name="website" value={formData.website} onChange={(e) => setFormData({...formData, website: e.target.value})} style={{ display: 'none' }} tabIndex="-1" />
 
         <div style={inputGroupStyle}>
           <label style={labelStyle}>Nome Azienda *</label>
-          <input 
-            required 
-            type="text" 
-            style={inputStyle} 
-            value={formData.azienda}
-            onChange={(e) => setFormData({...formData, azienda: e.target.value})}
-            placeholder="Skill Factory SRL"
-          />
+          <input required type="text" style={inputStyle} value={formData.azienda} onChange={(e) => setFormData({...formData, azienda: e.target.value})} />
         </div>
 
         <div style={{ display: 'flex', gap: '15px' }}>
           <div style={{ ...inputGroupStyle, flex: 1 }}>
             <label style={labelStyle}>Referente *</label>
-            <input 
-              required 
-              type="text" 
-              style={inputStyle} 
-              value={formData.referente}
-              onChange={(e) => setFormData({...formData, referente: e.target.value})}
-              placeholder="Nome e Cognome"
-            />
+            <input required type="text" style={inputStyle} value={formData.referente} onChange={(e) => setFormData({...formData, referente: e.target.value})} />
           </div>
           <div style={{ ...inputGroupStyle, flex: 1 }}>
             <label style={labelStyle}>Telefono *</label>
-            <input 
-              required 
-              type="tel" 
-              style={inputStyle} 
-              value={formData.telefono}
-              onChange={(e) => setFormData({...formData, telefono: e.target.value})}
-              placeholder="081 1234567"
-            />
+            <input required type="tel" style={inputStyle} value={formData.telefono} onChange={(e) => setFormData({...formData, telefono: e.target.value})} />
           </div>
         </div>
 
         <div style={inputGroupStyle}>
           <label style={labelStyle}>Email Aziendale *</label>
-          <input 
-            required 
-            type="email" 
-            style={inputStyle} 
-            value={formData.email}
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
-            placeholder="contatti@azienda.it"
-          />
+          <input required type="email" style={inputStyle} value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
         </div>
 
         <div style={inputGroupStyle}>
           <label style={labelStyle}>Perché dovremmo intervistarti?</label>
-          <textarea 
-            rows="4" 
-            style={{...inputStyle, resize: 'none'}}
-            value={formData.messaggio}
-            onChange={(e) => setFormData({...formData, messaggio: e.target.value})}
-            placeholder="Parlaci dei tuoi progetti o dell'innovazione della tua azienda..."
-          />
+          <textarea rows="4" style={{...inputStyle, resize: 'none'}} value={formData.messaggio} onChange={(e) => setFormData({...formData, messaggio: e.target.value})} />
+        </div>
+
+        <div style={{ marginTop: '30px', marginBottom: '30px' }}>
+            <label style={checkboxContainerStyle}>
+                <input type="checkbox" required checked={formData.accettaPrivacy} onChange={e => setFormData({...formData, accettaPrivacy: e.target.checked})} />
+                <span style={checkboxLabelStyle}>Ho letto e accettato l'<a href="#">informativa sulla privacy</a> (obbligatorio)</span>
+            </label>
+
+            <label style={checkboxContainerStyle}>
+                <input type="checkbox" checked={formData.accettaMarketing} onChange={e => setFormData({...formData, accettaMarketing: e.target.checked})} />
+                <span style={checkboxLabelStyle}>Accetto il trattamento per la finalità di marketing come indicato nel punto A5) dell' <a href="#">informativa sulla privacy</a> (facoltativo)</span>
+            </label>
+
+            <label style={checkboxContainerStyle}>
+                <input type="checkbox" checked={formData.accettaCessioneTerzi} onChange={e => setFormData({...formData, accettaCessioneTerzi: e.target.checked})} />
+                <span style={checkboxLabelStyle}>Accetto il trattamento per la finalità di cessione dei dati a terzi come indicato nel punto A6) dell' <a href="#">informativa sulla privacy</a> (facoltativo)</span>
+            </label>
         </div>
 
         {status.msg && (
-          <div style={{ 
-            padding: '15px', 
-            borderRadius: '8px', 
-            marginBottom: '20px', 
-            backgroundColor: status.type === 'success' ? '#d4edda' : '#f8d7da',
-            color: status.type === 'success' ? '#155724' : '#721c24',
-            textAlign: 'center',
-            fontSize: '14px'
-          }}>
+          <div style={{ padding: '15px', borderRadius: '8px', marginBottom: '20px', backgroundColor: status.type === 'success' ? '#d4edda' : '#f8d7da', color: status.type === 'success' ? '#155724' : '#721c24', textAlign: 'center', fontSize: '14px' }}>
             {status.msg}
           </div>
         )}
 
         <button 
           type="submit" 
-          disabled={isSubmitting || timeLeft > 0}
+          disabled={isSubmitting || timeLeft > 0 || !formData.accettaPrivacy}
           style={{ 
-            width: '100%', 
-            padding: '15px', 
-            backgroundColor: (isSubmitting || timeLeft > 0) ? '#6c757d' : '#007bff', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '8px', 
-            fontWeight: 'bold', 
-            cursor: (isSubmitting || timeLeft > 0) ? 'not-allowed' : 'pointer',
-            fontSize: '16px',
-            transition: 'background 0.3s'
+            width: '100%', padding: '15px', 
+            backgroundColor: (isSubmitting || timeLeft > 0 || !formData.accettaPrivacy) ? '#6c757d' : '#007bff', 
+            color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', 
+            cursor: (isSubmitting || timeLeft > 0 || !formData.accettaPrivacy) ? 'not-allowed' : 'pointer', fontSize: '16px'
           }}
         >
           {isSubmitting ? 'Invio in corso...' : timeLeft > 0 ? `Blocco anti-spam (${timeLeft} min)` : 'Invia Candidatura'}
