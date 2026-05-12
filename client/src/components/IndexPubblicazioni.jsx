@@ -6,8 +6,12 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [pageArticoli, setPageArticoli] = useState(1);
   const [pageRubriche, setPageRubriche] = useState(1);
   const [pageSondaggi, setPageSondaggi] = useState(1);
-  const [isHovered, setIsHovered] = useState(false);
   const [showCookieBanner, setShowCookieBanner] = useState(true);
+  
+  // STATO PER GLI SPONSOR
+  const [sponsorLaterale, setSponsorLaterale] = useState(null); 
+  const [sponsorFondo, setSponsorFondo] = useState(null);
+
   const itemsPerPage = 5;
 
   const colors = {
@@ -28,10 +32,24 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   };
 
   useEffect(() => {
+    // Caricamento contenuti
     fetch("http://localhost:8096/api/pagine")
       .then((res) => res.json())
       .then((data) => setTuttiContenuti(data.sort((a, b) => b.id - a.id)))
-      .catch((err) => console.error("Errore:", err));
+      .catch((err) => console.error("Errore contenuti:", err));
+
+    // Caricamento sponsor
+    fetch("http://localhost:8096/api/sponsors")
+      .then((res) => res.json())
+      .then((data) => {
+        const attivi = data.filter(s => s.attivo && s.tipoPagina === 'HOME');
+        const sidebar = attivi.find(s => s.posizione === 'SIDEBAR');
+        const bottom = attivi.find(s => s.posizione === 'BOTTOM');
+
+        if (sidebar) setSponsorLaterale({ immagine: sidebar.bannerImage, link: sidebar.linkSito });
+        if (bottom) setSponsorFondo({ immagine: bottom.bannerImage, link: bottom.linkSito });
+      })
+      .catch((err) => console.error("Errore sponsor:", err));
 
     const consent = localStorage.getItem("cookie-consent");
     if (consent) setShowCookieBanner(false);
@@ -68,19 +86,11 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     return firma || "Redazione";
   };
 
-  // --- LOGICA DI FILTRAGGIO RICERCA AVANZATA (Titolo, Autore e Testo) ---
   const contenutiFiltrati = tuttiContenuti.filter(item => {
     const searchLower = searchTerm.toLowerCase();
-    
-    // Verifica nel Titolo
     const nelTitolo = item.titolo?.toLowerCase().includes(searchLower);
-    
-    // Verifica nell'Autore
     const nellAutore = getAutore(item).toLowerCase().includes(searchLower);
-    
-    // Verifica nel Testo dei moduli (utilizzando extractText senza limite di lunghezza per la ricerca)
     const nelTesto = extractText(item).toLowerCase().includes(searchLower);
-
     return nelTitolo || nellAutore || nelTesto;
   });
 
@@ -165,6 +175,17 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         .privacy-link { color: inherit; text-decoration: underline; cursor: pointer; transition: opacity 0.2s; }
         .privacy-link:hover { opacity: 0.7; }
         .search-input:focus { outline: none; border-color: ${colors.primary} !important; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
+        
+        /* EFFETTO HOVER BANNER */
+        .banner-hover { 
+          transition: all 0.4s ease-in-out !important; 
+          cursor: pointer;
+        }
+        .banner-hover:hover { 
+          transform: scale(1.02); 
+          filter: brightness(1.1); 
+          box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        }
       `}</style>
 
       {/* BARRA DI RICERCA */}
@@ -257,9 +278,40 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
               </div>
               <div style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }} dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoArticolo, 600)) }} />
               <button className="read-more-btn" onClick={() => onReadArticle(ultimoArticolo.id)} style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>Continua a leggere</button>
+              
+              {/* BANNER FONDO CON EFFETTO HOVER */}
+              {sponsorFondo && (
+                <div style={{ marginTop: '60px', width: '100%', overflow: 'hidden' }}>
+                  <span style={{ display: 'block', fontSize: '10px', color: '#999', marginBottom: '5px', letterSpacing: '1px' }}>SPONSOR</span>
+                  <a href={sponsorFondo.link} target="_blank" rel="noopener noreferrer">
+                    <img 
+                      className="banner-hover"
+                      src={sponsorFondo.immagine} 
+                      alt="Sponsor Fondo" 
+                      style={{ width: '100%', borderRadius: '8px', display: 'block', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }} 
+                    />
+                  </a>
+                </div>
+              )}
             </section>
 
             <aside className="sidebar-aside" style={{ borderLeft: `1px solid ${colors.border}`, paddingLeft: '30px' }}>
+              
+              {/* BANNER LATERALE CON EFFETTO HOVER */}
+              {sponsorLaterale && (
+                <div style={{ marginBottom: '30px', width: '100%', overflow: 'hidden' }}>
+                  <span style={{ display: 'block', fontSize: '10px', color: '#999', marginBottom: '5px', letterSpacing: '1px' }}>SPONSOR</span>
+                  <a href={sponsorLaterale.link} target="_blank" rel="noopener noreferrer">
+                    <img 
+                      className="banner-hover"
+                      src={sponsorLaterale.immagine} 
+                      alt="Sponsor" 
+                      style={{ width: '100%', borderRadius: '8px', display: 'block', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} 
+                    />
+                  </a>
+                </div>
+              )}
+
               <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>Archivio Articoli</h2>
               {currentArchivioArt.length > 0 ? (
                 <>

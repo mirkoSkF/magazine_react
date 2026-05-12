@@ -34,7 +34,12 @@ const GestioneSponsor = ({ colors }) => {
     }
   };
 
-  useEffect(() => { caricaSponsors(); }, []);
+  useEffect(() => { 
+    caricaSponsors(); 
+    // Opzionale: ricarica ogni 30 secondi per vedere i nuovi click in tempo reale
+    const interval = setInterval(caricaSponsors, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // 2. GESTIONE UPLOAD IMMAGINE
   const handleFileChange = (e) => {
@@ -91,6 +96,23 @@ const GestioneSponsor = ({ colors }) => {
     }
   };
 
+  /**
+   * NOTA PER IL PROGRAMMATORE:
+   * Per evitare che lo stesso utente clicchi più volte, nel componente PUBBLICO 
+   * (dove l'utente vede il banner) dovresti usare questa funzione:
+   * 
+   * const handleBannerClick = async (sponsorId) => {
+   *   const clickedSponsors = JSON.parse(localStorage.getItem('clicked_sponsors') || '[]');
+   *   if (clickedSponsors.includes(sponsorId)) return; // Già cliccato, non inviare al server
+   * 
+   *   const res = await fetch(`http://localhost:8096/api/sponsors/${sponsorId}/click`, { method: 'PATCH' });
+   *   if (res.ok) {
+   *     clickedSponsors.push(sponsorId);
+   *     localStorage.setItem('clicked_sponsors', JSON.stringify(clickedSponsors));
+   *   }
+   * };
+   */
+
   return (
     <div style={{ background: 'white', padding: '25px', borderRadius: '8px', border: `1px solid ${colors.border}`, marginTop: '30px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
       <h3 style={{ marginTop: 0, color: colors.dark, borderBottom: `2px solid ${colors.primary}`, paddingBottom: '10px' }}>
@@ -137,7 +159,13 @@ const GestioneSponsor = ({ colors }) => {
       </form>
 
       {/* ELENCO SPONSOR */}
-      <h4 style={{ marginBottom: '15px', color: colors.dark }}>Sponsor Attivi</h4>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <h4 style={{ margin: 0, color: colors.dark }}>Sponsor Attivi</h4>
+        <button onClick={caricaSponsors} style={{ fontSize: '12px', padding: '5px 10px', cursor: 'pointer', borderRadius: '4px', border: `1px solid ${colors.border}` }}>
+          🔄 Aggiorna Click
+        </button>
+      </div>
+
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
@@ -159,7 +187,11 @@ const GestioneSponsor = ({ colors }) => {
                   </td>
                   <td style={tdStyle}>{s.tipoPagina}</td>
                   <td style={tdStyle}>{s.posizione}</td>
-                  <td style={tdStyle}>{s.clickCount || 0}</td>
+                  <td style={tdStyle}>
+                    <span style={{ background: colors.primary, color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold' }}>
+                      {s.clickCount || 0}
+                    </span>
+                  </td>
                   <td style={{ ...tdStyle, textAlign: 'center' }}>
                     <button 
                       onClick={() => eliminaSponsor(s.id)} 

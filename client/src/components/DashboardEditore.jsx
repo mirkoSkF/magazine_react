@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import GestioneSponsor from './GestioneSponsor'; // Assicurati che il file sia nella stessa cartella
 
 const DashboardEditore = ({ onEdit }) => {
   const [articoli, setArticoli] = useState([]);
   const [utente, setUtente] = useState(null);
   
+  // --- NUOVO STATO PER NAVIGAZIONE SPONSOR ---
+  const [view, setView] = useState('CONTENUTI'); // Può essere 'CONTENUTI' o 'SPONSOR'
+
   // STATO PER LA RICERCA E PAGINAZIONE
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -229,92 +233,118 @@ const DashboardEditore = ({ onEdit }) => {
         </div>
       </div>
 
-      {/* TITOLO E BARRA DI RICERCA */}
+      {/* TITOLO E BARRA DI RICERCA / SWITCH SPONSOR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', gap: '15px' }}>
-        <h2 style={{ color: colors.dark, fontWeight: '700', margin: 0 }}>Gestione Contenuti</h2>
-        <input 
-          type="text" 
-          className="search-input" 
-          placeholder="Cerca per titolo o data..." 
-          value={searchTerm} 
-          onChange={(e) => setSearchTerm(e.target.value)} 
-        />
-      </div>
-
-      {/* TABELLA ARTICOLI */}
-      <div className="table-wrapper">
-        <table className="dashboard-table">
-          <thead>
-            <tr style={{ background: colors.lightGray, borderBottom: `2px solid ${colors.border}` }}>
-              <th style={{ ...thStyle, width: '90px' }}>Tipo</th>
-              <th style={thStyle}>Titolo</th>
-              <th style={{ ...thStyle, width: '120px', textAlign: 'center' }}>Data</th>
-              <th style={{ ...thStyle, width: '90px', textAlign: 'center' }}>Visite</th>
-              <th style={{ ...thStyle, width: '220px', textAlign: 'right' }}>Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.length > 0 ? (
-              currentItems.map(a => {
-                const badge = getTipoBadge(a.tipo);
-                return (
-                  <tr key={a.id}>
-                    <td style={tdStyle}>
-                      <span style={{ fontSize: '10px', padding: '5px 10px', borderRadius: '5px', background: badge.background, color: colors.white, letterSpacing: '0.5px', fontWeight: 'bold' }}>
-                        {badge.text}
-                      </span>
-                    </td>
-                    <td style={tdStyle} className="title-cell">
-                      <div className="title-text">{a.titolo}</div>
-                      <div style={{ fontSize: '11px', color: '#999' }}>ID #{a.id} • {getAutore(a)}</div>
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      {new Date(a.dataPubblicazione).toLocaleDateString('it-IT')}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <span style={{ fontWeight: 'bold', color: colors.primary }}>{a.visualizzazioni || 0}</span>
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      <div className="actions-cell">
-                        <button onClick={() => onEdit(a.id)} className="btn-modifica">Modifica</button>
-                        <button onClick={() => elimina(a.id)} className="btn-elimina">Elimina</button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
-                  {searchTerm ? "Nessun risultato trovato." : "Nessun contenuto disponibile."}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* CONTROLLI PAGINAZIONE */}
-      {totalPages > 1 && (
-        <div className="pagination-controls">
+        <h2 style={{ color: colors.dark, fontWeight: '700', margin: 0 }}>
+          {view === 'CONTENUTI' ? 'Gestione Contenuti' : 'Gestione Sponsor'}
+        </h2>
+        
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, justifyContent: 'flex-end' }}>
+          {view === 'CONTENUTI' && (
+            <input 
+              type="text" 
+              className="search-input" 
+              placeholder="Cerca per titolo o data..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
+          )}
+          
           <button 
-            disabled={currentPage === 1} 
-            onClick={() => setCurrentPage(prev => prev - 1)}
-            className="btn-page"
+            onClick={() => setView(view === 'CONTENUTI' ? 'SPONSOR' : 'CONTENUTI')}
+            style={{ 
+              background: view === 'CONTENUTI' ? colors.accent : colors.primary, 
+              color: 'white', border: 'none', padding: '12px 20px', 
+              borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
           >
-            Indietro
-          </button>
-          <span style={{ fontSize: '14px', color: colors.dark, fontWeight: '600' }}>
-            Pagina {currentPage} di {totalPages}
-          </span>
-          <button 
-            disabled={currentPage === totalPages} 
-            onClick={() => setCurrentPage(prev => prev + 1)}
-            className="btn-page"
-          >
-            Avanti
+            {view === 'CONTENUTI' ? '📢 Gestisci Sponsor' : '📄 Torna ai Contenuti'}
           </button>
         </div>
+      </div>
+
+      {/* RENDER CONDIZIONALE: TABELLA O COMPONENTE SPONSOR */}
+      {view === 'CONTENUTI' ? (
+        <>
+          <div className="table-wrapper">
+            <table className="dashboard-table">
+              <thead>
+                <tr style={{ background: colors.lightGray, borderBottom: `2px solid ${colors.border}` }}>
+                  <th style={{ ...thStyle, width: '90px' }}>Tipo</th>
+                  <th style={thStyle}>Titolo</th>
+                  <th style={{ ...thStyle, width: '120px', textAlign: 'center' }}>Data</th>
+                  <th style={{ ...thStyle, width: '90px', textAlign: 'center' }}>Visite</th>
+                  <th style={{ ...thStyle, width: '220px', textAlign: 'right' }}>Azioni</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentItems.length > 0 ? (
+                  currentItems.map(a => {
+                    const badge = getTipoBadge(a.tipo);
+                    return (
+                      <tr key={a.id}>
+                        <td style={tdStyle}>
+                          <span style={{ fontSize: '10px', padding: '5px 10px', borderRadius: '5px', background: badge.background, color: colors.white, letterSpacing: '0.5px', fontWeight: 'bold' }}>
+                            {badge.text}
+                          </span>
+                        </td>
+                        <td style={tdStyle} className="title-cell">
+                          <div className="title-text">{a.titolo}</div>
+                          <div style={{ fontSize: '11px', color: '#999' }}>ID #{a.id} • {getAutore(a)}</div>
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          {new Date(a.dataPubblicazione).toLocaleDateString('it-IT')}
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                          <span style={{ fontWeight: 'bold', color: colors.primary }}>{a.visualizzazioni || 0}</span>
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: 'right' }}>
+                          <div className="actions-cell">
+                            <button onClick={() => onEdit(a.id)} className="btn-modifica">Modifica</button>
+                            <button onClick={() => elimina(a.id)} className="btn-elimina">Elimina</button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
+                      {searchTerm ? "Nessun risultato trovato." : "Nessun contenuto disponibile."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* CONTROLLI PAGINAZIONE */}
+          {totalPages > 1 && (
+            <div className="pagination-controls">
+              <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(prev => prev - 1)}
+                className="btn-page"
+              >
+                Indietro
+              </button>
+              <span style={{ fontSize: '14px', color: colors.dark, fontWeight: '600' }}>
+                Pagina {currentPage} di {totalPages}
+              </span>
+              <button 
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                className="btn-page"
+              >
+                Avanti
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        /* COMPONENTE GESTIONE SPONSOR */
+        <GestioneSponsor colors={colors} />
       )}
     </div>
   );
