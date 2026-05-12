@@ -6,6 +6,10 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [pageSondaggi, setPageSondaggi] = useState(1);
   const [isHovered, setIsHovered] = useState(false);
   const [showCookieBanner, setShowCookieBanner] = useState(true); 
+  // AGGIUNTA: Stato per gli sponsor
+  const [sponsorSidebar, setSponsorSidebar] = useState(null);
+  const [sponsorBottom, setSponsorBottom] = useState(null);
+
   const itemsPerPage = 5;
 
   const colors = {
@@ -15,6 +19,13 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     border: "#dee2e6",
     pollFocus: "#003d82",
     accent: "#e63946"
+  };
+
+  // AGGIUNTA: Funzione per gestire il click sullo sponsor (incrementa contatore)
+  const handleSponsorClick = (id, link) => {
+    fetch(`http://localhost:8096/api/sponsors/${id}/click`, { method: 'PATCH' })
+      .catch(err => console.error("Errore click:", err));
+    window.open(link, '_blank');
   };
 
   const forceHyphenation = (text) => {
@@ -31,6 +42,17 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       .then((data) => setTuttiContenuti(data.sort((a, b) => b.id - a.id)))
       .catch((err) => console.error("Errore:", err));
     
+    // AGGIUNTA: Caricamento sponsor casuali per la Home
+    fetch("http://localhost:8096/api/sponsors/random?tipoPagina=HOME&posizione=SIDEBAR")
+      .then(res => res.status === 200 ? res.json() : null)
+      .then(data => setSponsorSidebar(data))
+      .catch(() => {});
+
+    fetch("http://localhost:8096/api/sponsors/random?tipoPagina=HOME&posizione=BOTTOM")
+      .then(res => res.status === 200 ? res.json() : null)
+      .then(data => setSponsorBottom(data))
+      .catch(() => {});
+
     const consent = localStorage.getItem("cookie-consent");
     if (consent) setShowCookieBanner(false);
   }, []);
@@ -108,6 +130,24 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     );
   };
 
+  // AGGIUNTA: Componente UI per lo Sponsor
+  const SponsorBox = ({ sponsor, label }) => {
+    if (!sponsor) return null;
+    return (
+      <div style={{ marginTop: '30px', marginBottom: '30px' }}>
+        <small style={{ fontSize: '9px', color: '#999', textTransform: 'uppercase', letterSpacing: '1px', display: 'block', marginBottom: '5px' }}>Pubblicità - {label}</small>
+        <div 
+          onClick={() => handleSponsorClick(sponsor.id, sponsor.linkSito)}
+          style={{ cursor: 'pointer', width: '100%', overflow: 'hidden', borderRadius: '4px', border: '1px solid #eee' }}
+        >
+          <img src={sponsor.bannerImage} alt={sponsor.nomeAzienda} style={{ width: '100%', display: 'block', transition: 'transform 0.3s' }} 
+               onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} 
+               onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} />
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div lang="it" style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif", position: "relative" }}>
       <style>{`
@@ -181,9 +221,16 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           <button className="read-more-btn" onClick={() => onReadArticle(ultimoArticolo.id)} style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
             Continua a leggere
           </button>
+
+          {/* AGGIUNTA: Sponsor in fondo agli articoli */}
+          <SponsorBox sponsor={sponsorBottom} label="Sponsored" />
         </section>
 
         <aside className="sidebar-aside" style={{ borderLeft: `1px solid ${colors.border}`, paddingLeft: '30px' }}>
+          
+          {/* AGGIUNTA: Sponsor in cima alla Sidebar */}
+          <SponsorBox sponsor={sponsorSidebar} label="Partner" />
+
           <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>Archivio Articoli</h2>
           {currentArchivioArt.length > 0 ? (
             <><ul style={{ listStyle: 'none', padding: 0 }}>{currentArchivioArt.map(a => (<li key={a.id} style={listItemStyle}><span onClick={() => onReadArticle(a.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>{a.titolo}</span><small style={{color: '#888', fontStyle: 'italic'}}>di {getAutore(a)}</small></li>))}</ul><Pagination total={totalPagesArt} current={pageArticoli} setPage={setPageArticoli} /></>

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
+// UNICA AGGIUNTA: Import del componente Sponsor
+import GestioneSponsor from './GestioneSponsor';
 
+// --- COMPONENTE PRINCIPALE DASHBOARD ---
 const DashboardEditore = ({ onEdit }) => {
   const [articoli, setArticoli] = useState([]);
   const [utente, setUtente] = useState(null);
@@ -96,37 +99,21 @@ const DashboardEditore = ({ onEdit }) => {
       <style>
         {`
           .dashboard-header { display: flex; gap: 20px; margin-bottom: 30px; }
-          
           .btn-aggiorna { transition: all 0.3s ease; }
           .btn-aggiorna:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
           .btn-aggiorna:active { transform: translateY(0); }
-
           .btn-modifica { background: transparent; color: ${colors.primary}; border: 1px solid ${colors.primary}; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.3s ease; }
           .btn-modifica:hover { background: ${colors.primary}; color: white; }
-          
           .btn-elimina { background: transparent; color: ${colors.danger}; border: 1px solid ${colors.danger}; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.3s ease; margin-left: 10px; }
           .btn-elimina:hover { background: ${colors.danger}; color: white; }
-          
-          .table-responsive { width: 100%; overflow-x: auto; background: ${colors.white}; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid ${colors.border}; }
-          
-          .actions-cell { 
-            display: flex; 
-            justify-content: flex-end; 
-            align-items: center; 
-            gap: 10px; 
-          }
-
+          .table-responsive { width: 100%; overflow-x: auto; background: ${colors.white}; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid ${colors.border}; margin-bottom: 40px; }
+          .actions-cell { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
           @media (max-width: 900px) {
             .dashboard-header { flex-direction: column; }
             .user-panel, .security-panel { flex: none !important; width: 100% !important; box-sizing: border-box; }
-            .actions-cell { 
-              flex-direction: column; 
-              gap: 8px; 
-              align-items: flex-end; 
-            }
+            .actions-cell { flex-direction: column; gap: 8px; align-items: flex-end; }
             .btn-elimina { margin-left: 0; }
           }
-
           @media (max-width: 600px) {
             .user-info-container { flex-direction: column; text-align: center; }
             .user-info-container img, .user-info-container .placeholder-avatar { margin-right: 0 !important; margin-bottom: 15px; }
@@ -158,7 +145,7 @@ const DashboardEditore = ({ onEdit }) => {
         <div className="security-panel" style={{ flex: 1, background: colors.white, padding: '20px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
           <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', textTransform: 'uppercase', color: colors.dark }}>Sicurezza</h4>
           <form onSubmit={handleCambiaPassword} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <input type="password" placeholder="Vecchia password" value={pwdForm.vecciaPassword} onChange={e => setPwdForm({...pwdForm, vecchiaPassword: e.target.value})} style={inputStyle} required />
+            <input type="password" placeholder="Vecchia password" value={pwdForm.vecchiaPassword} onChange={e => setPwdForm({...pwdForm, vecchiaPassword: e.target.value})} style={inputStyle} required />
             <input type="password" placeholder="Nuova password" value={pwdForm.nuovaPassword} onChange={e => setPwdForm({...pwdForm, nuovaPassword: e.target.value})} style={inputStyle} required />
             <button type="submit" className="btn-aggiorna" style={btnPwdStyle(colors.primary)}>Aggiorna</button>
           </form>
@@ -184,7 +171,6 @@ const DashboardEditore = ({ onEdit }) => {
               articoli.map(a => (
                 <tr key={a.id} style={rowStyle}>
                   <td style={tdStyle}>
-                    {/* Badge testuale senza icone grafiche che possono rompersi */}
                     <span style={{ 
                       fontSize: '10px', padding: '4px 10px', borderRadius: '4px', 
                       background: a.tipo === 'SONDAGGIO' ? colors.accent : '#6c757d',
@@ -219,6 +205,10 @@ const DashboardEditore = ({ onEdit }) => {
           </tbody>
         </table>
       </div>
+
+      {/* AGGIUNTA: Richiamo del componente Sponsor passandogli i colori */}
+      <GestioneSponsor colors={colors} />
+
     </div>
   );
 };
