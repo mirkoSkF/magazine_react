@@ -48,6 +48,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/pagine/*/vota").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/pagine/*/stats").permitAll()
                 
+                // --- GESTIONE SPONSOR (PUBBLICI) ---
+                .requestMatchers(HttpMethod.GET, "/api/sponsors/random").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/sponsors").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/sponsors/*/click").permitAll()
+                
                 // --- GESTIONE INTERVISTE ---
                 .requestMatchers(HttpMethod.POST, "/api/interviste/prenota").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/interviste/elenco").authenticated()
@@ -72,7 +77,7 @@ public class SecurityConfig {
                 "http://127.0.0.1:[*]"
         ));
         
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         
         // Specifichiamo gli header comuni per evitare blocchi
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Requested-With"));
