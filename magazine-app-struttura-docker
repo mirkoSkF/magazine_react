@@ -1,0 +1,13 @@
+/magazine-app/
+├── docker-compose.yml
+├── backend-magazine-folder/
+│   ├── Dockerfile
+│   └── target/
+│       └── app.jar
+└── frontend-magazine-folder/
+    ├── Dockerfile
+    ├── package.json
+    ├── vite.config.js
+    ├── index.html
+    ├── src/       <-- Qui metterà le mani il tuo collega
+    └── public/
