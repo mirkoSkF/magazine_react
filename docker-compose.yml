@@ -1,0 +1,70 @@
+services:
+  # DATABASE: MariaDB
+  db-magazine:
+    image: mariadb:11.4
+    container_name: sf-magazine-db
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=root
+      - MARIADB_DATABASE=magazine_db
+    volumes:
+      - sf_magazine_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ADMINER: Accessibile su http://localhost:9000
+  adminer-magazine:
+    image: adminer:latest
+    container_name: sf-magazine-adminer
+    restart: always
+    ports:
+      - "9000:8080"
+    depends_on:
+      db-magazine:
+        condition: service_healthy
+
+  # BACKEND: Spring Boot accessibile su http://localhost:8096
+  backend-magazine:
+    build: ./server
+    container_name: sf-magazine-backend
+    ports:
+      - "8096:8096"
+    depends_on:
+      - adminer-magazine
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://db-magazine:3306/magazine_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+  # FRONTEND: React + Vite accessibile su http://localhost:5173
+  frontend-magazine:
+    build: ./client
+    container_name: sf-magazine-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - backend-magazine
+
+  # REVERSE PROXY: Commentato per ora (da configurare per l'integrazione con Moodle)
+  # gateway:
+  #   image: nginx:latest
+  #   container_name: sf-magazine-gateway
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/conf.d:/etc/nginx/conf.d:ro
+  #     - ./nginx/certs:/etc/nginx/certs:ro
+  #   depends_on:
+  #     - frontend-magazine
+
+volumes:
+  sf_magazine_db_data:
