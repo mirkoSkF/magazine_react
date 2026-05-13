@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import GestioneSponsor from './GestioneSponsor'; // Assicurati che il file sia nella stessa cartella
+import GestioneSponsor from './GestioneSponsor';
 
 const DashboardEditore = ({ onEdit }) => {
   const [articoli, setArticoli] = useState([]);
   const [utente, setUtente] = useState(null);
   
-  // --- NUOVO STATO PER NAVIGAZIONE SPONSOR ---
-  const [view, setView] = useState('CONTENUTI'); // Può essere 'CONTENUTI' o 'SPONSOR'
+  const [view, setView] = useState('CONTENUTI'); 
 
-  // STATO PER LA RICERCA E PAGINAZIONE
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -21,6 +19,14 @@ const DashboardEditore = ({ onEdit }) => {
   const [pwdMsg, setPwdMsg] = useState({
     testo: '',
     tipo: ''
+  });
+
+  // --- NUOVO STATO PER IL MODALE ---
+  const [modal, setModal] = useState({
+    show: false,
+    message: '',
+    type: 'confirm', // 'confirm', 'success', 'error'
+    onConfirm: null
   });
 
   const token = localStorage.getItem('token');
@@ -36,7 +42,6 @@ const DashboardEditore = ({ onEdit }) => {
     accent: '#6f42c1'
   };
 
-  // Reset della pagina quando si cerca
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
@@ -86,7 +91,6 @@ const DashboardEditore = ({ onEdit }) => {
     caricaDati();
   }, []);
 
-  // LOGICA DI FILTRAGGIO
   const articoliFiltrati = articoli.filter(a => {
     const search = searchTerm.toLowerCase();
     const titolo = a.titolo?.toLowerCase() || '';
@@ -102,7 +106,6 @@ const DashboardEditore = ({ onEdit }) => {
     );
   });
 
-  // --- LOGICA DI PAGINAZIONE ---
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = articoliFiltrati.slice(indexOfFirstItem, indexOfLastItem);
@@ -137,7 +140,11 @@ const DashboardEditore = ({ onEdit }) => {
         body: JSON.stringify(pwdForm)
       });
       if (res.ok) {
-        setPwdMsg({ testo: "Password aggiornata!", tipo: 'success' });
+        setModal({
+          show: true,
+          message: "Password aggiornata con successo!",
+          type: 'success'
+        });
         setPwdForm({ vecchiaPassword: '', nuovaPassword: '' });
       } else {
         setPwdMsg({ testo: "Errore: vecchia password errata", tipo: 'danger' });
@@ -147,18 +154,30 @@ const DashboardEditore = ({ onEdit }) => {
     }
   };
 
-  const elimina = async (id) => {
-    if (window.confirm("Eliminare definitivamente questo contenuto?")) {
-      try {
-        const res = await fetch(`http://localhost:8096/api/pagine/${id}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) caricaDati();
-      } catch (err) {
-        console.error(err);
+  // --- LOGICA DI ELIMINAZIONE AGGIORNATA ---
+  const eseguiElimina = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:8096/api/pagine/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        caricaDati();
+        setModal({ show: true, message: "Contenuto eliminato definitivamente.", type: 'success' });
       }
+    } catch (err) {
+      console.error(err);
+      setModal({ show: true, message: "Errore durante l'eliminazione.", type: 'error' });
     }
+  };
+
+  const elimina = (id) => {
+    setModal({
+      show: true,
+      message: "Sei sicuro di voler eliminare definitivamente questo contenuto? L'azione non è reversibile.",
+      type: 'confirm',
+      onConfirm: () => eseguiElimina(id)
+    });
   };
 
   const getTipoBadge = (tipo) => {
@@ -171,29 +190,77 @@ const DashboardEditore = ({ onEdit }) => {
 
   return (
     <div className="dashboard-container" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
+      
+      {/* MODALE ELEGANTE */}
+      {modal.show && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 10000,
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          backdropFilter: 'blur(5px)'
+        }}>
+          <div style={{
+            background: 'white', padding: '40px', borderRadius: '20px',
+            maxWidth: '450px', width: '90%', textAlign: 'center',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.3)', border: 'none'
+          }}>
+            <div style={{ fontSize: '60px', marginBottom: '20px' }}>
+              {modal.type === 'success' ? '✅' : modal.type === 'error' ? '❌' : '⚠️'}
+            </div>
+            <h3 style={{ fontSize: '22px', fontWeight: '800', color: colors.dark, marginBottom: '15px' }}>
+              {modal.type === 'confirm' ? 'Conferma Eliminazione' : 'Notifica'}
+            </h3>
+            <p style={{ color: '#555', fontSize: '16px', lineHeight: '1.5', marginBottom: '30px' }}>
+              {modal.message}
+            </p>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              {modal.type === 'confirm' ? (
+                <>
+                  <button 
+                    onClick={() => setModal({ ...modal, show: false })}
+                    className="btn-aggiorna"
+                    style={{ ...btnBaseModal, background: '#e9ecef', color: '#333' }}
+                  > Annulla </button>
+                  <button 
+                    onClick={() => { modal.onConfirm(); setModal({ ...modal, show: false }); }}
+                    className="btn-aggiorna"
+                    style={{ ...btnBaseModal, background: colors.danger, color: 'white' }}
+                  > Elimina Ora </button>
+                </>
+              ) : (
+                <button 
+                  onClick={() => setModal({ ...modal, show: false })}
+                  className="btn-aggiorna"
+                  style={{ ...btnBaseModal, background: colors.primary, color: 'white' }}
+                > Chiudi </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         * { box-sizing: border-box; }
         .dashboard-header { display: flex; gap: 20px; margin-bottom: 30px; align-items: stretch; }
-        .btn-aggiorna { transition: all 0.3s ease; }
-        .btn-aggiorna:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .btn-aggiorna { transition: all 0.3s ease; border: none; cursor: pointer; }
+        .btn-aggiorna:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .btn-modifica { background: transparent; color: ${colors.primary}; border: 1px solid ${colors.primary}; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; min-width: 90px; white-space: nowrap; }
-        .btn-modifica:hover { background: ${colors.primary}; color: white; }
+        .btn-modifica:hover { background: ${colors.primary}; color: white; transform: translateY(-1px); }
         .btn-elimina { background: transparent; color: ${colors.danger}; border: 1px solid ${colors.danger}; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; min-width: 90px; white-space: nowrap; }
-        .btn-elimina:hover { background: ${colors.danger}; color: white; }
-        .table-wrapper { width: 100%; border-radius: 12px; border: 1px solid ${colors.border}; background: ${colors.white}; overflow: hidden; }
+        .btn-elimina:hover { background: ${colors.danger}; color: white; transform: translateY(-1px); }
+        .table-wrapper { width: 100%; border-radius: 12px; border: 1px solid ${colors.border}; background: ${colors.white}; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .dashboard-table { width: 100%; border-collapse: collapse; }
         .dashboard-table tbody tr:hover { background: #fafafa; }
         .title-text { font-weight: 600; color: ${colors.dark}; font-size: 15px; line-height: 1.35; word-break: break-word; }
         .actions-cell { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
-        .search-input { padding: 12px 15px; width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid ${colors.border}; font-size: 14px; outline: none; transition: border-color 0.2s; }
-        .search-input:focus { border-color: ${colors.primary}; }
+        .search-input { padding: 12px 15px; width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid ${colors.border}; font-size: 14px; outline: none; transition: all 0.3s ease; }
+        .search-input:focus { border-color: ${colors.primary}; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
         
         .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; }
         .btn-page { padding: 8px 16px; border-radius: 6px; border: 1px solid ${colors.border}; background: white; cursor: pointer; font-size: 14px; transition: all 0.2s; }
         .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-page:not(:disabled):hover { background: ${colors.lightGray}; border-color: ${colors.primary}; }
 
-        /* EFFETTI HOVER PER I BOTTONI DI NAVIGAZIONE VIEW */
         .btn-view-switch {
           border: none;
           padding: 12px 20px;
@@ -207,31 +274,10 @@ const DashboardEditore = ({ onEdit }) => {
           gap: 8px;
         }
 
-        .btn-view-sponsor {
-          background-color: ${colors.accent};
-          color: white;
-        }
-
-        .btn-view-sponsor:hover {
-          background-color: #5a32a3; /* Tonalità più scura di accent */
-          transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(111, 66, 193, 0.3);
-        }
-
-        .btn-view-contenuti {
-          background-color: ${colors.primary};
-          color: white;
-        }
-
-        .btn-view-contenuti:hover {
-          background-color: #0056b3; /* Tonalità più scura di primary */
-          transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
-        }
-
-        .btn-view-switch:active {
-          transform: translateY(0);
-        }
+        .btn-view-sponsor { background-color: ${colors.accent}; color: white; }
+        .btn-view-sponsor:hover { background-color: #5a32a3; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(111, 66, 193, 0.3); }
+        .btn-view-contenuti { background-color: ${colors.primary}; color: white; }
+        .btn-view-contenuti:hover { background-color: #0056b3; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3); }
 
         @media (max-width: 950px) { .dashboard-header { flex-direction: column; } .user-panel, .security-panel { width: 100% !important; } }
         @media (max-width: 768px) {
@@ -243,7 +289,6 @@ const DashboardEditore = ({ onEdit }) => {
         }
       `}</style>
 
-      {/* HEADER: PROFILO E SICUREZZA */}
       <div className="dashboard-header">
         <div className="user-panel" style={{ flex: 2, display: 'flex', alignItems: 'center', background: colors.white, padding: '20px', borderRadius: '12px', border: `1px solid ${colors.border}` }}>
           <div className="user-info-container" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -273,7 +318,6 @@ const DashboardEditore = ({ onEdit }) => {
         </div>
       </div>
 
-      {/* TITOLO E BARRA DI RICERCA / SWITCH SPONSOR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', gap: '15px' }}>
         <h2 style={{ color: colors.dark, fontWeight: '700', margin: 0 }}>
           {view === 'CONTENUTI' ? 'Gestione Contenuti' : 'Gestione Sponsor'}
@@ -299,7 +343,6 @@ const DashboardEditore = ({ onEdit }) => {
         </div>
       </div>
 
-      {/* RENDER CONDIZIONALE: TABELLA O COMPONENTE SPONSOR */}
       {view === 'CONTENUTI' ? (
         <>
           <div className="table-wrapper">
@@ -354,7 +397,6 @@ const DashboardEditore = ({ onEdit }) => {
             </table>
           </div>
 
-          {/* CONTROLLI PAGINAZIONE */}
           {totalPages > 1 && (
             <div className="pagination-controls">
               <button 
@@ -378,7 +420,6 @@ const DashboardEditore = ({ onEdit }) => {
           )}
         </>
       ) : (
-        /* COMPONENTE GESTIONE SPONSOR */
         <GestioneSponsor colors={colors} />
       )}
     </div>
@@ -388,6 +429,16 @@ const DashboardEditore = ({ onEdit }) => {
 const thStyle = { padding: '16px 20px', fontSize: '12px', textTransform: 'uppercase', color: '#6c757d', fontWeight: '700' };
 const tdStyle = { padding: '18px 20px', borderBottom: '1px solid #f1f3f5', verticalAlign: 'middle' };
 const inputStyle = { padding: '10px 12px', borderRadius: '6px', border: '1px solid #dee2e6', fontSize: '13px', width: '100%' };
-const btnPwdStyle = (color) => ({ background: color, color: 'white', border: 'none', padding: '10px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' });
+const btnPwdStyle = (color) => ({ background: color, color: 'white', border: 'none', padding: '10px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', transition: 'all 0.3s ease' });
+
+const btnBaseModal = {
+  padding: '12px 25px',
+  border: 'none',
+  borderRadius: '10px',
+  cursor: 'pointer',
+  fontWeight: '700',
+  fontSize: '14px',
+  transition: 'all 0.3s ease'
+};
 
 export default DashboardEditore;
