@@ -8,9 +8,8 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [pageSondaggi, setPageSondaggi] = useState(1);
   const [showCookieBanner, setShowCookieBanner] = useState(true);
   
-  // STATO PER GLI SPONSOR
-  const [sponsorLaterale, setSponsorLaterale] = useState(null); 
-  const [sponsorFondo, setSponsorFondo] = useState(null);
+  const [sponsorLaterale, setSponsorLaterale] = useState([]); 
+  const [sponsorFondo, setSponsorFondo] = useState([]);
 
   const itemsPerPage = 5;
 
@@ -31,23 +30,44 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     });
   };
 
+  // GESTIONE CLICK E AGGIORNAMENTO CONTATORE
+  const handleSponsorClick = (id, link) => {
+    // Nota: Il backend usa PatchMapping per incrementare
+    fetch(`http://localhost:8096/api/sponsors/${id}/click`, {
+      method: 'PATCH'
+    })
+    .then(() => {
+      window.open(link, '_blank', 'noopener,noreferrer');
+    })
+    .catch((err) => {
+      console.error("Errore registrazione click:", err);
+      window.open(link, '_blank', 'noopener,noreferrer');
+    });
+  };
+
   useEffect(() => {
-    // Caricamento contenuti
     fetch("http://localhost:8096/api/pagine")
       .then((res) => res.json())
       .then((data) => setTuttiContenuti(data.sort((a, b) => b.id - a.id)))
       .catch((err) => console.error("Errore contenuti:", err));
 
-    // Caricamento sponsor
     fetch("http://localhost:8096/api/sponsors")
       .then((res) => res.json())
       .then((data) => {
         const attivi = data.filter(s => s.attivo && s.tipoPagina === 'HOME');
-        const sidebar = attivi.find(s => s.posizione === 'SIDEBAR');
-        const bottom = attivi.find(s => s.posizione === 'BOTTOM');
+        
+        const sidebar = attivi
+          .filter(s => s.posizione === 'SIDEBAR')
+          .slice(0, 3)
+          .map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
 
-        if (sidebar) setSponsorLaterale({ immagine: sidebar.bannerImage, link: sidebar.linkSito });
-        if (bottom) setSponsorFondo({ immagine: bottom.bannerImage, link: bottom.linkSito });
+        const bottom = attivi
+          .filter(s => s.posizione === 'BOTTOM')
+          .slice(0, 2)
+          .map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
+
+        setSponsorLaterale(sidebar);
+        setSponsorFondo(bottom);
       })
       .catch((err) => console.error("Errore sponsor:", err));
 
@@ -163,27 +183,38 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           .sidebar-aside { border-left: none !important; border-top: 1px solid ${colors.border}; padding-left: 0 !important; padding-top: 30px; }
           .grid-evidenza { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
         }
+
         @media (max-width: 600px) {
           .grid-evidenza { grid-template-columns: 1fr !important; gap: 20px !important; }
           .main-title { font-size: 32px !important; }
           .main-image-container { height: auto !important; min-height: 250px !important; }
           .read-more-btn { width: 100%; }
         }
-        .read-more-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important; background-color: #333 !important; }
-        .poll-card-main { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; }
-        .poll-card-main:hover { background-color: #004ba0 !important; transform: translateY(-4px); box-shadow: 0 8px 15px rgba(0,61,130,0.3) !important; }
-        .privacy-link { color: inherit; text-decoration: underline; cursor: pointer; transition: opacity 0.2s; }
-        .privacy-link:hover { opacity: 0.7; }
-        .search-input:focus { outline: none; border-color: ${colors.primary} !important; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
-        
-        /* EFFETTO HOVER BANNER */
-        .banner-hover { 
-          transition: all 0.4s ease-in-out !important; 
+
+        .read-more-btn:hover {
+          transform: translateY(-3px) scale(1.02);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+          background-color: #333 !important;
+        }
+
+        .poll-card-main {
+          transition: all 0.3s ease !important;
+        }
+
+        .poll-card-main:hover {
+          transform: translateY(-3px) scale(1.02);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+          background-color: #0056b3 !important;
+        }
+
+        .banner-hover {
+          transition: all 0.4s ease-in-out !important;
           cursor: pointer;
         }
-        .banner-hover:hover { 
-          transform: scale(1.02); 
-          filter: brightness(1.1); 
+
+        .banner-hover:hover {
+          transform: scale(1.02);
+          filter: brightness(1.1);
           box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
         }
       `}</style>
@@ -213,6 +244,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           <h2 style={{ marginBottom: "20px", borderBottom: `2px solid ${colors.primary}`, paddingBottom: "10px" }}>
             Risultati per: "{searchTerm}" ({contenutiFiltrati.length})
           </h2>
+
           {contenutiFiltrati.length > 0 ? (
             <div style={{ display: "grid", gap: "20px" }}>
               {contenutiFiltrati.map(item => (
@@ -244,9 +276,17 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           ) : (
             <p>Nessun risultato trovato per la tua ricerca.</p>
           )}
-          <button 
+
+          <button
             onClick={() => setSearchTerm("")}
-            style={{ marginTop: "30px", background: "none", border: "none", color: colors.primary, cursor: "pointer", fontWeight: "bold" }}
+            style={{
+              marginTop: "30px",
+              background: "none",
+              border: "none",
+              color: colors.primary,
+              cursor: "pointer",
+              fontWeight: "bold"
+            }}
           >
             ← Torna alla home
           </button>
@@ -255,111 +295,221 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         <>
           <div className="grid-evidenza" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
             {evidenza.map((a) => (
-              <div key={a.id} style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                <div style={{ width: '100%', height: '140px', backgroundColor: '#eee', borderRadius: '4px', overflow: 'hidden', marginBottom: '15px' }}>
-                  {a.copertina && <img src={`data:image/jpeg;base64,${a.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} alt="Cover" />}
+              <div
+                key={a.id}
+                style={{
+                  padding: '15px',
+                  backgroundColor: '#fff',
+                  border: '1px solid #eee',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                }}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    height: '140px',
+                    backgroundColor: '#eee',
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                    marginBottom: '15px'
+                  }}
+                >
+                  {a.copertina && (
+                    <img
+                      src={`data:image/jpeg;base64,${a.copertina}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center'
+                      }}
+                      alt="Cover"
+                    />
+                  )}
                 </div>
-                <span style={{ fontSize: '11px', fontWeight: '700', color: colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>In Evidenza</span>
-                <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>{a.titolo}</h3>
+
+                <span style={{ fontSize: '11px', fontWeight: '700', color: colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>
+                  In Evidenza
+                </span>
+
+                <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>
+                  {a.titolo}
+                </h3>
+
                 <p style={{ fontSize: '12px', color: '#666', marginBottom: '15px', fontStyle: 'italic', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
                   di <span style={{ fontWeight: '600', color: '#444', fontStyle: 'normal' }}>{getAutore(a)}</span>
                 </p>
-                <span onClick={() => onReadArticle(a.id)} style={{ color: colors.primary, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', display: 'inline-block' }}>Leggi →</span>
+
+                <span
+                  onClick={() => onReadArticle(a.id)}
+                  style={{ color: colors.primary, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', display: 'inline-block' }}
+                >
+                  Leggi →
+                </span>
               </div>
             ))}
           </div>
 
           <div className="main-layout" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
             <section>
-              <div style={{ backgroundColor: colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>ULTIM'ORA</div>
-              <h1 className="main-title" style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>{ultimoArticolo.titolo}</h1>
-              <div className="main-image-container" style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center' }}>
-                {ultimoArticolo.copertina && <img src={`data:image/jpeg;base64,${ultimoArticolo.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} alt="Main" />}
+              <div style={{ backgroundColor: colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
+                ULTIM'ORA
               </div>
-              <div style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }} dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoArticolo, 600)) }} />
-              <button className="read-more-btn" onClick={() => onReadArticle(ultimoArticolo.id)} style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>Continua a leggere</button>
-              
-              {/* BANNER FONDO CON EFFETTO HOVER */}
-              {sponsorFondo && (
-                <div style={{ marginTop: '60px', width: '100%', overflow: 'hidden' }}>
-                  <span style={{ display: 'block', fontSize: '10px', color: '#999', marginBottom: '5px', letterSpacing: '1px' }}>SPONSOR</span>
-                  <a href={sponsorFondo.link} target="_blank" rel="noopener noreferrer">
-                    <img 
-                      className="banner-hover"
-                      src={sponsorFondo.immagine} 
-                      alt="Sponsor Fondo" 
-                      style={{ width: '100%', borderRadius: '8px', display: 'block', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }} 
-                    />
-                  </a>
+
+              <h1 className="main-title" style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
+                {ultimoArticolo.titolo}
+              </h1>
+
+              <div className="main-image-container" style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center' }}>
+                {ultimoArticolo.copertina && (
+                  <img
+                    src={`data:image/jpeg;base64,${ultimoArticolo.copertina}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+                    alt="Main"
+                  />
+                )}
+              </div>
+
+              <div
+                style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }}
+                dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoArticolo, 600)) }}
+              />
+
+              <button
+                className="read-more-btn"
+                onClick={() => onReadArticle(ultimoArticolo.id)}
+                style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+              >
+                Continua a leggere
+              </button>
+
+              {/* SPONSOR FONDO */}
+              {sponsorFondo.length > 0 && (
+                <div style={{ marginTop: '60px', display: 'flex', flexDirection: 'column', gap: '30px', alignItems: 'center' }}>
+                  <span style={{ display: 'block', fontSize: '10px', color: '#999', marginBottom: '-15px', letterSpacing: '1px', textAlign: 'center' }}>
+                    SPONSOR
+                  </span>
+
+                  {sponsorFondo.map((s, index) => (
+                    <div key={index} style={{ width: '80%', overflow: 'hidden' }}>
+                      <div onClick={() => handleSponsorClick(s.id, s.link)}>
+                        <img
+                          className="banner-hover"
+                          src={s.immagine}
+                          alt={`Sponsor Fondo ${index + 1}`}
+                          style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </section>
 
             <aside className="sidebar-aside" style={{ borderLeft: `1px solid ${colors.border}`, paddingLeft: '30px' }}>
-              
-              {/* BANNER LATERALE CON EFFETTO HOVER */}
-              {sponsorLaterale && (
-                <div style={{ marginBottom: '30px', width: '100%', overflow: 'hidden' }}>
-                  <span style={{ display: 'block', fontSize: '10px', color: '#999', marginBottom: '5px', letterSpacing: '1px' }}>SPONSOR</span>
-                  <a href={sponsorLaterale.link} target="_blank" rel="noopener noreferrer">
-                    <img 
-                      className="banner-hover"
-                      src={sponsorLaterale.immagine} 
-                      alt="Sponsor" 
-                      style={{ width: '100%', borderRadius: '8px', display: 'block', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} 
-                    />
-                  </a>
+              {/* SPONSOR SIDEBAR */}
+              {sponsorLaterale.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', marginBottom: '40px', alignItems: 'center' }}>
+                  <span style={{ display: 'block', fontSize: '10px', color: '#999', marginBottom: '-10px', letterSpacing: '1px', textAlign: 'center' }}>
+                    SPONSOR
+                  </span>
+
+                  {sponsorLaterale.map((s, index) => (
+                    <div key={index} style={{ width: '80%', overflow: 'hidden' }}>
+                      <div onClick={() => handleSponsorClick(s.id, s.link)}>
+                        <img
+                          className="banner-hover"
+                          src={s.immagine}
+                          alt={`Sponsor Sidebar ${index + 1}`}
+                          style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
-              <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>Archivio Articoli</h2>
+              <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>
+                Archivio Articoli
+              </h2>
+
               {currentArchivioArt.length > 0 ? (
                 <>
                   <ul style={{ listStyle: 'none', padding: 0 }}>
                     {currentArchivioArt.map(a => (
                       <li key={a.id} style={listItemStyle}>
-                        <span onClick={() => onReadArticle(a.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>{a.titolo}</span>
-                        <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(a)}</small>
+                        <span
+                          onClick={() => onReadArticle(a.id)}
+                          style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}
+                        >
+                          {a.titolo}
+                        </span>
+                        <small style={{ color: '#888', fontStyle: 'italic' }}>
+                          di {getAutore(a)}
+                        </small>
                       </li>
                     ))}
                   </ul>
                   <Pagination total={totalPagesArt} current={pageArticoli} setPage={setPageArticoli} />
                 </>
-              ) : <p style={{ fontSize: '13px', color: '#999' }}>Nessun articolo precedente.</p>}
+              ) : (
+                <p style={{ fontSize: '13px', color: '#999' }}>Nessun articolo precedente.</p>
+              )}
 
               <div style={{ marginTop: '45px' }}>
-                <h2 style={{ fontSize: '20px', borderBottom: `2px solid #17a2b8`, paddingBottom: '8px', marginBottom: '15px' }}>Rubriche</h2>
+                <h2 style={{ fontSize: '20px', borderBottom: `2px solid #17a2b8`, paddingBottom: '8px', marginBottom: '15px' }}>
+                  Rubriche
+                </h2>
                 {currentRubriche.length > 0 ? (
                   <>
                     <ul style={{ listStyle: 'none', padding: 0 }}>
                       {currentRubriche.map(r => (
                         <li key={r.id} style={listItemStyle}>
-                          <span onClick={() => onReadArticle(r.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📚 {r.titolo}</span>
-                          <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(r)}</small>
+                          <span
+                            onClick={() => onReadArticle(r.id)}
+                            style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}
+                          >
+                            📚 {r.titolo}
+                          </span>
+                          <small style={{ color: '#888', fontStyle: 'italic' }}>
+                            di {getAutore(r)}
+                          </small>
                         </li>
                       ))}
                     </ul>
                     <Pagination total={totalPagesRubriche} current={pageRubriche} setPage={setPageRubriche} />
                   </>
-                ) : <p style={{ fontSize: '13px', color: '#999' }}>Nessuna rubrica pubblicata.</p>}
+                ) : (
+                  <p style={{ fontSize: '13px', color: '#999' }}>Nessuna rubrica pubblicata.</p>
+                )}
               </div>
 
               <div style={{ marginTop: '45px' }}>
-                <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.primary}`, paddingBottom: '8px', marginBottom: '15px' }}>Sondaggi</h2>
+                <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.primary}`, paddingBottom: '8px', marginBottom: '15px' }}>
+                  Sondaggi
+                </h2>
                 {ultimoSondaggio && (
-                  <div className="poll-card-main" onClick={() => onReadArticle(ultimoSondaggio.id)} style={{ backgroundColor: colors.pollFocus, padding: '20px', borderRadius: '8px', color: 'white', cursor: 'pointer', marginBottom: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                  <div
+                    className="poll-card-main"
+                    onClick={() => onReadArticle(ultimoSondaggio.id)}
+                    style={{ backgroundColor: colors.pollFocus, padding: '20px', borderRadius: '8px', color: 'white', cursor: 'pointer', marginBottom: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                  >
                     <h3 style={{ fontSize: '18px', margin: 0 }}>{ultimoSondaggio.titolo}</h3>
                     <p style={{ fontSize: '12px', marginTop: '10px', opacity: 0.8 }}>Vota ora →</p>
                   </div>
                 )}
-                <p style={{ fontSize: '11px', color: '#888', marginBottom: '20px', lineHeight: '1.4' }}>
-                  Partecipando ai nostri sondaggi o candidandoti per un'intervista, accetti il trattamento dei dati secondo la nostra{" "}
-                  <span className="privacy-link" style={{ color: colors.primary }} onClick={onPrivacyClick}>Privacy Policy</span>.
-                </p>
                 <ul style={{ listStyle: 'none', padding: 0 }}>
                   {currentSondaggi.map(s => (
                     <li key={s.id} style={listItemStyle}>
-                      <span onClick={() => onReadArticle(s.id)} style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#444' }}>📊 {s.titolo}</span>
+                      <span
+                        onClick={() => onReadArticle(s.id)}
+                        style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#444' }}
+                      >
+                        📊 {s.titolo}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -374,9 +524,20 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         <div style={{ position: "fixed", bottom: 0, left: 0, width: "100%", backgroundColor: "rgba(26, 26, 26, 0.95)", color: "white", padding: "15px 20px", zIndex: 1000, display: "flex", justifyContent: "center", alignItems: "center", gap: "20px", boxShadow: "0 -2px 10px rgba(0,0,0,0.3)", flexWrap: "wrap" }}>
           <p style={{ fontSize: "13px", margin: 0, maxWidth: "800px" }}>
             Questo magazine utilizza cookie tecnici per garantirti la migliore esperienza. I dati delle aziende candidate sono trattati in conformità al GDPR.
-            <span className="privacy-link" style={{ marginLeft: "5px" }} onClick={onPrivacyClick}>Leggi l'informativa</span>.
+            <span
+              className="privacy-link"
+              style={{ marginLeft: "5px", cursor: "pointer", textDecoration: "underline" }}
+              onClick={onPrivacyClick}
+            >
+              Leggi l'informativa
+            </span>.
           </p>
-          <button onClick={acceptCookies} style={{ backgroundColor: colors.primary, color: "white", border: "none", padding: "8px 20px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize: "13px" }}>Accetta tutto</button>
+          <button
+            onClick={acceptCookies}
+            style={{ backgroundColor: colors.primary, color: "white", border: "none", padding: "8px 20px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize: "13px" }}
+          >
+            Accetta tutto
+          </button>
         </div>
       )}
     </div>

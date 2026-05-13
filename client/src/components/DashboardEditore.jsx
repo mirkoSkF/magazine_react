@@ -193,6 +193,46 @@ const DashboardEditore = ({ onEdit }) => {
         .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-page:not(:disabled):hover { background: ${colors.lightGray}; border-color: ${colors.primary}; }
 
+        /* EFFETTI HOVER PER I BOTTONI DI NAVIGAZIONE VIEW */
+        .btn-view-switch {
+          border: none;
+          padding: 12px 20px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: bold;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .btn-view-sponsor {
+          background-color: ${colors.accent};
+          color: white;
+        }
+
+        .btn-view-sponsor:hover {
+          background-color: #5a32a3; /* Tonalità più scura di accent */
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(111, 66, 193, 0.3);
+        }
+
+        .btn-view-contenuti {
+          background-color: ${colors.primary};
+          color: white;
+        }
+
+        .btn-view-contenuti:hover {
+          background-color: #0056b3; /* Tonalità più scura di primary */
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-view-switch:active {
+          transform: translateY(0);
+        }
+
         @media (max-width: 950px) { .dashboard-header { flex-direction: column; } .user-panel, .security-panel { width: 100% !important; } }
         @media (max-width: 768px) {
           .dashboard-table thead { display: none; }
@@ -252,12 +292,7 @@ const DashboardEditore = ({ onEdit }) => {
           
           <button 
             onClick={() => setView(view === 'CONTENUTI' ? 'SPONSOR' : 'CONTENUTI')}
-            style={{ 
-              background: view === 'CONTENUTI' ? colors.accent : colors.primary, 
-              color: 'white', border: 'none', padding: '12px 20px', 
-              borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}
+            className={`btn-view-switch ${view === 'CONTENUTI' ? 'btn-view-sponsor' : 'btn-view-contenuti'}`}
           >
             {view === 'CONTENUTI' ? '📢 Gestisci Sponsor' : '📄 Torna ai Contenuti'}
           </button>

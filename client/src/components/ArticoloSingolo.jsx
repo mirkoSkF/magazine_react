@@ -5,8 +5,8 @@ const ArticoloSingolo = ({ id, onBack }) => {
   const [votoEffettuato, setVotoEffettuato] = useState(false);
   const [stats, setStats] = useState({});
   const [isVoting, setIsVoting] = useState(false);
-  
-  // Stato per gli sponsor
+
+  // Stato sponsor
   const [sponsors, setSponsors] = useState([]);
 
   const token = localStorage.getItem('token');
@@ -20,12 +20,16 @@ const ArticoloSingolo = ({ id, onBack }) => {
   const deviceId = useMemo(() => {
     const nav = window.navigator;
     const screen = window.screen;
+
     const str = `${nav.userAgent}${nav.language}${screen.colorDepth}${screen.width}${screen.height}`;
+
     let hash = 0;
+
     for (let i = 0; i < str.length; i++) {
       hash = (hash << 5) - hash + str.charCodeAt(i);
       hash |= 0;
     }
+
     return `dev_${Math.abs(hash)}`;
   }, []);
 
@@ -34,222 +38,706 @@ const ArticoloSingolo = ({ id, onBack }) => {
     [id, deviceId]
   );
 
-  // LOGICA CLICK BANNER
+  // CLICK BANNER
   const handleBannerClick = async (sponsorId) => {
-    const clickedSponsors = JSON.parse(localStorage.getItem('clicked_sponsors') || '[]');
+    const clickedSponsors = JSON.parse(
+      localStorage.getItem('clicked_sponsors') || '[]'
+    );
+
     if (clickedSponsors.includes(sponsorId)) return;
 
     try {
-      const res = await fetch(`http://localhost:8096/api/sponsors/${sponsorId}/click`, { method: 'PATCH' });
+      const res = await fetch(
+        `http://localhost:8096/api/sponsors/${sponsorId}/click`,
+        {
+          method: 'PATCH'
+        }
+      );
+
       if (res.ok) {
         clickedSponsors.push(sponsorId);
-        localStorage.setItem('clicked_sponsors', JSON.stringify(clickedSponsors));
+
+        localStorage.setItem(
+          'clicked_sponsors',
+          JSON.stringify(clickedSponsors)
+        );
       }
     } catch (err) {
       console.error("Errore registrazione click:", err);
     }
   };
 
+  // GESTIONE TESTO + IMMAGINI
   const forceHyphenation = (html) => {
     if (!html) return "";
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
+
+    // MARGINI AUTOMATICI IMMAGINI
+    doc.querySelectorAll('img').forEach(img => {
+      const currentStyle = img.getAttribute('style') || '';
+
+      // Classe responsive
+      img.classList.add('article-image');
+
+      img.setAttribute(
+        'style',
+        `
+          ${currentStyle};
+          max-width:100%;
+          height:auto;
+          border-radius:8px;
+        `
+      );
+
+      const styleLower = currentStyle.toLowerCase();
+
+      if (styleLower.includes('float: left')) {
+        img.style.margin = '15px 30px 20px 0';
+      }
+      else if (styleLower.includes('float: right')) {
+        img.style.margin = '15px 0 20px 30px';
+      }
+      else {
+        img.style.display = 'block';
+        img.style.margin = '30px auto';
+      }
+    });
+
     const processNode = (node) => {
       if (node.nodeType === 3) {
         let text = node.nodeValue.replace(/&nbsp;/g, ' ');
+
         node.nodeValue = text.replace(
           /([a-zA-ZàèéìòùÀÈÉÌÒÙ]{5,})/g,
           (word) => {
-            if (word.length < 9) return word;
-            return word.slice(0, 6) + '\u00AD' + word.slice(6);
+            if (word.length < 10) return word;
+
+            return (
+              word.slice(0, Math.floor(word.length / 2)) +
+              '\u00AD' +
+              word.slice(Math.floor(word.length / 2))
+            );
           }
         );
-      } else if (node.nodeType === 1 && node.tagName !== 'IMG') {
+      } else if (
+        node.nodeType === 1 &&
+        node.tagName !== 'IMG'
+      ) {
         node.childNodes.forEach(child => processNode(child));
       }
     };
+
     processNode(doc.body);
+
     return doc.body.innerHTML;
   };
 
   useEffect(() => {
     if (id) {
-      // Caricamento Articolo
-      fetch(`http://localhost:8096/api/pagine/${id}/view`, { method: 'PUT' }).catch(err => console.error(err));
+      fetch(
+        `http://localhost:8096/api/pagine/${id}/view`,
+        { method: 'PUT' }
+      ).catch(err => console.error(err));
 
-      const giaVotatoLocal = localStorage.getItem(voteKey) === 'true';
-      if (giaVotatoLocal) setVotoEffettuato(true);
+      const giaVotatoLocal =
+        localStorage.getItem(voteKey) === 'true';
 
-      fetch(`http://localhost:8096/api/pagine/${id}?fingerprint=${deviceId}`)
+      if (giaVotatoLocal) {
+        setVotoEffettuato(true);
+      }
+
+      fetch(
+        `http://localhost:8096/api/pagine/${id}?fingerprint=${deviceId}`
+      )
         .then(res => res.json())
         .then(data => {
           setArticolo(data);
           setStats(data.votiSondaggio || {});
+
           if (data.giaVotato) {
             setVotoEffettuato(true);
+
             localStorage.setItem(voteKey, 'true');
           }
         })
-        .catch(err => console.error("Errore caricamento:", err));
+        .catch(err =>
+          console.error("Errore caricamento:", err)
+        );
 
-      // CARICAMENTO SPONSOR
       fetch('http://localhost:8096/api/sponsors')
         .then(res => res.json())
         .then(data => {
-          // Filtriamo solo quelli attivi per la pagina ARTICOLO
-          const filtrati = data.filter(s => s.attivo && s.tipoPagina === 'ARTICOLO');
+          const filtrati = data.filter(
+            s =>
+              s.attivo &&
+              s.tipoPagina === 'ARTICOLO' &&
+              s.posizione === 'BOTTOM'
+          );
+
           setSponsors(filtrati);
         })
-        .catch(err => console.error("Errore sponsor:", err));
+        .catch(err =>
+          console.error("Errore sponsor:", err)
+        );
     }
   }, [id, voteKey, deviceId]);
 
   const handleVote = (opzione) => {
-    if (isEditore) { alert("Gli editori non possono partecipare ai sondaggi."); return; }
+    if (isEditore) return;
+
     if (votoEffettuato || isVoting) return;
+
     setIsVoting(true);
 
-    fetch(`http://localhost:8096/api/pagine/${id}/vota`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: JSON.stringify({ scelta: opzione, fingerprint: deviceId })
-    })
+    fetch(
+      `http://localhost:8096/api/pagine/${id}/vota`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token
+            ? { Authorization: `Bearer ${token}` }
+            : {})
+        },
+        body: JSON.stringify({
+          scelta: opzione,
+          fingerprint: deviceId
+        })
+      }
+    )
       .then(async (res) => {
         if (res.status === 403) {
-          const testo = await res.text();
-          if (testo && testo.toLowerCase().includes("editori")) {
-            alert("Gli editori non possono partecipare ai sondaggi.");
-            return null;
-          }
           setVotoEffettuato(true);
+
           localStorage.setItem(voteKey, 'true');
+
           return null;
         }
+
         return res.json();
       })
       .then(nuoviVoti => {
         if (nuoviVoti) {
           localStorage.setItem(voteKey, 'true');
+
           setStats(nuoviVoti);
+
           setVotoEffettuato(true);
         }
       })
-      .catch(err => console.error("Errore voto:", err))
+      .catch(err =>
+        console.error("Errore voto:", err)
+      )
       .finally(() => setIsVoting(false));
   };
 
   const parsePollOptions = (htmlContent) => {
-    const doc = new DOMParser().parseFromString(htmlContent, 'text/html');
-    const items = Array.from(doc.querySelectorAll('li')).map(li => li.innerText.trim());
-    return items.length > 0 ? items : htmlContent.replace(/<[^>]*>/g, '').split('\n').filter(t => t.trim() !== '');
+    const doc = new DOMParser()
+      .parseFromString(htmlContent, 'text/html');
+
+    const items = Array.from(
+      doc.querySelectorAll('li')
+    ).map(li => li.innerText.trim());
+
+    return items.length > 0
+      ? items
+      : htmlContent
+          .replace(/<[^>]*>/g, '')
+          .split('\n')
+          .filter(t => t.trim() !== '');
   };
 
-  if (!articolo) return <div style={{ textAlign: 'center', padding: '50px' }}>Caricamento...</div>;
+  if (!articolo) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        Caricamento...
+      </div>
+    );
+  }
 
-  const totalVoti = Object.values(stats).reduce((a, b) => a + b, 0);
+  const totalVoti = Object
+    .values(stats)
+    .reduce((a, b) => a + b, 0);
+
   const autore = articolo.autore;
 
-  // Filtro banner per posizione
-  const sideBanners = sponsors.filter(s => s.posizione === 'SIDEBAR');
-  const bottomBanners = sponsors.filter(s => s.posizione === 'BOTTOM');
+  const bottomBanners = sponsors
+    .slice(0, 2);
 
   return (
-    <div lang="it" style={{ backgroundColor: '#fff', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
+    <div
+      lang="it"
+      style={{
+        backgroundColor: '#fff',
+        minHeight: '100vh',
+        fontFamily: 'Arial, sans-serif'
+      }}
+    >
       <style>{`
-        .module-text { text-align: justify !important; hyphens: auto !important; word-break: break-word; }
-        .article-body img { max-width: 100% !important; height: auto !important; border-radius: 8px; margin: 20px auto !important; display: block !important; }
+        .module-text {
+          text-align: justify !important;
+          text-justify: inter-word !important;
+          hyphens: auto !important;
+          overflow-wrap: anywhere !important;
+          word-break: normal !important;
+          line-break: auto !important;
+          letter-spacing: -0.1px;
+          word-spacing: -1px;
+        }
+
+        .module-text p {
+          margin-bottom: 20px;
+        }
+
+        .banner-container {
+          width: 70%;
+          transition: width 0.3s ease;
+        }
+
+        .banner-hover:hover {
+          transform: scale(1.01);
+          filter: brightness(1.05);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+
+        /* DESKTOP MEDIO */
+        @media (min-width: 769px) and (max-width: 1024px) {
+
+          .article-image {
+            float: none !important;
+            display: block !important;
+
+            margin-left: auto !important;
+            margin-right: auto !important;
+            margin-top: 25px !important;
+            margin-bottom: 25px !important;
+
+            width: 60% !important;
+            max-width: 60% !important;
+
+            height: auto !important;
+          }
+
+          .banner-container {
+            width: 85% !important;
+          }
+        }
+
+        /* TABLET + MOBILE */
         @media (max-width: 768px) {
-          .article-container { flex-direction: column !important; }
-          .side-banner { width: 100% !important; margin: 20px 0 !important; position: static !important; }
-          article { padding: 0 20px !important; }
+
+          article {
+            padding: 0 15px !important;
+          }
+
+          .article-title {
+            font-size: 28px !important;
+          }
+
+          .banner-container {
+            width: 100% !important;
+          }
+
+          /* OVERRIDE FLOAT IMMAGINI */
+          .article-image {
+            float: none !important;
+            clear: both !important;
+
+            display: block !important;
+
+            margin-left: auto !important;
+            margin-right: auto !important;
+            margin-top: 20px !important;
+            margin-bottom: 20px !important;
+
+            width: 100% !important;
+            max-width: 100% !important;
+
+            height: auto !important;
+          }
+
+          .module-text {
+            text-align: justify !important;
+            text-justify: inter-word !important;
+            word-spacing: -0.7px !important;
+            letter-spacing: -0.1px !important;
+            hyphens: auto !important;
+          }
         }
       `}</style>
 
-      <nav style={{ padding: '20px', borderBottom: '1px solid #eee', maxWidth: '1200px', margin: '0 auto' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#007bff', fontWeight: 'bold', cursor: 'pointer', fontSize: '16px' }}>
+      {/* NAV */}
+      <nav
+        style={{
+          padding: '20px',
+          borderBottom: '1px solid #eee',
+          maxWidth: '1200px',
+          margin: '0 auto'
+        }}
+      >
+        <button
+          onClick={onBack}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#007bff',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontSize: '16px'
+          }}
+        >
           ← Torna al Magazine
         </button>
       </nav>
 
-      <div className="article-container" style={{ display: 'flex', maxWidth: '1200px', margin: '0 auto', alignItems: 'flex-start' }}>
-        <article style={{ flex: '1', margin: '40px 0', padding: '0 40px' }}>
-          
-          {/* INFO AUTORE */}
-          <div style={{ display: 'flex', alignItems: 'center', background: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #dee2e6', marginBottom: '30px' }}>
+      {/* CONTENITORE */}
+      <div
+        style={{
+          maxWidth: '1000px',
+          margin: '0 auto'
+        }}
+      >
+
+        <article
+          style={{
+            margin: '40px 0',
+            padding: '0 40px'
+          }}
+        >
+
+          {/* AUTORE */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: '#f8f9fa',
+              padding: '20px',
+              borderRadius: '8px',
+              border: '1px solid #dee2e6',
+              marginBottom: '30px'
+            }}
+          >
             {autore?.fotoProfilo ? (
-              <img src={`data:image/jpeg;base64,${autore.fotoProfilo}`} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginRight: '20px' }} alt="Avatar" />
+              <img
+                src={`data:image/jpeg;base64,${autore.fotoProfilo}`}
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  marginRight: '20px'
+                }}
+                alt="Avatar"
+              />
             ) : (
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#ccc', marginRight: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'white' }}>
-                {autore?.nome?.charAt(0)}{autore?.cognome?.charAt(0)}
+              <div
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: '#ccc',
+                  marginRight: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 'bold',
+                  color: 'white'
+                }}
+              >
+                {autore?.nome?.charAt(0)}
+                {autore?.cognome?.charAt(0)}
               </div>
             )}
+
             <div>
-              <h3 style={{ margin: 0 }}>{autore?.nome} {autore?.cognome}</h3>
-              <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>
-                Pubblicato il {new Date(articolo.dataPubblicazione).toLocaleDateString('it-IT')}
+              <h3 style={{ margin: 0 }}>
+                {autore?.nome} {autore?.cognome}
+              </h3>
+
+              <p
+                style={{
+                  color: '#666',
+                  margin: '5px 0',
+                  fontSize: '14px'
+                }}
+              >
+                Pubblicato il{' '}
+                {new Date(
+                  articolo.dataPubblicazione
+                ).toLocaleDateString('it-IT')}
               </p>
             </div>
           </div>
 
-          <h1 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '30px', lineHeight: '1.2' }}>{articolo.titolo}</h1>
+          <h1
+            className="article-title"
+            style={{
+              fontSize: '42px',
+              fontWeight: 'bold',
+              marginBottom: '30px',
+              lineHeight: '1.2'
+            }}
+          >
+            {articolo.titolo}
+          </h1>
+
+          {/* AVVISO EDITORE */}
+          {articolo.tipo === "SONDAGGIO" && isEditore && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: 'linear-gradient(to right, #fff9e6, #fff)',
+                borderLeft: '5px solid #ffc107',
+                padding: '20px',
+                borderRadius: '12px',
+                marginBottom: '35px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                gap: '15px'
+              }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#856404"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+
+              <span
+                style={{
+                  color: '#856404',
+                  fontWeight: '600',
+                  fontSize: '15px'
+                }}
+              >
+                Modalità Visualizzazione:{' '}
+                <span style={{ fontWeight: '400' }}>
+                  Come Editore, puoi consultare i risultati ma non partecipare alla votazione.
+                </span>
+              </span>
+            </div>
+          )}
 
           <div className="article-body">
             {articolo.moduli?.map((m, i) => {
+
               if (articolo.tipo === "SONDAGGIO") {
+
                 const opzioni = parsePollOptions(m.contenuto);
+
                 return (
-                  <div key={i} style={{ background: '#f8f9fa', padding: '30px', borderRadius: '15px', border: '2px solid #007bff', marginBottom: '40px' }}>
-                    <h3 style={{ marginBottom: '10px', color: '#333' }}>{(votoEffettuato || isEditore) ? "Risultati" : "Cosa ne pensi?"}</h3>
-                    <p style={{ color: '#666', marginBottom: '25px', fontSize: '14px' }}>Totale voti: <b>{totalVoti}</b></p>
+                  <div
+                    key={i}
+                    style={{
+                      background: '#f8f9fa',
+                      padding: '30px',
+                      borderRadius: '15px',
+                      border: '2px solid #007bff',
+                      marginBottom: '40px'
+                    }}
+                  >
+                    <h3
+                      style={{
+                        marginBottom: '10px',
+                        color: '#333'
+                      }}
+                    >
+                      {(votoEffettuato || isEditore)
+                        ? "Risultati in tempo reale"
+                        : "Esprimi la tua preferenza"}
+                    </h3>
+
+                    <p
+                      style={{
+                        color: '#666',
+                        marginBottom: '25px',
+                        fontSize: '14px'
+                      }}
+                    >
+                      Partecipanti totali: <b>{totalVoti}</b>
+                    </p>
+
                     {opzioni.map((opt, idx) => {
+
                       const nVoti = stats[opt] || 0;
-                      const percent = totalVoti > 0 ? Math.round((nVoti / totalVoti) * 100) : 0;
-                      return (votoEffettuato || isEditore) ? (
-                        <div key={idx} style={{ marginBottom: '20px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                            <span>{opt}</span>
-                            <b>{percent}%</b>
+
+                      const percent =
+                        totalVoti > 0
+                          ? Math.round((nVoti / totalVoti) * 100)
+                          : 0;
+
+                      return (votoEffettuato || isEditore)
+                        ? (
+                          <div
+                            key={idx}
+                            style={{ marginBottom: '20px' }}
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                marginBottom: '6px',
+                                gap: '15px'
+                              }}
+                            >
+                              <span style={{ fontSize: '15px' }}>
+                                {opt}
+                              </span>
+
+                              <div style={{ textAlign: 'right' }}>
+                                <span
+                                  style={{
+                                    color: '#666',
+                                    fontSize: '13px',
+                                    marginRight: '8px'
+                                  }}
+                                >
+                                  ({nVoti} {nVoti === 1 ? 'voto' : 'voti'})
+                                </span>
+
+                                <b style={{ color: '#007bff' }}>
+                                  {percent}%
+                                </b>
+                              </div>
+                            </div>
+
+                            <div
+                              style={{
+                                height: '10px',
+                                background: '#e9ecef',
+                                borderRadius: '5px',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: `${percent}%`,
+                                  height: '100%',
+                                  background: '#007bff',
+                                  transition: 'width 1s'
+                                }}
+                              />
+                            </div>
                           </div>
-                          <div style={{ height: '12px', background: '#e9ecef', borderRadius: '6px', overflow: 'hidden' }}>
-                            <div style={{ width: `${percent}%`, height: '100%', background: '#007bff', transition: 'width 1s' }} />
-                          </div>
-                        </div>
-                      ) : (
-                        <button key={idx} onClick={() => handleVote(opt)} disabled={isVoting} style={{ display: 'block', width: '100%', padding: '16px', marginBottom: '10px', backgroundColor: '#fff', border: '2px solid #007bff', color: '#007bff', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>{opt}</button>
-                      );
+                        )
+                        : (
+                          <button
+                            key={idx}
+                            onClick={() => handleVote(opt)}
+                            disabled={isVoting}
+                            style={{
+                              display: 'block',
+                              width: '100%',
+                              padding: '16px',
+                              marginBottom: '12px',
+                              backgroundColor: '#fff',
+                              border: '2px solid #007bff',
+                              color: '#007bff',
+                              borderRadius: '10px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseOver={(e) =>
+                              e.target.style.background = '#f0f7ff'
+                            }
+                            onMouseOut={(e) =>
+                              e.target.style.background = '#fff'
+                            }
+                          >
+                            {opt}
+                          </button>
+                        );
                     })}
                   </div>
                 );
               }
+
               return (
-                <div key={i} className="module-text" style={{ fontSize: '19px', lineHeight: '1.8', marginBottom: '25px' }} dangerouslySetInnerHTML={{ __html: forceHyphenation(m.contenuto) }} />
+                <div
+                  key={i}
+                  className="module-text"
+                  style={{
+                    fontSize: '18px',
+                    lineHeight: '1.7',
+                    marginBottom: '25px'
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: forceHyphenation(m.contenuto)
+                  }}
+                />
               );
             })}
           </div>
-
-          {/* BANNER IN BASSO (Appare solo se ci sono banner BOTTOM) */}
-          {bottomBanners.length > 0 && (
-            <div style={{ marginTop: '50px', borderTop: '1px solid #eee', paddingTop: '30px' }}>
-              <p style={{ fontSize: '12px', color: '#999', textAlign: 'center', marginBottom: '10px', textTransform: 'uppercase' }}>Sponsor</p>
-              {bottomBanners.map(s => (
-                <a key={s.id} href={s.linkSito} target="_blank" rel="noopener noreferrer" onClick={() => handleBannerClick(s.id)} style={{ display: 'block', marginBottom: '20px', textDecoration: 'none' }}>
-                  <img src={s.bannerImage} alt={s.nomeAzienda} style={{ width: '100%', borderRadius: '8px', border: '1px solid #ddd' }} />
-                </a>
-              ))}
-            </div>
-          )}
         </article>
 
-        {/* BANNER LATERALE (Appare solo se ci sono banner SIDEBAR) */}
-        {sideBanners.length > 0 && (
-          <aside className="side-banner" style={{ width: '300px', margin: '40px 40px 40px 0', position: 'sticky', top: '20px' }}>
-            <p style={{ fontSize: '12px', color: '#999', textAlign: 'center', marginBottom: '10px', textTransform: 'uppercase' }}>Sponsor</p>
-            {sideBanners.map(s => (
-              <a key={s.id} href={s.linkSito} target="_blank" rel="noopener noreferrer" onClick={() => handleBannerClick(s.id)} style={{ display: 'block', marginBottom: '20px', textDecoration: 'none' }}>
-                <img src={s.bannerImage} alt={s.nomeAzienda} style={{ width: '100%', borderRadius: '8px', border: '1px solid #ddd', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }} />
+        {/* BANNER SOLO IN FONDO */}
+        {bottomBanners.length > 0 && (
+          <div
+            style={{
+              width: '100%',
+              marginTop: '40px',
+              marginBottom: '60px',
+              borderTop: '1px solid #eee',
+              paddingTop: '35px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              clear: 'both'
+            }}
+          >
+            <p
+              style={{
+                fontSize: '10px',
+                color: '#999',
+                textAlign: 'center',
+                marginBottom: '20px',
+                textTransform: 'uppercase',
+                letterSpacing: '2px'
+              }}
+            >
+              Pubblicità
+            </p>
+
+            {bottomBanners.map(s => (
+              <a
+                key={s.id}
+                href={s.linkSito}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => handleBannerClick(s.id)}
+                className="banner-container"
+                style={{
+                  display: 'block',
+                  marginBottom: '30px',
+                  textDecoration: 'none'
+                }}
+              >
+                <img
+                  className="banner-hover"
+                  src={s.bannerImage}
+                  alt={s.nomeAzienda}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    borderRadius: '10px',
+                    border: '1px solid #eee',
+                    transition: 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)'
+                  }}
+                />
               </a>
             ))}
-          </aside>
+          </div>
         )}
       </div>
     </div>
