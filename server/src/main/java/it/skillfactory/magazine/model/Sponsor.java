@@ -1,5 +1,6 @@
 package it.skillfactory.magazine.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
@@ -17,48 +18,95 @@ public class Sponsor {
     @Column(nullable = false)
     private String linkSito;
 
-    @Column(columnDefinition = "LONGTEXT") 
+    @Column(columnDefinition = "LONGTEXT")
     private String bannerImage;
 
     @Column(nullable = false)
-    private String posizione; // Esempio: "SIDEBAR", "BOTTOM"
+    private String posizione;
 
     @Column(nullable = false)
-    private String tipoPagina; // Esempio: "HOME", "ARTICOLO"
+    private String tipoPagina;
 
-    private int clickCount = 0;
+    @Column(nullable = false)
+    private Integer clickCount = 0;
 
+    @Column(nullable = false)
     private boolean attivo = true;
 
     private LocalDate dataScadenza;
 
     public Sponsor() {}
 
-    // Getter e Setter
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getNomeAzienda() { return nomeAzienda; }
-    public void setNomeAzienda(String nomeAzienda) { this.nomeAzienda = nomeAzienda; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getLinkSito() { return linkSito; }
-    public void setLinkSito(String linkSito) { this.linkSito = linkSito; }
+    public String getNomeAzienda() {
+        return nomeAzienda;
+    }
 
-    public String getBannerImage() { return bannerImage; }
-    public void setBannerImage(String bannerImage) { this.bannerImage = bannerImage; }
+    public void setNomeAzienda(String nomeAzienda) {
+        this.nomeAzienda = nomeAzienda;
+    }
 
-    public String getPosizione() { return posizione; }
-    public void setPosizione(String posizione) { this.posizione = posizione; }
+    public String getLinkSito() {
+        return linkSito;
+    }
 
-    public String getTipoPagina() { return tipoPagina; }
-    public void setTipoPagina(String tipoPagina) { this.tipoPagina = tipoPagina; }
+    public void setLinkSito(String linkSito) {
+        this.linkSito = linkSito;
+    }
 
-    public int getClickCount() { return clickCount; }
-    public void setClickCount(int clickCount) { this.clickCount = clickCount; }
+    public String getBannerImage() {
+        return bannerImage;
+    }
 
-    public boolean isAttivo() { return attivo; }
-    public void setAttivo(boolean attivo) { this.attivo = attivo; }
+    public void setBannerImage(String bannerImage) {
+        this.bannerImage = bannerImage;
+    }
 
-    public LocalDate getDataScadenza() { return dataScadenza; }
-    public void setDataScadenza(LocalDate dataScadenza) { this.dataScadenza = dataScadenza; }
+    public String getPosizione() {
+        return posizione;
+    }
+
+    public void setPosizione(String posizione) {
+        this.posizione = posizione;
+    }
+
+    public String getTipoPagina() {
+        return tipoPagina;
+    }
+
+    public void setTipoPagina(String tipoPagina) {
+        this.tipoPagina = tipoPagina;
+    }
+
+    @JsonProperty("clickCount")
+    public Integer getClickCount() {
+        return clickCount == null ? 0 : clickCount;
+    }
+
+    public void setClickCount(Integer clickCount) {
+        this.clickCount = clickCount == null ? 0 : clickCount;
+    }
+
+    public boolean isAttivo() {
+        return attivo;
+    }
+
+    public void setAttivo(boolean attivo) {
+        this.attivo = attivo;
+    }
+
+    public LocalDate getDataScadenza() {
+        return dataScadenza;
+    }
+
+    public void setDataScadenza(LocalDate dataScadenza) {
+        this.dataScadenza = dataScadenza;
+    }
 }

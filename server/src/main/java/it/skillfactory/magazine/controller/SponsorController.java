@@ -2,65 +2,121 @@ package it.skillfactory.magazine.controller;
 
 import it.skillfactory.magazine.model.Sponsor;
 import it.skillfactory.magazine.repository.SponsorRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Collections;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/sponsors")
-@CrossOrigin(origins = "*") // Assicurati di gestire i CORS se necessario
+@CrossOrigin(origins = "*")
 public class SponsorController {
 
-    @Autowired 
+    @Autowired
     private SponsorRepository sponsorRepository;
 
-    // --- PUBBLICI ---
-    
+    // =========================
+    // RANDOM SPONSOR
+    // =========================
+
     @GetMapping("/random")
     public ResponseEntity<Sponsor> getRandomSponsor(
             @RequestParam String posizione,
-            @RequestParam String tipoPagina) { // Parametro aggiunto
-        
-        // Cerchiamo solo gli sponsor che corrispondono a TUTTI i criteri
-        List<Sponsor> attivi = sponsorRepository.findByPosizioneAndTipoPaginaAndAttivoTrue(posizione, tipoPagina);
-        
+            @RequestParam String tipoPagina) {
+
+        List<Sponsor> attivi =
+                sponsorRepository.findByPosizioneAndTipoPaginaAndAttivoTrue(
+                        posizione,
+                        tipoPagina
+                );
+
         if (attivi.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        
+
         Collections.shuffle(attivi);
-        return ResponseEntity.ok(attivi.get(0));
+
+        Sponsor sponsor = attivi.get(0);
+
+        if (sponsor.getClickCount() == null) {
+            sponsor.setClickCount(0);
+        }
+
+        return ResponseEntity.ok(sponsor);
     }
+
+    // =========================
+    // INCREMENTO CLICK
+    // =========================
 
     @PatchMapping("/{id}/click")
     public ResponseEntity<?> incrementaClick(@PathVariable Long id) {
-        return sponsorRepository.findById(id).map(s -> {
-            s.setClickCount(s.getClickCount() + 1);
-            sponsorRepository.save(s);
-            return ResponseEntity.ok().build();
+
+        return sponsorRepository.findById(id).map(sponsor -> {
+
+            Integer current = sponsor.getClickCount();
+
+            if (current == null) {
+                current = 0;
+            }
+
+            sponsor.setClickCount(current + 1);
+
+            sponsorRepository.saveAndFlush(sponsor);
+
+            return ResponseEntity.ok(sponsor);
+
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // --- PROTETTI (Richiedono Token) ---
+    // =========================
+    // GET ALL
+    // =========================
 
     @GetMapping
     public List<Sponsor> getAll() {
-        return sponsorRepository.findAll();
+
+        List<Sponsor> sponsors = sponsorRepository.findAll();
+
+        sponsors.forEach(s -> {
+            if (s.getClickCount() == null) {
+                s.setClickCount(0);
+            }
+        });
+
+        return sponsors;
     }
+
+    // =========================
+    // CREA
+    // =========================
 
     @PostMapping
     public Sponsor creaSponsor(@RequestBody Sponsor sponsor) {
-        // Se il clickCount non è inviato, inizializzalo a 0
+
+        if (sponsor.getClickCount() == null) {
+            sponsor.setClickCount(0);
+        }
+
         return sponsorRepository.save(sponsor);
     }
 
+    // =========================
+    // DELETE
+    // =========================
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> elimina(@PathVariable Long id) {
-        return sponsorRepository.findById(id).map(s -> {
-            sponsorRepository.delete(s);
+
+        return sponsorRepository.findById(id).map(sponsor -> {
+
+            sponsorRepository.delete(sponsor);
+
             return ResponseEntity.ok().build();
+
         }).orElse(ResponseEntity.notFound().build());
     }
 }
