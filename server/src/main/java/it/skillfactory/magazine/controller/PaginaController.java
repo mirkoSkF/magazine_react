@@ -27,7 +27,7 @@ public class PaginaController {
     private UtenteRepository utenteRepository;
 
     @GetMapping
-    public List<PaginaMagazine> getAll() {
+    public List<PaginaMagazine> geztAll() {
         return paginaRepository.findAll();
     }
 
