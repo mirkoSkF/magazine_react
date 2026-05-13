@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 
 const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [tuttiContenuti, setTuttiContenuti] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); 
+  const [searchTerm, setSearchTerm] = useState("");
   const [pageArticoli, setPageArticoli] = useState(1);
   const [pageRubriche, setPageRubriche] = useState(1);
   const [pageSondaggi, setPageSondaggi] = useState(1);
   const [showCookieBanner, setShowCookieBanner] = useState(true);
-  
-  const [sponsorLaterale, setSponsorLaterale] = useState([]); 
+
+  const [sponsorLaterale, setSponsorLaterale] = useState([]);
   const [sponsorFondo, setSponsorFondo] = useState([]);
 
   const itemsPerPage = 5;
@@ -32,17 +32,32 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
   // GESTIONE CLICK E AGGIORNAMENTO CONTATORE
   const handleSponsorClick = (id, link) => {
-    // Nota: Il backend usa PatchMapping per incrementare
-    fetch(`http://localhost:8096/api/sponsors/${id}/click`, {
-      method: 'PATCH'
-    })
-    .then(() => {
+    // 1. Definiamo una chiave univoca per questo specifico banner
+    const storageKey = `clicked_sponsor_${id}`;
+
+    // 2. Controlliamo se la chiave esiste già nel localStorage
+    const hasClicked = localStorage.getItem(storageKey);
+
+    if (!hasClicked) {
+      // Se non ha mai cliccato, inviamo la richiesta al backend
+      fetch(`http://localhost:8096/api/sponsors/${id}/click`, {
+        method: 'PATCH'
+      })
+        .then(() => {
+          // 3. Salviamo nel localStorage che l'utente ha cliccato
+          localStorage.setItem(storageKey, 'true');
+        })
+        .catch((err) => {
+          console.error("Errore registrazione click:", err);
+        })
+        .finally(() => {
+          // Apriamo il link in ogni caso
+          window.open(link, '_blank', 'noopener,noreferrer');
+        });
+    } else {
+      // Se ha già cliccato, apriamo solo il link senza chiamare il backend
       window.open(link, '_blank', 'noopener,noreferrer');
-    })
-    .catch((err) => {
-      console.error("Errore registrazione click:", err);
-      window.open(link, '_blank', 'noopener,noreferrer');
-    });
+    }
   };
 
   useEffect(() => {
@@ -55,7 +70,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       .then((res) => res.json())
       .then((data) => {
         const attivi = data.filter(s => s.attivo && s.tipoPagina === 'HOME');
-        
+
         const sidebar = attivi
           .filter(s => s.posizione === 'SIDEBAR')
           .slice(0, 3)
@@ -248,13 +263,13 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           {contenutiFiltrati.length > 0 ? (
             <div style={{ display: "grid", gap: "20px" }}>
               {contenutiFiltrati.map(item => (
-                <div 
-                  key={item.id} 
+                <div
+                  key={item.id}
                   onClick={() => onReadArticle(item.id)}
-                  style={{ 
-                    padding: "20px", 
-                    backgroundColor: colors.lightGray, 
-                    borderRadius: "8px", 
+                  style={{
+                    padding: "20px",
+                    backgroundColor: colors.lightGray,
+                    borderRadius: "8px",
                     cursor: "pointer",
                     display: "flex",
                     justifyContent: "space-between",

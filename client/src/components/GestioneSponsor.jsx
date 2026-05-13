@@ -221,7 +221,7 @@ const GestioneSponsor = ({ colors }) => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
           <div>
             <label style={labelStyle}>Nome Azienda</label>
-            <input type="text" value={form.nomeAzienda} onChange={e => setForm({ ...form, nomeAzienda: e.target.value })} required style={inputStyle} placeholder="Es: Pizzeria da Ciro" />
+            <input type="text" value={form.nomeAzienda} onChange={e => setForm({ ...form, nomeAzienda: e.target.value })} required style={inputStyle} placeholder="Es: Skill Factory SRL" />
           </div>
           <div>
             <label style={labelStyle}>Link Sito Web</label>

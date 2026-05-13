@@ -706,7 +706,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
                 letterSpacing: '2px'
               }}
             >
-              Pubblicità
+              Sponsor
             </p>
 
             {bottomBanners.map(s => (

@@ -149,7 +149,7 @@ const Login = ({ onLoginSuccess, colors }) => {
           onMouseLeave={() => setIsHoverLogin(false)}
           style={loginBtnStyle(colors, isHoverLogin)}
         >
-          ACCEDI AL DASHBOARD
+          ACCEDI
         </button>
       </form>
     </div>
