@@ -31,7 +31,7 @@ const PrivacyContent = ({ onBack }) => (
         borderRadius: '4px', fontWeight: 'bold' 
       }}
     >
-      ← Torna al Magazine
+      &larr; Torna al Magazine
     </button>
     
     <h1 style={{ fontSize: '22px', borderBottom: '2px solid #007bff', paddingBottom: '10px', color: '#333' }}>
@@ -93,6 +93,9 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    // CAMBIO TITOLO SCHEDA BROWSER
+    document.title = "Magazine SF";
+
     const token = localStorage.getItem('token');
     if (token) setIsLoggedIn(true);
   }, []);
@@ -263,7 +266,7 @@ function App() {
       </main>
 
       <footer style={footerStyle}>
-        © Copyright - Skill Factory 2026 | 
+        &copy; Copyright - Skill Factory 2026 | 
         <span 
           onClick={() => setView('privacy')} 
           style={{ cursor: 'pointer', marginLeft: '10px', textDecoration: 'underline' }}
