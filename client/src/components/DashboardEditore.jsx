@@ -11,6 +11,7 @@ const DashboardEditore = ({ onEdit }) => {
   const [view, setView] = useState('CONTENUTI'); 
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [tipoFiltro, setTipoFiltro] = useState('TUTTI'); // TUTTI, ARTICOLO, RUBRICA, SONDAGGIO
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -46,7 +47,7 @@ const DashboardEditore = ({ onEdit }) => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, tipoFiltro]);
 
   const extractText = (item) => {
     if (!item.moduli) return item.contenuto || '';
@@ -95,6 +96,14 @@ const DashboardEditore = ({ onEdit }) => {
 
   const articoliFiltratiRisultato = useMemo(() => {
     const filtrati = articoli.filter(a => {
+      // 1. Filtro per tipo di pubblicazione
+      if (tipoFiltro !== 'TUTTI') {
+        // Se l'elemento non ha tipo (o è stringa vuota) e cerchiamo ARTICOLO, lo includiamo come fallback
+        const tipoElemento = a.tipo || 'ARTICOLO';
+        if (tipoElemento !== tipoFiltro) return false;
+      }
+
+      // 2. Filtro per termine di ricerca
       const search = searchTerm.toLowerCase();
       const titolo = a.titolo?.toLowerCase() || '';
       const testoPulito = extractText(a).toLowerCase();
@@ -113,7 +122,7 @@ const DashboardEditore = ({ onEdit }) => {
     return filtrati.sort((a, b) => {
       return new Date(b.dataPubblicazione) - new Date(a.dataPubblicazione);
     });
-  }, [articoli, searchTerm]);
+  }, [articoli, searchTerm, tipoFiltro]);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -313,6 +322,9 @@ const DashboardEditore = ({ onEdit }) => {
         .search-input { padding: 12px 15px; width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid ${colors.border}; font-size: 14px; outline: none; transition: all 0.3s ease; text-align: left; }
         .search-input:focus { border-color: ${colors.primary}; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
         
+        .filter-select { padding: 12px 15px; width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid ${colors.border}; font-size: 14px; outline: none; transition: all 0.3s ease; background-color: ${colors.white}; cursor: pointer; color: ${colors.dark}; }
+        .filter-select:focus { border-color: ${colors.primary}; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
+
         .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; }
         .btn-page { padding: 8px 16px; border-radius: 6px; border: 1px solid ${colors.border}; background: white; cursor: pointer; font-size: 14px; transition: all 0.2s; }
         .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -408,7 +420,7 @@ const DashboardEditore = ({ onEdit }) => {
             font-size: 12px;
             gap: 4px;
           }
-          .search-input { max-width: 100%; }
+          .search-input, .filter-select { max-width: 100%; }
           .buttons-horizontal-row { width: 100%; justify-content: space-between; }
           .controls-block-container { align-items: stretch; text-align: left; }
           .btn-modifica, .btn-elimina, .btn-pubblica {
@@ -488,6 +500,20 @@ const DashboardEditore = ({ onEdit }) => {
             {view === 'CONTENUTI' ? '📢 Sponsor' : '📄 Torna ai Contenuti'}
           </button>
         </div>
+
+        {/* Menu a tendina per filtrare le pubblicazioni sotto i bottoni */}
+        {view === 'CONTENUTI' && (
+          <select 
+            className="filter-select"
+            value={tipoFiltro}
+            onChange={(e) => setTipoFiltro(e.target.value)}
+          >
+            <option value="TUTTI">📋 Tutte le pubblicazioni</option>
+            <option value="ARTICOLO">📰 Solo Articoli</option>
+            <option value="RUBRICA">📚 Solo Rubriche</option>
+            <option value="SONDAGGIO">📊 Solo Sondaggi</option>
+          </select>
+        )}
       </div>
 
       {view === 'CONTENUTI' ? (
@@ -539,7 +565,7 @@ const DashboardEditore = ({ onEdit }) => {
                 ) : (
                   <tr>
                     <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
-                      {searchTerm ? "Nessun risultato trovato." : "Nessun contenuto disponibile."}
+                      {searchTerm || tipoFiltro !== 'TUTTI' ? "Nessun risultato trovato." : "Nessun contenuto disponibile."}
                     </td>
                   </tr>
                 )}
