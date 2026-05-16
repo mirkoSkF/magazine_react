@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GestioneSponsor from './GestioneSponsor';
 import DashboardStats from './DashboardStats'; // Importazione corretta del file
+import CalendarioTeams from './CalendarioTeams'; // Importazione del nuovo calendario integrato
 
 const DashboardEditore = ({ onEdit }) => {
   const [articoli, setArticoli] = useState([]);
   const [utente, setUtente] = useState(null);
   
-  // view può essere: 'CONTENUTI', 'SPONSOR', 'STATS'
+  // view può essere: 'CONTENUTI', 'SPONSOR', 'STATS', 'CALENDARIO'
   const [view, setView] = useState('CONTENUTI'); 
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,22 +94,24 @@ const DashboardEditore = ({ onEdit }) => {
     caricaDati();
   }, []);
 
-  const articoliFiltrati = articles => articoli.filter(a => {
-    const search = searchTerm.toLowerCase();
-    const titolo = a.titolo?.toLowerCase() || '';
-    const testoPulito = extractText(a).toLowerCase();
-    const autore = getAutore(a).toLowerCase();
-    const dataFormatted = new Date(a.dataPubblicazione).toLocaleDateString('it-IT');
+  // Ottimizzazione useMemo per il filtro di ricerca
+  const articoliFiltratiRisultato = useMemo(() => {
+    return articoli.filter(a => {
+      const search = searchTerm.toLowerCase();
+      const titolo = a.titolo?.toLowerCase() || '';
+      const testoPulito = extractText(a).toLowerCase();
+      const autore = getAutore(a).toLowerCase();
+      const dataFormatted = new Date(a.dataPubblicazione).toLocaleDateString('it-IT');
 
-    return (
-      titolo.includes(search) || 
-      testoPulito.includes(search) || 
-      dataFormatted.includes(search) ||
-      autore.includes(search)
-    );
-  });
+      return (
+        titolo.includes(search) || 
+        testoPulito.includes(search) || 
+        dataFormatted.includes(search) ||
+        autore.includes(search)
+      );
+    });
+  }, [articoli, searchTerm]);
 
-  const articoliFiltratiRisultato = articoliFiltrati();
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = articoliFiltratiRisultato.slice(indexOfFirstItem, indexOfLastItem);
@@ -288,6 +291,7 @@ const DashboardEditore = ({ onEdit }) => {
         .dashboard-table tbody tr:hover { background: #fafafa; }
         .title-text { font-weight: 600; color: ${colors.dark}; font-size: 15px; line-height: 1.35; word-break: break-word; }
         .actions-cell { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+        
         .search-input { padding: 12px 15px; width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid ${colors.border}; font-size: 14px; outline: none; transition: all 0.3s ease; }
         .search-input:focus { border-color: ${colors.primary}; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
         
@@ -307,6 +311,7 @@ const DashboardEditore = ({ onEdit }) => {
           display: flex;
           align-items: center;
           gap: 8px;
+          white-space: nowrap;
         }
 
         .btn-view-sponsor { background-color: ${colors.accent}; color: white; }
@@ -315,14 +320,30 @@ const DashboardEditore = ({ onEdit }) => {
         .btn-view-contenuti:hover { background-color: #0056b3; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3); }
         .btn-view-stats { background-color: #fd7e14; color: white; }
         .btn-view-stats:hover { background-color: #e8590c; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(253, 126, 20, 0.3); }
+        .btn-view-calendar { background-color: #00b5ad; color: white; }
+        .btn-view-calendar:hover { background-color: #009c95; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 181, 173, 0.3); }
 
-        @media (max-width: 950px) { .dashboard-header { flex-direction: column; } .user-panel, .security-panel { width: 100% !important; } }
+        /* Contenitore principale per barra azioni (Desktop nativo: affiancati) */
+        .actions-bar-container { display: flex; gap: 10px; align-items: center; flex: 1; justify-content: flex-end; }
+
+        @media (max-width: 950px) { 
+          .dashboard-header { flex-direction: column; } 
+          .user-panel, .security-panel { width: 100% !important; } 
+          
+          /* MODIFICA MIRATA PER FORMATI PICCOLI: Inverte l'asse Flex portando l'input sotto i bottoni */
+          .actions-bar-container { flex-direction: column-reverse; align-items: flex-end; width: 100%; }
+          .search-input { max-width: 100%; width: 100%; margin-top: 5px; }
+        }
+        
         @media (max-width: 768px) {
           .dashboard-table thead { display: none; }
           .dashboard-table tr { display: block; border-bottom: 1px solid #ececec; padding: 14px; }
           .dashboard-table td { display: block; border: none !important; padding: 8px 0 !important; text-align: left !important; }
           .actions-cell { justify-content: flex-start; }
-          .search-input { max-width: 100%; }
+          
+          /* Nei formati molto stretti (smartphone), estendiamo i bottoni a tutta larghezza */
+          .actions-bar-container { align-items: stretch; }
+          .btn-view-switch { justify-content: center; width: 100%; }
         }
       `}</style>
 
@@ -355,35 +376,46 @@ const DashboardEditore = ({ onEdit }) => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', gap: '15px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', gap: '15px' }}>
         <h2 style={{ color: colors.dark, fontWeight: '700', margin: 0 }}>
-          {view === 'CONTENUTI' ? 'Gestione Contenuti' : view === 'SPONSOR' ? 'Gestione Sponsor' : 'Report Statistiche'}
+          {view === 'CONTENUTI' ? 'Gestione Contenuti' : view === 'SPONSOR' ? 'Gestione Sponsor' : view === 'STATS' ? 'Report Statistiche' : 'Calendario Editoriale'}
         </h2>
         
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, justifyContent: 'flex-end' }}>
+        {/* Struttura pulita: gli elementi seguono l'ordine naturale su Desktop */}
+        <div className="actions-bar-container">
           {view === 'CONTENUTI' && (
-            <>
-              <input 
-                type="text" 
-                className="search-input" 
-                placeholder="Cerca per titolo o data..." 
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)} 
-              />
-              <button 
-                onClick={() => setView('STATS')}
-                className="btn-view-switch btn-view-stats"
-              >
-                📊 Statistiche
-              </button>
-            </>
+            <input 
+              type="text" 
+              className="search-input" 
+              placeholder="Cerca per titolo o data..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
+          )}
+          
+          {view === 'CONTENUTI' && (
+            <button 
+              onClick={() => setView('STATS')}
+              className="btn-view-switch btn-view-stats"
+            >
+              📊 Statistiche
+            </button>
+          )}
+          
+          {view === 'CONTENUTI' && (
+            <button 
+              onClick={() => setView('CALENDARIO')}
+              className="btn-view-switch btn-view-calendar"
+            >
+              📅 Calendario
+            </button>
           )}
           
           <button 
             onClick={() => setView(view === 'CONTENUTI' ? 'SPONSOR' : 'CONTENUTI')}
             className={`btn-view-switch ${view === 'CONTENUTI' ? 'btn-view-sponsor' : 'btn-view-contenuti'}`}
           >
-            {view === 'CONTENUTI' ? '📢 Gestisci Sponsor' : '📄 Torna ai Contenuti'}
+            {view === 'CONTENUTI' ? '📢 Sponsor' : '📄 Torna ai Contenuti'}
           </button>
         </div>
       </div>
@@ -469,8 +501,10 @@ const DashboardEditore = ({ onEdit }) => {
         </>
       ) : view === 'SPONSOR' ? (
         <GestioneSponsor colors={colors} />
-      ) : (
+      ) : view === 'STATS' ? (
         <DashboardStats colors={colors} />
+      ) : (
+        <CalendarioTeams colors={colors} />
       )}
     </div>
   );
