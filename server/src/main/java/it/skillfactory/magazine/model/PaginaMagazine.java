@@ -20,6 +20,7 @@ import java.util.Set;
         @NamedAttributeNode("moduli"),
         @NamedAttributeNode("votiSondaggio"),
         @NamedAttributeNode("identificativiVotanti"),
+        @NamedAttributeNode("identificativiVisualizzazioni"),
         @NamedAttributeNode("autore")
     }
 )
@@ -35,7 +36,7 @@ public class PaginaMagazine {
 
     @Lob
     @Column(columnDefinition = "LONGTEXT")
-    private String copertina; // Stringa Base64
+    private String copertina; 
     
     private LocalDateTime dataPubblicazione = LocalDateTime.now();
 
@@ -43,6 +44,9 @@ public class PaginaMagazine {
     private int visualizzazioni;
 
     private String tipo = "ARTICOLO"; // "ARTICOLO" o "SONDAGGIO"
+
+    @Column(name = "bozza", columnDefinition = "boolean default true", nullable = false)
+    private boolean bozza = true; 
 
     @OneToMany(mappedBy = "pagina", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ModuloEditor> moduli = new ArrayList<>();
@@ -62,6 +66,18 @@ public class PaginaMagazine {
     @Column(name = "identificativo_utente")
     private Set<String> identificativiVotanti = new HashSet<>();
 
+    // Separata correttamente per evitare il conflitto con i votanti del sondaggio
+    @ElementCollection
+    @CollectionTable(name = "pagina_identificativi_visualizzazioni", joinColumns = @JoinColumn(name = "pagina_id"))
+    @Column(name = "identificativo_visualizzatore")
+    private Set<String> identificativiVisualizzazioni = new HashSet<>();
+
     @Transient
     private boolean giaVotato;
+
+    @Transient
+    private int totaleVotanti;
+
+    @Transient
+    private Map<String, Double> percentualiSondaggio = new HashMap<>();
 }

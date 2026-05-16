@@ -40,6 +40,12 @@ public class SecurityConfig {
 				.requestMatchers("/api/stats/**", "/api/statistiche/**").authenticated()
 				.requestMatchers("/api/profilo/**").authenticated()
 				.requestMatchers("/api/pagine/mie").authenticated()
+				
+				// Scrittura e gestione editoriale protette da autenticazione
+				.requestMatchers(HttpMethod.POST, "/api/pagine").authenticated()
+				.requestMatchers(HttpMethod.PUT, "/api/pagine/*").authenticated()
+				.requestMatchers(HttpMethod.DELETE, "/api/pagine/*").authenticated()
+				.requestMatchers(HttpMethod.PATCH, "/api/pagine/*/pubblica").authenticated()
 
 				// --- GESTIONE INTERVISTE ---
 				.requestMatchers(HttpMethod.POST, "/api/interviste/prenota").permitAll()
@@ -49,6 +55,7 @@ public class SecurityConfig {
 				// --- PUBBLICI ---
 				.requestMatchers(HttpMethod.GET, "/api/pagine/**").permitAll()
 				.requestMatchers(HttpMethod.PUT, "/api/pagine/*/view").permitAll()
+				.requestMatchers(HttpMethod.PUT, "/api/pagine/*/vota").permitAll() // <-- RISOLTO: Sbloccato l'endpoint del voto per i lettori
 				.requestMatchers(HttpMethod.GET, "/api/sponsors/**").permitAll()
 				.requestMatchers(HttpMethod.PATCH, "/api/sponsors/*/click").permitAll()
 
