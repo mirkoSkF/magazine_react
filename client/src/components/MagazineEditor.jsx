@@ -146,7 +146,7 @@ const MagazineEditor = ({ editId }) => {
     }
     setModal({
       show: true,
-      message: editId ? "Confermi di voler aggiornare questo contenuto?" : "Sei sicuro di voler pubblicare questo nuovo contenuto?",
+      message: editId ? "Confermi di voler aggiornare questo contenuto?" : "Aggiungere la bozza nella dashboard?",
       type: 'confirm',
       onConfirm: executePublish
     });
@@ -279,7 +279,7 @@ const MagazineEditor = ({ editId }) => {
           onMouseLeave={() => setPublishHover(false)}
           style={floatingButtonStyle(editId ? colors.success : colors.primary, publishHover)}
         >
-          {editId ? "Salva Modifiche" : "Pubblica Articolo"}
+          {editId ? "Salva Modifiche" : "Crea bozza"}
         </button>
 
         <div className="zoom-container">

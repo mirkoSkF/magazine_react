@@ -93,7 +93,7 @@ const DashboardEditore = ({ onEdit }) => {
     caricaDati();
   }, []);
 
-  const articoliFiltrati = articoli.filter(a => {
+  const articoliFiltrati = articles => articoli.filter(a => {
     const search = searchTerm.toLowerCase();
     const titolo = a.titolo?.toLowerCase() || '';
     const testoPulito = extractText(a).toLowerCase();
@@ -108,10 +108,11 @@ const DashboardEditore = ({ onEdit }) => {
     );
   });
 
+  const articoliFiltratiRisultato = articoliFiltrati();
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = articoliFiltrati.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(articoliFiltrati.length / itemsPerPage);
+  const currentItems = articoliFiltratiRisultato.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(articoliFiltratiRisultato.length / itemsPerPage);
 
   const handleFotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -181,7 +182,7 @@ const DashboardEditore = ({ onEdit }) => {
     });
   };
 
-  const pubblicaContenuto = async (id) => {
+  const eseguiPubblicaContenuto = async (id) => {
     try {
       const res = await fetch(`http://localhost:8096/api/pagine/${id}/pubblica`, {
         method: 'PATCH',
@@ -197,6 +198,15 @@ const DashboardEditore = ({ onEdit }) => {
       console.error(err);
       setModal({ show: true, message: "Errore di connessione.", type: 'error' });
     }
+  };
+
+  const pubblicaContenuto = (id) => {
+    setModal({
+      show: true,
+      message: "Vuoi pubblicare questo articolo nella Home del magazine? Nota: effettuando modifiche successive, l'articolo tornerà in modalità bozza e verrà temporaneamente rimosso dalla Home.",
+      type: 'confirm',
+      onConfirm: () => eseguiPubblicaContenuto(id)
+    });
   };
 
   const getTipoBadge = (tipo) => {
@@ -227,7 +237,7 @@ const DashboardEditore = ({ onEdit }) => {
               {modal.type === 'success' ? '✅' : modal.type === 'error' ? '❌' : '⚠️'}
             </div>
             <h3 style={{ fontSize: '22px', fontWeight: '800', color: colors.dark, marginBottom: '15px' }}>
-              {modal.type === 'confirm' ? 'Conferma Eliminazione' : 'Notifica'}
+              {modal.type === 'confirm' ? 'Conferma Operazione' : 'Notifica'}
             </h3>
             <p style={{ color: '#555', fontSize: '16px', lineHeight: '1.5', marginBottom: '30px' }}>
               {modal.message}
@@ -243,9 +253,13 @@ const DashboardEditore = ({ onEdit }) => {
                   <button 
                     onClick={() => { modal.onConfirm(); setModal({ ...modal, show: false }); }}
                     className="btn-aggiorna"
-                    style={{ ...btnBaseModal, background: colors.danger, color: 'white' }}
-                  > Elimina Ora </button>
-                </                >
+                    style={{ 
+                      ...btnBaseModal, 
+                      background: modal.message.includes("eliminare") ? colors.danger : colors.success, 
+                      color: 'white' 
+                    }}
+                  > Conferma </button>
+                </>
               ) : (
                 <button 
                   onClick={() => setModal({ ...modal, show: false })}
@@ -341,7 +355,7 @@ const DashboardEditore = ({ onEdit }) => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', gap: '15px' }}>
+      <div style={{ display: 'flex', justifycontent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', gap: '15px' }}>
         <h2 style={{ color: colors.dark, fontWeight: '700', margin: 0 }}>
           {view === 'CONTENUTI' ? 'Gestione Contenuti' : view === 'SPONSOR' ? 'Gestione Sponsor' : 'Report Statistiche'}
         </h2>
