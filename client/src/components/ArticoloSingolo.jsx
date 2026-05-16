@@ -216,7 +216,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
           return null;
         }
 
-        return res.json();
+        return await res.json();
       })
       .then(nuoviVoti => {
         if (nuoviVoti) {
@@ -649,10 +649,10 @@ const ArticoloSingolo = ({ id, onBack }) => {
                               transition: 'all 0.2s'
                             }}
                             onMouseOver={(e) =>
-                              e.target.style.background = '#f0f7ff'
+                              (e.target.style.background = '#f0f7ff')
                             }
                             onMouseOut={(e) =>
-                              e.target.style.background = '#fff'
+                              (e.target.style.background = '#fff')
                             }
                           >
                             {opt}

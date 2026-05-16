@@ -111,7 +111,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     let nome = a.nomeAutore || "";
     let cognome = a.cognomeAutore || "";
     if (!nome.trim() && a.utente) {
-      nome = a.utente.nome || "";
+      name = a.utente.nome || "";
       cognome = a.utente.cognome || "";
     } else if (!nome.trim() && a.autore) {
       nome = a.autore.nome || "";
@@ -121,7 +121,10 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     return firma || "Redazione";
   };
 
-  const contenutiFiltrati = tuttiContenuti.filter(item => {
+  // Filtriamo tutti i contenuti per escludere le bozze prima di applicare la ricerca e le suddivisioni
+  const contenutiPubblicati = tuttiContenuti.filter(item => item.bozza === false);
+
+  const contenutiFiltrati = contenutiPubblicati.filter(item => {
     const searchLower = searchTerm.toLowerCase();
     const nelTitolo = item.titolo?.toLowerCase().includes(searchLower);
     const nellAutore = getAutore(item).toLowerCase().includes(searchLower);
@@ -129,11 +132,11 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     return nelTitolo || nellAutore || nelTesto;
   });
 
-  const soloArticoli = tuttiContenuti.filter(
+  const soloArticoli = contenutiPubblicati.filter(
     c => c.tipo?.toUpperCase() !== "SONDAGGIO" && c.tipo?.toUpperCase() !== "RUBRICA"
   );
-  const soloRubriche = tuttiContenuti.filter(c => c.tipo?.toUpperCase() === "RUBRICA");
-  const soloSondaggi = tuttiContenuti.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
+  const soloRubriche = contenutiPubblicati.filter(c => c.tipo?.toUpperCase() === "RUBRICA");
+  const soloSondaggi = contenutiPubblicati.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
 
   const archivioArtBase = soloArticoli.slice(4);
   const totalPagesArt = Math.ceil(archivioArtBase.length / itemsPerPage);
@@ -370,36 +373,41 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
           <div className="main-layout" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
             <section>
-              <div style={{ backgroundColor: colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
-                ULTIM'ORA
-              </div>
+              {/* Il blocco Ultim'ora viene renderizzato solo se l'articolo esiste e NON è una bozza */}
+              {ultimoArticolo.id && ultimoArticolo.bozza !== true && (
+                <>
+                  <div style={{ backgroundColor: colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
+                    ULTIM'ORA
+                  </div>
 
-              <h1 className="main-title" style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
-                {ultimoArticolo.titolo}
-              </h1>
+                  <h1 className="main-title" style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
+                    {ultimoArticolo.titolo}
+                  </h1>
 
-              <div className="main-image-container" style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center' }}>
-                {ultimoArticolo.copertina && (
-                  <img
-                    src={`data:image/jpeg;base64,${ultimoArticolo.copertina}`}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-                    alt="Main"
+                  <div className="main-image-container" style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center' }}>
+                    {ultimoArticolo.copertina && (
+                      <img
+                        src={`data:image/jpeg;base64,${ultimoArticolo.copertina}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+                        alt="Main"
+                      />
+                    )}
+                  </div>
+
+                  <div
+                    style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }}
+                    dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoArticolo, 600)) }}
                   />
-                )}
-              </div>
 
-              <div
-                style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }}
-                dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoArticolo, 600)) }}
-              />
-
-              <button
-                className="read-more-btn"
-                onClick={() => onReadArticle(ultimoArticolo.id)}
-                style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-              >
-                Continua a leggere
-              </button>
+                  <button
+                    className="read-more-btn"
+                    onClick={() => onReadArticle(ultimoArticolo.id)}
+                    style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                  >
+                    Continua a leggere
+                  </button>
+                </>
+              )}
 
               {/* SPONSOR FONDO */}
               {sponsorFondo.length > 0 && (

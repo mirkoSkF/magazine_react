@@ -181,6 +181,24 @@ const DashboardEditore = ({ onEdit }) => {
     });
   };
 
+  const pubblicaContenuto = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:8096/api/pagine/${id}/pubblica`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        caricaDati();
+        setModal({ show: true, message: "Contenuto pubblicato con successo!", type: 'success' });
+      } else {
+        setModal({ show: true, message: "Impossibile pubblicare il contenuto.", type: 'error' });
+      }
+    } catch (err) {
+      console.error(err);
+      setModal({ show: true, message: "Errore di connessione.", type: 'error' });
+    }
+  };
+
   const getTipoBadge = (tipo) => {
     switch (tipo) {
       case 'SONDAGGIO': return { text: 'POLL', background: colors.accent };
@@ -227,7 +245,7 @@ const DashboardEditore = ({ onEdit }) => {
                     className="btn-aggiorna"
                     style={{ ...btnBaseModal, background: colors.danger, color: 'white' }}
                   > Elimina Ora </button>
-                </>
+                </                >
               ) : (
                 <button 
                   onClick={() => setModal({ ...modal, show: false })}
@@ -249,6 +267,8 @@ const DashboardEditore = ({ onEdit }) => {
         .btn-modifica:hover { background: ${colors.primary}; color: white; transform: translateY(-1px); }
         .btn-elimina { background: transparent; color: ${colors.danger}; border: 1px solid ${colors.danger}; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; min-width: 90px; white-space: nowrap; }
         .btn-elimina:hover { background: ${colors.danger}; color: white; transform: translateY(-1px); }
+        .btn-pubblica { background: transparent; color: ${colors.success}; border: 1px solid ${colors.success}; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; min-width: 90px; white-space: nowrap; }
+        .btn-pubblica:hover { background: ${colors.success}; color: white; transform: translateY(-1px); }
         .table-wrapper { width: 100%; border-radius: 12px; border: 1px solid ${colors.border}; background: ${colors.white}; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .dashboard-table { width: 100%; border-collapse: collapse; }
         .dashboard-table tbody tr:hover { background: #fafafa; }
@@ -364,7 +384,7 @@ const DashboardEditore = ({ onEdit }) => {
                   <th style={thStyle}>Titolo</th>
                   <th style={{ ...thStyle, width: '120px', textAlign: 'center' }}>Data</th>
                   <th style={{ ...thStyle, width: '90px', textAlign: 'center' }}>Visite</th>
-                  <th style={{ ...thStyle, width: '220px', textAlign: 'right' }}>Azioni</th>
+                  <th style={{ ...thStyle, width: '320px', textAlign: 'right' }}>Azioni</th>
                 </tr>
               </thead>
               <tbody>
@@ -380,7 +400,7 @@ const DashboardEditore = ({ onEdit }) => {
                         </td>
                         <td style={tdStyle} className="title-cell">
                           <div className="title-text">{a.titolo}</div>
-                          <div style={{ fontSize: '11px', color: '#999' }}>ID #{a.id} • {getAutore(a)}</div>
+                          <div style={{ fontSize: '11px', color: '#999' }}>ID #{a.id} • {getAutore(a)} {a.bozza && <span style={{ color: colors.danger, fontWeight: 'bold', marginLeft: '5px' }}>(Bozza)</span>}</div>
                         </td>
                         <td style={{ ...tdStyle, textAlign: 'center' }}>
                           {new Date(a.dataPubblicazione).toLocaleDateString('it-IT')}
@@ -390,6 +410,9 @@ const DashboardEditore = ({ onEdit }) => {
                         </td>
                         <td style={{ ...tdStyle, textAlign: 'right' }}>
                           <div className="actions-cell">
+                            {a.bozza && (
+                              <button onClick={() => pubblicaContenuto(a.id)} className="btn-pubblica">Pubblica</button>
+                            )}
                             <button onClick={() => onEdit(a.id)} className="btn-modifica">Modifica</button>
                             <button onClick={() => elimina(a.id)} className="btn-elimina">Elimina</button>
                           </div>
