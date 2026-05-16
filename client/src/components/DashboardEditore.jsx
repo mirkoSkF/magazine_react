@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import GestioneSponsor from './GestioneSponsor';
-import DashboardStats from './DashboardStats'; // Importazione corretta del file
-import CalendarioTeams from './CalendarioTeams'; // Importazione del nuovo calendario integrato
+import DashboardStats from './DashboardStats'; 
+import CalendarioTeams from './CalendarioTeams'; 
 
 const DashboardEditore = ({ onEdit }) => {
   const [articoli, setArticoli] = useState([]);
@@ -24,11 +24,10 @@ const DashboardEditore = ({ onEdit }) => {
     tipo: ''
   });
 
-  // --- NUOVO STATO PER IL MODALE ---
   const [modal, setModal] = useState({
     show: false,
     message: '',
-    type: 'confirm', // 'confirm', 'success', 'error'
+    type: 'confirm', 
     onConfirm: null
   });
 
@@ -94,9 +93,8 @@ const DashboardEditore = ({ onEdit }) => {
     caricaDati();
   }, []);
 
-  // Ottimizzazione useMemo per il filtro di ricerca
   const articoliFiltratiRisultato = useMemo(() => {
-    return articoli.filter(a => {
+    const filtrati = articoli.filter(a => {
       const search = searchTerm.toLowerCase();
       const titolo = a.titolo?.toLowerCase() || '';
       const testoPulito = extractText(a).toLowerCase();
@@ -110,12 +108,24 @@ const DashboardEditore = ({ onEdit }) => {
         autore.includes(search)
       );
     });
+
+    // Ordinamento dal più recente al più datato
+    return filtrati.sort((a, b) => {
+      return new Date(b.dataPubblicazione) - new Date(a.dataPubblicazione);
+    });
   }, [articoli, searchTerm]);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = articoliFiltratiRisultato.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(articoliFiltratiRisultato.length / itemsPerPage);
+
+  // CORREZIONE: Se elimini tutti gli elementi di una pagina avanzata, torna alla pagina precedente
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [articoliFiltratiRisultato, totalPages, currentPage]);
 
   const handleFotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -280,19 +290,27 @@ const DashboardEditore = ({ onEdit }) => {
         .dashboard-header { display: flex; gap: 20px; margin-bottom: 30px; align-items: stretch; }
         .btn-aggiorna { transition: all 0.3s ease; border: none; cursor: pointer; }
         .btn-aggiorna:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
-        .btn-modifica { background: transparent; color: ${colors.primary}; border: 1px solid ${colors.primary}; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; min-width: 90px; white-space: nowrap; }
-        .btn-modifica:hover { background: ${colors.primary}; color: white; transform: translateY(-1px); }
-        .btn-elimina { background: transparent; color: ${colors.danger}; border: 1px solid ${colors.danger}; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; min-width: 90px; white-space: nowrap; }
-        .btn-elimina:hover { background: ${colors.danger}; color: white; transform: translateY(-1px); }
-        .btn-pubblica { background: transparent; color: ${colors.success}; border: 1px solid ${colors.success}; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; min-width: 90px; white-space: nowrap; }
-        .btn-pubblica:hover { background: ${colors.success}; color: white; transform: translateY(-1px); }
-        .table-wrapper { width: 100%; border-radius: 12px; border: 1px solid ${colors.border}; background: ${colors.white}; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .dashboard-table { width: 100%; border-collapse: collapse; }
-        .dashboard-table tbody tr:hover { background: #fafafa; }
-        .title-text { font-weight: 600; color: ${colors.dark}; font-size: 15px; line-height: 1.35; word-break: break-word; }
-        .actions-cell { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
         
-        .search-input { padding: 12px 15px; width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid ${colors.border}; font-size: 14px; outline: none; transition: all 0.3s ease; }
+        /* Rimossi vincoli min-width asfissianti su grandi schermi per favorire l'allineamento orizzontale */
+        .btn-modifica { background: transparent; color: ${colors.primary}; border: 1px solid ${colors.primary}; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; white-space: nowrap; }
+        .btn-modifica:hover { background: ${colors.primary}; color: white; transform: translateY(-1px); }
+        .btn-elimina { background: transparent; color: ${colors.danger}; border: 1px solid ${colors.danger}; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; white-space: nowrap; }
+        .btn-elimina:hover { background: ${colors.danger}; color: white; transform: translateY(-1px); }
+        .btn-pubblica { background: transparent; color: ${colors.success}; border: 1px solid ${colors.success}; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; white-space: nowrap; }
+        .btn-pubblica:hover { background: ${colors.success}; color: white; transform: translateY(-1px); }
+        
+        /* Contenitore Tabella Corretto per evitare overflow/tagli */
+        .table-wrapper { width: 100%; border-radius: 12px; border: 1px solid ${colors.border}; background: ${colors.white}; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
+        .dashboard-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .dashboard-table tbody tr:hover { background: #fafafa; }
+        
+        .title-cell { width: auto; }
+        .title-text { font-weight: 600; color: ${colors.dark}; font-size: 14px; line-height: 1.4; word-break: break-word; overflow-wrap: break-word; }
+        
+        /* Forza l'allineamento su un'unica riga orizzontale su schermi grandi */
+        .actions-cell { display: flex; justify-content: flex-end; align-items: center; gap: 6px; flex-wrap: nowrap; }
+        
+        .search-input { padding: 12px 15px; width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid ${colors.border}; font-size: 14px; outline: none; transition: all 0.3s ease; text-align: left; }
         .search-input:focus { border-color: ${colors.primary}; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
         
         .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; }
@@ -310,8 +328,11 @@ const DashboardEditore = ({ onEdit }) => {
           transition: all 0.3s ease;
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
           white-space: nowrap;
+          flex: 0 0 auto;
+          font-size: 14px;
         }
 
         .btn-view-sponsor { background-color: ${colors.accent}; color: white; }
@@ -323,27 +344,76 @@ const DashboardEditore = ({ onEdit }) => {
         .btn-view-calendar { background-color: #00b5ad; color: white; }
         .btn-view-calendar:hover { background-color: #009c95; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 181, 173, 0.3); }
 
-        /* Contenitore principale per barra azioni (Desktop nativo: affiancati) */
-        .actions-bar-container { display: flex; gap: 10px; align-items: center; flex: 1; justify-content: flex-end; }
+        .controls-block-container { display: flex; flex-direction: column; gap: 15px; align-items: flex-end; text-align: right; width: 100%; margin-bottom: 25px; }
+        .buttons-horizontal-row { display: flex; gap: 10px; align-items: center; justify-content: flex-end; width: auto; flex-wrap: nowrap; }
 
         @media (max-width: 950px) { 
           .dashboard-header { flex-direction: column; } 
           .user-panel, .security-panel { width: 100% !important; } 
-          
-          /* MODIFICA MIRATA PER FORMATI PICCOLI: Inverte l'asse Flex portando l'input sotto i bottoni */
-          .actions-bar-container { flex-direction: column-reverse; align-items: flex-end; width: 100%; }
-          .search-input { max-width: 100%; width: 100%; margin-top: 5px; }
         }
         
-        @media (max-width: 768px) {
+        /* TRASFORMAZIONE IN CARD SOTTO I 900px */
+        @media (max-width: 900px) {
+          .table-wrapper { border: none; background: transparent; box-shadow: none; }
+          .dashboard-table, .dashboard-table thead, .dashboard-table tbody, .dashboard-table th, .dashboard-table td, .dashboard-table tr { 
+            display: block; 
+          }
           .dashboard-table thead { display: none; }
-          .dashboard-table tr { display: block; border-bottom: 1px solid #ececec; padding: 14px; }
-          .dashboard-table td { display: block; border: none !important; padding: 8px 0 !important; text-align: left !important; }
-          .actions-cell { justify-content: flex-start; }
           
-          /* Nei formati molto stretti (smartphone), estendiamo i bottoni a tutta larghezza */
-          .actions-bar-container { align-items: stretch; }
-          .btn-view-switch { justify-content: center; width: 100%; }
+          .dashboard-table tbody tr {
+            background: ${colors.white};
+            border: 1px solid ${colors.border};
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+          }
+          
+          .dashboard-table td {
+            padding: 8px 0;
+            border-bottom: none;
+            text-align: left !important;
+            width: 100% !important;
+          }
+          
+          .dashboard-table td.data-cell::before {
+            content: "Data: ";
+            font-weight: bold;
+            color: #6c757d;
+          }
+          .dashboard-table td.visite-cell::before {
+            content: "Visite: ";
+            font-weight: bold;
+            color: #6c757d;
+          }
+          
+          .actions-cell {
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            border-top: 1px solid #f1f3f5;
+            padding-top: 12px;
+          }
+          .btn-modifica, .btn-elimina, .btn-pubblica {
+            flex: 1 1 calc(33.33% - 8px);
+            min-width: 80px;
+            text-align: center;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .btn-view-switch {
+            padding: 10px 12px;
+            font-size: 12px;
+            gap: 4px;
+          }
+          .search-input { max-width: 100%; }
+          .buttons-horizontal-row { width: 100%; justify-content: space-between; }
+          .controls-block-container { align-items: stretch; text-align: left; }
+          .btn-modifica, .btn-elimina, .btn-pubblica {
+            flex: 1 1 100%;
+          }
         }
       `}</style>
 
@@ -370,29 +440,29 @@ const DashboardEditore = ({ onEdit }) => {
           <form onSubmit={handleCambiaPassword} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <input type="password" placeholder="Vecchia password" value={pwdForm.vecchiaPassword} onChange={e => setPwdForm({...pwdForm, vecchiaPassword: e.target.value})} style={inputStyle} required />
             <input type="password" placeholder="Nuova password" value={pwdForm.nuovaPassword} onChange={e => setPwdForm({...pwdForm, nuovaPassword: e.target.value})} style={inputStyle} required />
-            <button type="submit" className="btn-aggiorna" style={btnPwdStyle(colors.primary)}>Aggiorna</button>
+            <input type="submit" className="btn-aggiorna" style={btnPwdStyle(colors.primary)} value="Aggiorna" />
           </form>
           {pwdMsg.testo && <p style={{ fontSize: '11px', color: colors[pwdMsg.tipo], marginTop: '8px', fontWeight: '600' }}>{pwdMsg.testo}</p>}
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px', gap: '15px' }}>
+      {/* Blocco Intestazione e Comandi Allineati a DESTRA */}
+      <div className="controls-block-container">
         <h2 style={{ color: colors.dark, fontWeight: '700', margin: 0 }}>
           {view === 'CONTENUTI' ? 'Gestione Contenuti' : view === 'SPONSOR' ? 'Gestione Sponsor' : view === 'STATS' ? 'Report Statistiche' : 'Calendario Editoriale'}
         </h2>
         
-        {/* Struttura pulita: gli elementi seguono l'ordine naturale su Desktop */}
-        <div className="actions-bar-container">
-          {view === 'CONTENUTI' && (
-            <input 
-              type="text" 
-              className="search-input" 
-              placeholder="Cerca per titolo o data..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-            />
-          )}
-          
+        {view === 'CONTENUTI' && (
+          <input 
+            type="text" 
+            className="search-input" 
+            placeholder="Cerca per titolo o data..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+          />
+        )}
+        
+        <div className="buttons-horizontal-row">
           {view === 'CONTENUTI' && (
             <button 
               onClick={() => setView('STATS')}
@@ -426,11 +496,11 @@ const DashboardEditore = ({ onEdit }) => {
             <table className="dashboard-table">
               <thead>
                 <tr style={{ background: colors.lightGray, borderBottom: `2px solid ${colors.border}` }}>
-                  <th style={{ ...thStyle, width: '90px' }}>Tipo</th>
+                  <th style={{ ...thStyle, width: '75px' }}>Tipo</th>
                   <th style={thStyle}>Titolo</th>
-                  <th style={{ ...thStyle, width: '120px', textAlign: 'center' }}>Data</th>
-                  <th style={{ ...thStyle, width: '90px', textAlign: 'center' }}>Visite</th>
-                  <th style={{ ...thStyle, width: '320px', textAlign: 'right' }}>Azioni</th>
+                  <th style={{ ...thStyle, width: '110px', textAlign: 'center' }}>Data</th>
+                  <th style={{ ...thStyle, width: '70px', textAlign: 'center' }}>Visite</th>
+                  <th style={{ ...thStyle, width: '250px', textAlign: 'right' }}>Azioni</th>
                 </tr>
               </thead>
               <tbody>
@@ -439,22 +509,22 @@ const DashboardEditore = ({ onEdit }) => {
                     const badge = getTipoBadge(a.tipo);
                     return (
                       <tr key={a.id}>
-                        <td style={tdStyle}>
+                        <td style={{ ...tdStyle, width: '75px' }}>
                           <span style={{ fontSize: '10px', padding: '5px 10px', borderRadius: '5px', background: badge.background, color: colors.white, letterSpacing: '0.5px', fontWeight: 'bold' }}>
                             {badge.text}
                           </span>
                         </td>
                         <td style={tdStyle} className="title-cell">
                           <div className="title-text">{a.titolo}</div>
-                          <div style={{ fontSize: '11px', color: '#999' }}>ID #{a.id} • {getAutore(a)} {a.bozza && <span style={{ color: colors.danger, fontWeight: 'bold', marginLeft: '5px' }}>(Bozza)</span>}</div>
+                          <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>ID #{a.id} • {getAutore(a)} {a.bozza && <span style={{ color: colors.danger, fontWeight: 'bold', marginLeft: '5px' }}>(Bozza)</span>}</div>
                         </td>
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <td style={{ ...tdStyle, width: '110px', textAlign: 'center' }} className="data-cell">
                           {new Date(a.dataPubblicazione).toLocaleDateString('it-IT')}
                         </td>
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <td style={{ ...tdStyle, width: '70px', textAlign: 'center' }} className="visite-cell">
                           <span style={{ fontWeight: 'bold', color: colors.primary }}>{a.visualizzazioni || 0}</span>
                         </td>
-                        <td style={{ ...tdStyle, textAlign: 'right' }}>
+                        <td style={{ ...tdStyle, width: '250px' }}>
                           <div className="actions-cell">
                             {a.bozza && (
                               <button onClick={() => pubblicaContenuto(a.id)} className="btn-pubblica">Pubblica</button>
@@ -510,8 +580,8 @@ const DashboardEditore = ({ onEdit }) => {
   );
 };
 
-const thStyle = { padding: '16px 20px', fontSize: '12px', textTransform: 'uppercase', color: '#6c757d', fontWeight: '700' };
-const tdStyle = { padding: '18px 20px', borderBottom: '1px solid #f1f3f5', verticalAlign: 'middle' };
+const thStyle = { padding: '16px 15px', fontSize: '11px', textTransform: 'uppercase', color: '#6c757d', fontWeight: '700' };
+const tdStyle = { padding: '15px 15px', borderBottom: '1px solid #f1f3f5', verticalAlign: 'middle' };
 const inputStyle = { padding: '10px 12px', borderRadius: '6px', border: '1px solid #dee2e6', fontSize: '13px', width: '100%' };
 const btnPwdStyle = (color) => ({ background: color, color: 'white', border: 'none', padding: '10px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', transition: 'all 0.3s ease' });
 
