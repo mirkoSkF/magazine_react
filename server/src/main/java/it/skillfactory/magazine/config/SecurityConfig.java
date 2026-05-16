@@ -47,6 +47,11 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.DELETE, "/api/pagine/*").authenticated()
 				.requestMatchers(HttpMethod.PATCH, "/api/pagine/*/pubblica").authenticated()
 
+				// --- GESTIONE CALENDARIO ED EVENTI ---
+				.requestMatchers(HttpMethod.GET, "/api/eventi").authenticated()
+				.requestMatchers(HttpMethod.POST, "/api/eventi").authenticated()
+				.requestMatchers(HttpMethod.DELETE, "/api/eventi/*").authenticated()
+
 				// --- GESTIONE INTERVISTE ---
 				.requestMatchers(HttpMethod.POST, "/api/interviste/prenota").permitAll()
 				.requestMatchers("/api/interviste/elenco").authenticated()
@@ -55,7 +60,7 @@ public class SecurityConfig {
 				// --- PUBBLICI ---
 				.requestMatchers(HttpMethod.GET, "/api/pagine/**").permitAll()
 				.requestMatchers(HttpMethod.PUT, "/api/pagine/*/view").permitAll()
-				.requestMatchers(HttpMethod.PUT, "/api/pagine/*/vota").permitAll() // <-- RISOLTO: Sbloccato l'endpoint del voto per i lettori
+				.requestMatchers(HttpMethod.PUT, "/api/pagine/*/vota").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/sponsors/**").permitAll()
 				.requestMatchers(HttpMethod.PATCH, "/api/sponsors/*/click").permitAll()
 
