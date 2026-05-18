@@ -47,8 +47,8 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.DELETE, "/api/pagine/*").authenticated()
 				.requestMatchers(HttpMethod.PATCH, "/api/pagine/*/pubblica").authenticated()
 
-				// --- GESTIONE CALENDARIO ED EVENTI ---
-				.requestMatchers(HttpMethod.GET, "/api/eventi").authenticated()
+				// --- GESTIONE CALENDARIO ED EVENTI (GET resa pubblica) ---
+				.requestMatchers(HttpMethod.GET, "/api/eventi").permitAll()
 				.requestMatchers(HttpMethod.POST, "/api/eventi").authenticated()
 				.requestMatchers(HttpMethod.DELETE, "/api/eventi/*").authenticated()
 
