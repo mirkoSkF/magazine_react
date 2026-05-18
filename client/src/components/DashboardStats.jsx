@@ -28,7 +28,7 @@ const DashboardStats = ({ colors }) => {
     setError(null);
     
     try {
-      const url = `http://localhost:8096/api/stats?month=${period.month}&year=${period.year}`;
+      const url = `https://magazine.skillfactory.it/api/stats?month=${period.month}&year=${period.year}`;
       const res = await fetch(url, {
         method: 'GET',
         headers: { 

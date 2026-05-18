@@ -74,7 +74,7 @@ const DashboardEditore = ({ onEdit }) => {
   const caricaDati = async () => {
     if (!token) return;
     try {
-      const resUser = await fetch('http://localhost:8096/api/profilo', {
+      const resUser = await fetch('https://magazine.skillfactory.it/api/profilo', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (resUser.ok) {
@@ -82,7 +82,7 @@ const DashboardEditore = ({ onEdit }) => {
         setUtente(dataUser);
       }
 
-      const resArt = await fetch('http://localhost:8096/api/pagine/mie', {
+      const resArt = await fetch('https://magazine.skillfactory.it/api/pagine/mie', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (resArt.ok) {
@@ -141,7 +141,7 @@ const DashboardEditore = ({ onEdit }) => {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch('http://localhost:8096/api/profilo/upload-foto', {
+      const res = await fetch('https://magazine.skillfactory.it/api/profilo/upload-foto', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -155,7 +155,7 @@ const DashboardEditore = ({ onEdit }) => {
   const handleCambiaPassword = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8096/api/profilo/cambia-password', {
+      const res = await fetch('https://magazine.skillfactory.it/api/profilo/cambia-password', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -180,7 +180,7 @@ const DashboardEditore = ({ onEdit }) => {
 
   const eseguiElimina = async (id) => {
     try {
-      const res = await fetch(`http://localhost:8096/api/pagine/${id}`, {
+      const res = await fetch(`https://magazine.skillfactory.it/api/pagine/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -205,7 +205,7 @@ const DashboardEditore = ({ onEdit }) => {
 
   const eseguiPubblicaContenuto = async (id) => {
     try {
-      const res = await fetch(`http://localhost:8096/api/pagine/${id}/pubblica`, {
+      const res = await fetch(`https://magazine.skillfactory.it/api/pagine/${id}/pubblica`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` }
       });

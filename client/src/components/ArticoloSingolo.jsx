@@ -49,7 +49,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
 
     try {
       const res = await fetch(
-        `http://localhost:8096/api/sponsors/${sponsorId}/click`,
+        `https://magazine.skillfactory.it/api/sponsors/${sponsorId}/click`,
         {
           method: 'PATCH'
         }
@@ -138,7 +138,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
   useEffect(() => {
     if (id) {
       fetch(
-        `http://localhost:8096/api/pagine/${id}/view`,
+        `https://magazine.skillfactory.it/api/pagine/${id}/view`,
         { method: 'PUT' }
       ).catch(err => console.error(err));
 
@@ -150,7 +150,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
       }
 
       fetch(
-        `http://localhost:8096/api/pagine/${id}?fingerprint=${deviceId}`
+        `https://magazine.skillfactory.it/api/pagine/${id}?fingerprint=${deviceId}`
       )
         .then(res => res.json())
         .then(data => {
@@ -167,7 +167,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
           console.error("Errore caricamento:", err)
         );
 
-      fetch('http://localhost:8096/api/sponsors')
+      fetch('https://magazine.skillfactory.it/api/sponsors')
         .then(res => res.json())
         .then(data => {
           const filtrati = data.filter(
@@ -192,7 +192,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
     setIsVoting(true);
 
     fetch(
-      `http://localhost:8096/api/pagine/${id}/vota`,
+      `https://magazine.skillfactory.it/api/pagine/${id}/vota`,
       {
         method: 'PUT',
         headers: {

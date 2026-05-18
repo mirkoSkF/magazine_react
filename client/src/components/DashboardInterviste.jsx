@@ -7,7 +7,7 @@ const DashboardInterviste = ({ onSelectIntervista }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    fetch("http://localhost:8096/api/interviste/elenco", {
+    fetch("https://magazine.skillfactory.it/api/interviste/elenco", {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {

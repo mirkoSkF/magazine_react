@@ -70,7 +70,7 @@ const FormIntervista = () => {
     setStatus({ type: '', msg: '' });
 
     try {
-      const response = await fetch('http://localhost:8096/api/interviste/prenota', {
+      const response = await fetch('https://magazine.skillfactory.it/api/interviste/prenota', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, deviceId })

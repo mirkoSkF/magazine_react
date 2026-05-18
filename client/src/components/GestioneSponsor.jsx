@@ -35,7 +35,7 @@ const GestioneSponsor = ({ colors }) => {
   const caricaSponsors = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:8096/api/sponsors', {
+      const res = await fetch('https://magazine.skillfactory.it/api/sponsors', {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -101,7 +101,7 @@ const GestioneSponsor = ({ colors }) => {
     setLoading(true);
     try {
       const payload = { ...form, posizione: form.tipoPagina === 'ARTICOLO' ? 'BOTTOM' : form.posizione };
-      const res = await fetch('http://localhost:8096/api/sponsors', {
+      const res = await fetch('https://magazine.skillfactory.it/api/sponsors', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -128,7 +128,7 @@ const GestioneSponsor = ({ colors }) => {
   const eliminaSponsor = (id) => {
     customConfirm("Sei sicuro di voler rimuovere questo sponsor?", async () => {
       try {
-        const res = await fetch(`http://localhost:8096/api/sponsors/${id}`, {
+        const res = await fetch(`https://magazine.skillfactory.it/api/sponsors/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });

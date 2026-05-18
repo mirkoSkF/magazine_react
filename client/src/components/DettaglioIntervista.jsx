@@ -34,7 +34,7 @@ const DettaglioIntervista = ({ id, onBack }) => {
         const fetchIntervista = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:8096/api/interviste/${id}`, {
+                const response = await fetch(`https://magazine.skillfactory.it/api/interviste/${id}`, {
                     headers: { 
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -57,7 +57,7 @@ const DettaglioIntervista = ({ id, onBack }) => {
         customConfirm("Sei sicuro di voler rimuovere questa candidatura?", async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:8096/api/interviste/${id}`, {
+                const response = await fetch(`https://magazine.skillfactory.it/api/interviste/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

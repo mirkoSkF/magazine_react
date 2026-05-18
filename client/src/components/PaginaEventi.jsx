@@ -15,7 +15,7 @@ const PaginaEventi = ({ onReadEvent, onBackToHome }) => {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8096/api/pagine")
+    fetch("https://magazine.skillfactory.it/api/pagine")
       .then((res) => res.json())
       .then((data) => {
         // Filtriamo solo i contenuti di tipo EVENTO che non sono bozze, ordinati dal più recente

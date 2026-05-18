@@ -41,7 +41,7 @@ const MagazineEditor = ({ editId }) => {
 
   useEffect(() => {
     if (editId) {
-      fetch(`http://localhost:8096/api/pagine/${editId}`, {
+      fetch(`https://magazine.skillfactory.it/api/pagine/${editId}`, {
         headers: authHeader
       })
         .then(res => res.json())
@@ -111,7 +111,7 @@ const MagazineEditor = ({ editId }) => {
     };
 
     const method = editId ? 'PUT' : 'POST';
-    const url = editId ? `http://localhost:8096/api/pagine/${editId}` : 'http://localhost:8096/api/pagine';
+    const url = editId ? `https://magazine.skillfactory.it/api/pagine/${editId}` : 'https://magazine.skillfactory.it/api/pagine';
 
     try {
       const response = await fetch(url, {

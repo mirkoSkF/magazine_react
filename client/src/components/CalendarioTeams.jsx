@@ -31,7 +31,7 @@ const CalendarioTeams = ({ colors }) => {
 
   const fetchEventi = async () => {
     try {
-      const response = await fetch('http://localhost:8096/api/eventi', {
+      const response = await fetch('https://magazine.skillfactory.it/api/eventi', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -111,7 +111,7 @@ const CalendarioTeams = ({ colors }) => {
     };
 
     try {
-      const response = await fetch('http://localhost:8096/api/eventi', {
+      const response = await fetch('https://magazine.skillfactory.it/api/eventi', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -138,7 +138,7 @@ const CalendarioTeams = ({ colors }) => {
   // Esegue l'effettiva rimozione dell'evento dal backend dopo la conferma custom
   const eseguiEliminaEffettiva = async () => {
     try {
-      const response = await fetch(`http://localhost:8096/api/eventi/${newEvent.id}`, {
+      const response = await fetch(`https://magazine.skillfactory.it/api/eventi/${newEvent.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

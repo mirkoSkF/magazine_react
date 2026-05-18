@@ -40,7 +40,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
     if (!hasClicked) {
       // Se non ha mai cliccato, inviamo la richiesta al backend
-      fetch(`http://localhost:8096/api/sponsors/${id}/click`, {
+      fetch(`https://magazine.skillfactory.it/api/sponsors/${id}/click`, {
         method: 'PATCH'
       })
         .then(() => {
@@ -61,12 +61,12 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8096/api/pagine")
+    fetch("https://magazine.skillfactory.it/api/pagine")
       .then((res) => res.json())
       .then((data) => setTuttiContenuti(data.sort((a, b) => b.id - a.id)))
       .catch((err) => console.error("Errore contenuti:", err));
 
-    fetch("http://localhost:8096/api/sponsors")
+    fetch("https://magazine.skillfactory.it/api/sponsors")
       .then((res) => res.json())
       .then((data) => {
         const attivi = data.filter(s => s.attivo && s.tipoPagina === 'HOME');
