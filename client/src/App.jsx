@@ -7,6 +7,7 @@ import Login from './components/Login';
 import FormIntervista from './components/FormIntervista';
 import DashboardInterviste from './components/DashboardInterviste';
 import DettaglioIntervista from './components/DettaglioIntervista';
+import PaginaEventi from './components/PaginaEventi'; // Importazione del nuovo componente
 
 // --- COMPONENTE PRIVACY INTEGRATO CON TESTO INTEGRALE ---
 const PrivacyContent = ({ onBack }) => (
@@ -58,7 +59,7 @@ const PrivacyContent = ({ onBack }) => (
     <p>La base giuridica per il trattamento dei dati per le finalità di cui ai punti A7) e A8) è l’ adempimento di un obbligo legale ai sensi dell’art. 6, comma 1 lett. c del Regolamento.</p>
 
     <h3 style={{ fontSize: '18px', marginTop: '20px' }}>C) Modalità di trattamento dei dati</h3>
-    <p>Il trattamento dei suoi Dati Personali è realizzato per mezzo delle operazioni indicate all’art. 4 punto 2 del GDPR e precisamente: raccolta, registrazione, organizzazione, conservazione, consultazione, elaborazione, estrazione, utilizzo, cancellazione e distruzione dei dati...</p>
+    <p>Il trattamento dei suoi Dati Personali è realizzato per mezzo delle operazioni indicate all’art. 4 punto 2 del GDPR e precisely: raccolta, registrazione, organizzazione, conservazione, consultazione, elaborazione, estrazione, utilizzo, cancellazione e distruzione dei dati...</p>
 
     <h3 style={{ fontSize: '18px', marginTop: '20px' }}>E) Periodo di conservazione</h3>
     <p>In ogni caso, si prevede la conservazione dei dati per un periodo massimo di:</p>
@@ -236,6 +237,13 @@ function App() {
             Leggi Magazine
           </button>
 
+          {/* Nuova voce di menu visibile in modalità visitatore / non loggato */}
+          {!isLoggedIn && (
+            <button className={`nav-link ${view === 'eventi' ? 'active-link' : ''}`} onClick={() => navigateTo('eventi')}>
+              Eventi
+            </button>
+          )}
+
           {!isLoggedIn && (
             <button className={`nav-link ${view === 'intervista' ? 'active-link' : ''}`} onClick={() => navigateTo('intervista')}>
               Prenota Intervista
@@ -273,6 +281,14 @@ function App() {
           />
         )}
         
+        {/* Render del nuovo componente dedicato alla pagina degli eventi */}
+        {view === 'eventi' && (
+          <PaginaEventi 
+            onReadEvent={handleReadArticle} 
+            onBackToHome={() => navigateTo('index')} 
+          />
+        )}
+
         {view === 'articolo' && (
           <ArticoloSingolo 
             id={selectedArticleId} 

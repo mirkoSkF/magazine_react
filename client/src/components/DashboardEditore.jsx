@@ -11,7 +11,7 @@ const DashboardEditore = ({ onEdit }) => {
   const [view, setView] = useState('CONTENUTI'); 
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [tipoFiltro, setTipoFiltro] = useState('TUTTI'); // TUTTI, ARTICOLO, RUBRICA, SONDAGGIO
+  const [tipoFiltro, setTipoFiltro] = useState('TUTTI'); // TUTTI, ARTICOLO, RUBRICA, SONDAGGIO, EVENTO
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -221,12 +221,17 @@ const DashboardEditore = ({ onEdit }) => {
     }
   };
 
-  const pubblicaContenuto = (id) => {
+  // Logica per differenziare il messaggio del modale a seconda del tipo di contenuto
+  const pubblicaContenuto = (articolo) => {
+    const messaggio = articolo.tipo === 'EVENTO'
+      ? "Vuoi pubblicare questo evento? Nota: l'evento pubblicato sarà raggiungibile attraverso il campo 'Eventi' della navbar in modalità utente."
+      : "Vuoi pubblicare questo articolo nella Home del magazine? Nota: effettuando modifiche successive, l'articolo tornerà in modalità bozza e verrà temporaneamente rimosso dalla Home.";
+
     setModal({
       show: true,
-      message: "Vuoi pubblicare questo articolo nella Home del magazine? Nota: effettuando modifiche successive, l'articolo tornerà in modalità bozza e verrà temporaneamente rimosso dalla Home.",
+      message: messaggio,
       type: 'confirm',
-      onConfirm: () => eseguiPubblicaContenuto(id)
+      onConfirm: () => eseguiPubblicaContenuto(articolo.id)
     });
   };
 
@@ -234,6 +239,7 @@ const DashboardEditore = ({ onEdit }) => {
     switch (tipo) {
       case 'SONDAGGIO': return { text: 'POLL', background: colors.accent };
       case 'RUBRICA': return { text: 'RUB', background: '#17a2b8' };
+      case 'EVENTO': return { text: 'EVNT', background: '#fd7e14' };
       default: return { text: 'ART', background: '#6c757d' };
     }
   };
@@ -470,7 +476,7 @@ const DashboardEditore = ({ onEdit }) => {
                 onMouseLeave={(e) => e.target.style.opacity = '0.4'}
                 style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', fontSize: '14px', userSelect: 'none', color: '#666', opacity: '0.4', transition: 'opacity 0.2s ease' }}
               >
-                {showVecchia ? '👁️‍🗨️' : '👁️'}
+                {showVecchia ? '👁️‍🗨️' : '👁'}
               </span>
             </div>
 
@@ -498,7 +504,7 @@ const DashboardEditore = ({ onEdit }) => {
                 onMouseLeave={(e) => e.target.style.opacity = '0.4'}
                 style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', fontSize: '14px', userSelect: 'none', color: '#666', opacity: '0.4', transition: 'opacity 0.2s ease' }}
               >
-                {showNuova ? '👁️‍🗨️' : '👁️'}
+                {showNuova ? '👁️‍🗨️' : '👁'}
               </span>
             </div>
 
@@ -525,30 +531,46 @@ const DashboardEditore = ({ onEdit }) => {
         )}
         
         <div className="buttons-horizontal-row">
-          {view === 'CONTENUTI' && (
+          {view === 'CONTENUTI' ? (
             <button 
               onClick={() => setView('STATS')}
               className="btn-view-switch btn-view-stats"
             >
               📊 Statistiche
             </button>
+          ) : view === 'STATS' && (
+            <button 
+              onClick={() => setView('CONTENUTI')}
+              className="btn-view-switch btn-view-contenuti"
+            >
+              📄 Torna ai Contenuti
+            </button>
           )}
           
-          {view === 'CONTENUTI' && (
+          {view === 'CONTENUTI' ? (
             <button 
               onClick={() => setView('CALENDARIO')}
               className="btn-view-switch btn-view-calendar"
             >
               📅 Calendario
             </button>
+          ) : view === 'CALENDARIO' && (
+            <button 
+              onClick={() => setView('CONTENUTI')}
+              className="btn-view-switch btn-view-contenuti"
+            >
+              📄 Torna ai Contenuti
+            </button>
           )}
           
-          <button 
-            onClick={() => setView(view === 'CONTENUTI' ? 'SPONSOR' : 'CONTENUTI')}
-            className={`btn-view-switch ${view === 'CONTENUTI' ? 'btn-view-sponsor' : 'btn-view-contenuti'}`}
-          >
-            {view === 'CONTENUTI' ? '📢 Sponsor' : '📄 Torna ai Contenuti'}
-          </button>
+          {(view === 'CONTENUTI' || view === 'SPONSOR') && (
+            <button 
+              onClick={() => setView(view === 'CONTENUTI' ? 'SPONSOR' : 'CONTENUTI')}
+              className={`btn-view-switch ${view === 'CONTENUTI' ? 'btn-view-sponsor' : 'btn-view-contenuti'}`}
+            >
+              {view === 'CONTENUTI' ? '📢 Sponsor' : '📄 Torna ai Contenuti'}
+            </button>
+          )}
         </div>
 
         {view === 'CONTENUTI' && (
@@ -561,6 +583,7 @@ const DashboardEditore = ({ onEdit }) => {
             <option value="ARTICOLO">📰 Solo Articoli</option>
             <option value="RUBRICA">📚 Solo Rubriche</option>
             <option value="SONDAGGIO">📊 Solo Sondaggi</option>
+            <option value="EVENTO">📅 Solo Eventi</option>
           </select>
         )}
       </div>
@@ -602,7 +625,7 @@ const DashboardEditore = ({ onEdit }) => {
                         <td style={{ ...tdStyle, width: '250px' }}>
                           <div className="actions-cell">
                             {a.bozza && (
-                              <button onClick={() => pubblicaContenuto(a.id)} className="btn-pubblica">Pubblica</button>
+                              <button onClick={() => pubblicaContenuto(a)} className="btn-pubblica">Pubblica</button>
                             )}
                             <button onClick={() => onEdit(a.id)} className="btn-modifica">Modifica</button>
                             <button onClick={() => elimina(a.id)} className="btn-elimina">Elimina</button>

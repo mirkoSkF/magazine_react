@@ -58,12 +58,26 @@ const CalendarioTeams = ({ colors }) => {
 
   // Intercetta il click/selezione sulla griglia oraria per NUOVO slot vuoto
   const handleSelectSlot = (selectInfo) => {
+    let dataInizio = selectInfo.startStr;
+    let dataFine = selectInfo.endStr;
+
+    // FIX MESE: Se la stringa ha lunghezza 10 (es. "2026-05-18"), significa che siamo in vista mese
+    if (dataInizio.length === 10) {
+      dataInizio = `${dataInizio}T09:00`;
+      // Nella vista mese, endStr è il giorno successivo a mezzanotte, quindi usiamo lo stesso giorno di inizio
+      dataFine = `${selectInfo.startStr}T10:00`;
+    } else {
+      // Vista settimana/giorno: tagliamo i primi 16 caratteri (YYYY-MM-DDTHH:mm)
+      dataInizio = dataInizio.slice(0, 16);
+      dataFine = dataFine.slice(0, 16);
+    }
+
     setNewEvent({
       id: null,
       titolo: '',
       descrizione: '',
-      start: selectInfo.startStr.slice(0, 16),
-      end: selectInfo.endStr.slice(0, 16),
+      start: dataInizio,
+      end: dataFine,
       backgroundColor: colors?.primary || '#007bff'
     });
     setShowModal(true);
@@ -178,13 +192,31 @@ const CalendarioTeams = ({ colors }) => {
         slotEventOverlap={false}
       />
 
-      {/* --- REGOLE CSS PULITE --- */}
+      {/* --- REGOLE CSS PER HOVER DETTAGLIATO --- */}
       <style>{`
         .fc .fc-timegrid-col.fc-day-today {
           background-color: rgba(0, 123, 255, 0.05) !important;
         }
         .fc .fc-daygrid-day.fc-day-today {
           background-color: rgba(0, 123, 255, 0.05) !important;
+        }
+
+        /* Hover per ogni singolo quadratino orario (settimana/giorno) */
+        .fc .fc-timegrid-slots td:hover {
+          background-color: rgba(0, 123, 255, 0.04) !important;
+          cursor: pointer;
+        }
+
+        /* Hover per ogni singola cella del giorno (vista mese) */
+        .fc .fc-daygrid-day:hover {
+          background-color: rgba(0, 123, 255, 0.04) !important;
+          cursor: pointer;
+        }
+        
+        /* Hover specifico per il giorno corrente (evita sovrapposizioni opache strane) */
+        .fc .fc-timegrid-col.fc-day-today:hover,
+        .fc .fc-daygrid-day.fc-day-today:hover {
+          background-color: rgba(0, 123, 255, 0.08) !important;
         }
 
         .fc-event {
@@ -213,7 +245,7 @@ const CalendarioTeams = ({ colors }) => {
           color: #fff !important;
         }
 
-        /* Ottimizzazione vista mensile */
+        /* Vista mensile */
         .fc-daygrid-event {
           white-space: normal !important;
           align-items: flex-start !important;
@@ -222,7 +254,7 @@ const CalendarioTeams = ({ colors }) => {
           margin-top: 5px !important;
         }
 
-        /* Effetti hover per i bottoni della modale di conferma */
+        /* Effetti hover bottoni */
         .btn-confirm-delete {
           transition: background-color 0.2s ease, transform 0.1s ease;
         }
@@ -239,7 +271,6 @@ const CalendarioTeams = ({ colors }) => {
           transform: translateY(-1px);
         }
 
-        /* Effetti hover per i bottoni della modale dell'evento principale */
         .btn-modal-delete {
           transition: background-color 0.2s ease, transform 0.1s ease;
         }
@@ -266,7 +297,7 @@ const CalendarioTeams = ({ colors }) => {
         }
       `}</style>
 
-      {/* MODALE DI CONFERMA ELIMINAZIONE PERSONALE (z-index forzato a 10000) */}
+      {/* MODALE DI CONFERMA ELIMINAZIONE PERSONALE */}
       {showConfirmDelete && (
         <div style={{ ...modalOverlayStyle, zIndex: 10000 }}>
           <div style={{ ...modalContentStyle(colors), maxWidth: '400px', textAlign: 'center' }}>
@@ -362,7 +393,6 @@ const CalendarioTeams = ({ colors }) => {
                 </div>
               </div>
 
-              {/* PULSANTI DI AZIONE */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginTop: '15px' }}>
                 {newEvent.id && (
                   <button 

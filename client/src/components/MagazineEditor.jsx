@@ -312,12 +312,18 @@ const MagazineEditor = ({ editId }) => {
                 <option value="ARTICOLO">📰 Articolo Standard</option>
                 <option value="RUBRICA">📚 Rubrica</option>
                 <option value="SONDAGGIO">📊 Sondaggio Interattivo</option>
+                <option value="EVENTO">📅 Evento</option>
               </select>
             </div>
 
             <input
               type="text"
-              placeholder={tipo === "SONDAGGIO" ? "Inserisci la domanda del sondaggio..." : tipo === "RUBRICA" ? "Inserisci il titolo della rubrica..." : "Inserisci il titolo dell'articolo..."}
+              placeholder={
+                tipo === "SONDAGGIO" ? "Inserisci la domanda del sondaggio..." : 
+                tipo === "RUBRICA" ? "Inserisci il titolo della rubrica..." : 
+                tipo === "EVENTO" ? "Inserisci il titolo dell'evento..." :
+                "Inserisci il titolo dell'articolo..."
+              }
               value={titolo}
               onChange={(e) => setTitolo(e.target.value)}
               style={{ width: '100%', fontSize: '28px', fontWeight: 'bold', border: 'none', borderBottom: `2px solid ${tipo === "SONDAGGIO" ? colors.accent : colors.border}`, outline: 'none', marginBottom: '20px', paddingBottom: '10px', fontFamily: 'Arial, Helvetica, sans-serif' }}
@@ -340,7 +346,12 @@ const MagazineEditor = ({ editId }) => {
 
           <div style={{ background: 'white', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', borderRadius: '12px', border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
             <div style={{ padding: '10px 20px', background: colors.lightGray, borderBottom: `1px solid ${colors.border}`, fontSize: '13px', color: '#666', fontFamily: 'Arial' }}>
-              {tipo === "SONDAGGIO" ? "⚠️ Importante: Elenca le opzioni di voto usando un elenco puntato" : tipo === "RUBRICA" ? "Scrivi il contenuto della rubrica qui sotto" : "Scrivi il corpo dell'articolo qui sotto"}
+              {
+                tipo === "SONDAGGIO" ? "⚠️ Importante: Elenca le opzioni di voto usando un elenco puntato" : 
+                tipo === "RUBRICA" ? "Scrivi il contenuto della rubrica qui sotto" : 
+                tipo === "EVENTO" ? "Inserisci i dettagli e la descrizione dell'evento qui sotto" :
+                "Scrivi il corpo dell'articolo qui sotto"
+              }
             </div>
 
             <Editor

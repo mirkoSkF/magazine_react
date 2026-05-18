@@ -111,7 +111,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     let nome = a.nomeAutore || "";
     let cognome = a.cognomeAutore || "";
     if (!nome.trim() && a.utente) {
-      name = a.utente.nome || "";
+      nome = a.utente.nome || "";
       cognome = a.utente.cognome || "";
     } else if (!nome.trim() && a.autore) {
       nome = a.autore.nome || "";
@@ -132,8 +132,11 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     return nelTitolo || nellAutore || nelTesto;
   });
 
+  // Modificato per escludere anche gli EVENTI dal flusso degli articoli standard
   const soloArticoli = contenutiPubblicati.filter(
-    c => c.tipo?.toUpperCase() !== "SONDAGGIO" && c.tipo?.toUpperCase() !== "RUBRICA"
+    c => c.tipo?.toUpperCase() !== "SONDAGGIO" && 
+         c.tipo?.toUpperCase() !== "RUBRICA" && 
+         c.tipo?.toUpperCase() !== "EVENTO"
   );
   const soloRubriche = contenutiPubblicati.filter(c => c.tipo?.toUpperCase() === "RUBRICA");
   const soloSondaggi = contenutiPubblicati.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
