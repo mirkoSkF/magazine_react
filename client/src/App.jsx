@@ -98,6 +98,30 @@ function App() {
 
     const token = localStorage.getItem('token');
     if (token) setIsLoggedIn(true);
+
+    // INTERCETTAZIONE LINK DI CONDIVISIONE ALL'AVVIO
+    const params = new URLSearchParams(window.location.search);
+    const articoloId = params.get('articolo');
+    if (articoloId) {
+      setSelectedArticleId(articoloId);
+      setView('articolo');
+    }
+
+    // GESTIONE DEL TASTO INDIETRO DEL BROWSER
+    const handlePopState = () => {
+      const currentParams = new URLSearchParams(window.location.search);
+      const currentArticoloId = currentParams.get('articolo');
+      if (currentArticoloId) {
+        setSelectedArticleId(currentArticoloId);
+        setView('articolo');
+      } else {
+        setSelectedArticleId(null);
+        setView('index');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const getDisplayName = () => {
@@ -115,11 +139,14 @@ function App() {
     localStorage.clear();
     setIsLoggedIn(false);
     setView('index');
+    window.history.pushState({}, '', window.location.origin + window.location.pathname);
   };
 
   const handleReadArticle = (id) => {
     setSelectedArticleId(id);
     setView('articolo');
+    // Sincronizza l'URL in modo che rifletta l'ID dell'articolo letto
+    window.history.pushState({}, '', `?articolo=${id}`);
     window.scrollTo(0, 0);
   };
 
@@ -136,6 +163,10 @@ function App() {
   const navigateTo = (newView) => {
     setView(newView);
     setIsMobileMenuOpen(false);
+    if (newView === 'index') {
+      setSelectedArticleId(null);
+      window.history.pushState({}, '', window.location.origin + window.location.pathname);
+    }
     window.scrollTo(0, 0);
   };
 
@@ -242,11 +273,20 @@ function App() {
           />
         )}
         
-        {view === 'articolo' && <ArticoloSingolo id={selectedArticleId} onBack={() => setView('index')} />}
+        {view === 'articolo' && (
+          <ArticoloSingolo 
+            id={selectedArticleId} 
+            onBack={() => {
+              setView('index');
+              setSelectedArticleId(null);
+              window.history.pushState({}, '', window.location.origin + window.location.pathname);
+            }} 
+          />
+        )}
 
         {view === 'intervista' && <FormIntervista onPrivacyClick={() => setView('privacy')} />}
 
-        {view === 'privacy' && <PrivacyContent onBack={() => setView('index')} />}
+        {view === 'privacy' && <PrivacyContent onBack={() => navigateTo('index')} />}
 
         {view === 'login' && !isLoggedIn && <Login onLoginSuccess={handleLoginSuccess} colors={colors} />}
 

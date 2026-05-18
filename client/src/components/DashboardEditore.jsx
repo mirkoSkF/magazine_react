@@ -20,6 +20,10 @@ const DashboardEditore = ({ onEdit }) => {
     nuovaPassword: ''
   });
 
+  // Gestione visibilità password con icone standard
+  const [showVecchia, setShowVecchia] = useState(false);
+  const [showNuova, setShowNuova] = useState(false);
+
   const [pwdMsg, setPwdMsg] = useState({
     testo: '',
     tipo: ''
@@ -96,14 +100,11 @@ const DashboardEditore = ({ onEdit }) => {
 
   const articoliFiltratiRisultato = useMemo(() => {
     const filtrati = articoli.filter(a => {
-      // 1. Filtro per tipo di pubblicazione
       if (tipoFiltro !== 'TUTTI') {
-        // Se l'elemento non ha tipo (o è stringa vuota) e cerchiamo ARTICOLO, lo includiamo come fallback
         const tipoElemento = a.tipo || 'ARTICOLO';
         if (tipoElemento !== tipoFiltro) return false;
       }
 
-      // 2. Filtro per termine di ricerca
       const search = searchTerm.toLowerCase();
       const titolo = a.titolo?.toLowerCase() || '';
       const testoPulito = extractText(a).toLowerCase();
@@ -118,7 +119,6 @@ const DashboardEditore = ({ onEdit }) => {
       );
     });
 
-    // Ordinamento dal più recente al più datato
     return filtrati.sort((a, b) => {
       return new Date(b.dataPubblicazione) - new Date(a.dataPubblicazione);
     });
@@ -129,7 +129,6 @@ const DashboardEditore = ({ onEdit }) => {
   const currentItems = articoliFiltratiRisultato.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(articoliFiltratiRisultato.length / itemsPerPage);
 
-  // CORREZIONE: Se elimini tutti gli elementi di una pagina avanzata, torna alla pagina precedente
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
@@ -242,7 +241,7 @@ const DashboardEditore = ({ onEdit }) => {
   return (
     <div className="dashboard-container" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
       
-      {/* MODALE ELEGANTE */}
+      {/* MODALE */}
       {modal.show && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
@@ -300,7 +299,6 @@ const DashboardEditore = ({ onEdit }) => {
         .btn-aggiorna { transition: all 0.3s ease; border: none; cursor: pointer; }
         .btn-aggiorna:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         
-        /* Rimossi vincoli min-width asfissianti su grandi schermi per favorire l'allineamento orizzontale */
         .btn-modifica { background: transparent; color: ${colors.primary}; border: 1px solid ${colors.primary}; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; white-space: nowrap; }
         .btn-modifica:hover { background: ${colors.primary}; color: white; transform: translateY(-1px); }
         .btn-elimina { background: transparent; color: ${colors.danger}; border: 1px solid ${colors.danger}; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; white-space: nowrap; }
@@ -308,7 +306,6 @@ const DashboardEditore = ({ onEdit }) => {
         .btn-pubblica { background: transparent; color: ${colors.success}; border: 1px solid ${colors.success}; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease; white-space: nowrap; }
         .btn-pubblica:hover { background: ${colors.success}; color: white; transform: translateY(-1px); }
         
-        /* Contenitore Tabella Corretto per evitare overflow/tagli */
         .table-wrapper { width: 100%; border-radius: 12px; border: 1px solid ${colors.border}; background: ${colors.white}; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
         .dashboard-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .dashboard-table tbody tr:hover { background: #fafafa; }
@@ -316,7 +313,6 @@ const DashboardEditore = ({ onEdit }) => {
         .title-cell { width: auto; }
         .title-text { font-weight: 600; color: ${colors.dark}; font-size: 14px; line-height: 1.4; word-break: break-word; overflow-wrap: break-word; }
         
-        /* Forza l'allineamento su un'unica riga orizzontale su schermi grandi */
         .actions-cell { display: flex; justify-content: flex-end; align-items: center; gap: 6px; flex-wrap: nowrap; }
         
         .search-input { padding: 12px 15px; width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid ${colors.border}; font-size: 14px; outline: none; transition: all 0.3s ease; text-align: left; }
@@ -364,7 +360,6 @@ const DashboardEditore = ({ onEdit }) => {
           .user-panel, .security-panel { width: 100% !important; } 
         }
         
-        /* TRASFORMAZIONE IN CARD SOTTO I 900px */
         @media (max-width: 900px) {
           .table-wrapper { border: none; background: transparent; box-shadow: none; }
           .dashboard-table, .dashboard-table thead, .dashboard-table tbody, .dashboard-table th, .dashboard-table td, .dashboard-table tr { 
@@ -450,15 +445,70 @@ const DashboardEditore = ({ onEdit }) => {
         <div className="security-panel" style={{ flex: 1, background: colors.white, padding: '20px', borderRadius: '12px', border: `1px solid ${colors.border}` }}>
           <h4 style={{ margin: '0 0 15px 0', fontSize: '14px', textTransform: 'uppercase', color: colors.dark }}>Sicurezza</h4>
           <form onSubmit={handleCambiaPassword} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <input type="password" placeholder="Vecchia password" value={pwdForm.vecchiaPassword} onChange={e => setPwdForm({...pwdForm, vecchiaPassword: e.target.value})} style={inputStyle} required />
-            <input type="password" placeholder="Nuova password" value={pwdForm.nuovaPassword} onChange={e => setPwdForm({...pwdForm, nuovaPassword: e.target.value})} style={inputStyle} required />
+            
+            {/* Input Vecchia Password */}
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input 
+                type={showVecchia ? "text" : "password"} 
+                placeholder="Vecchia password" 
+                value={pwdForm.vecchiaPassword} 
+                onChange={e => setPwdForm({...pwdForm, vecchiaPassword: e.target.value})} 
+                style={{ ...inputStyle, paddingRight: pwdForm.vecchiaPassword ? '55px' : '35px' }} 
+                required 
+              />
+              {pwdForm.vecchiaPassword && (
+                <span 
+                  onClick={() => setPwdForm({...pwdForm, vecchiaPassword: ''})} 
+                  style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#999', fontSize: '14px', userSelect: 'none' }}
+                >
+                  ✕
+                </span>
+              )}
+              <span 
+                onClick={() => setShowVecchia(!showVecchia)} 
+                onMouseEnter={(e) => e.target.style.opacity = '1'}
+                onMouseLeave={(e) => e.target.style.opacity = '0.4'}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', fontSize: '14px', userSelect: 'none', color: '#666', opacity: '0.4', transition: 'opacity 0.2s ease' }}
+              >
+                {showVecchia ? '👁️‍🗨️' : '👁️'}
+              </span>
+            </div>
+
+            {/* Input Nuova Password */}
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input 
+                type={showNuova ? "text" : "password"} 
+                placeholder="Nuova password" 
+                value={pwdForm.nuovaPassword} 
+                onChange={e => setPwdForm({...pwdForm, nuovaPassword: e.target.value})} 
+                style={{ ...inputStyle, paddingRight: pwdForm.nuovaPassword ? '55px' : '35px' }} 
+                required 
+              />
+              {pwdForm.nuovaPassword && (
+                <span 
+                  onClick={() => setPwdForm({...pwdForm, nuovaPassword: ''})} 
+                  style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#999', fontSize: '14px', userSelect: 'none' }}
+                >
+                  ✕
+                </span>
+              )}
+              <span 
+                onClick={() => setShowNuova(!showNuova)} 
+                onMouseEnter={(e) => e.target.style.opacity = '1'}
+                onMouseLeave={(e) => e.target.style.opacity = '0.4'}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', fontSize: '14px', userSelect: 'none', color: '#666', opacity: '0.4', transition: 'opacity 0.2s ease' }}
+              >
+                {showNuova ? '👁️‍🗨️' : '👁️'}
+              </span>
+            </div>
+
             <input type="submit" className="btn-aggiorna" style={btnPwdStyle(colors.primary)} value="Aggiorna" />
           </form>
           {pwdMsg.testo && <p style={{ fontSize: '11px', color: colors[pwdMsg.tipo], marginTop: '8px', fontWeight: '600' }}>{pwdMsg.testo}</p>}
         </div>
       </div>
 
-      {/* Blocco Intestazione e Comandi Allineati a DESTRA */}
+      {/* Intestazione e Comandi */}
       <div className="controls-block-container">
         <h2 style={{ color: colors.dark, fontWeight: '700', margin: 0 }}>
           {view === 'CONTENUTI' ? 'Gestione Contenuti' : view === 'SPONSOR' ? 'Gestione Sponsor' : view === 'STATS' ? 'Report Statistiche' : 'Calendario Editoriale'}
@@ -501,7 +551,6 @@ const DashboardEditore = ({ onEdit }) => {
           </button>
         </div>
 
-        {/* Menu a tendina per filtrare le pubblicazioni sotto i bottoni */}
         {view === 'CONTENUTI' && (
           <select 
             className="filter-select"
@@ -524,7 +573,7 @@ const DashboardEditore = ({ onEdit }) => {
                 <tr style={{ background: colors.lightGray, borderBottom: `2px solid ${colors.border}` }}>
                   <th style={{ ...thStyle, width: '75px' }}>Tipo</th>
                   <th style={thStyle}>Titolo</th>
-                  <th style={{ ...thStyle, width: '110px', textAlign: 'center' }}>Data</th>
+                  <th style={{ ...thStyle, width: '110px', textRight: 'center' }}>Data</th>
                   <th style={{ ...thStyle, width: '70px', textAlign: 'center' }}>Visite</th>
                   <th style={{ ...thStyle, width: '250px', textAlign: 'right' }}>Azioni</th>
                 </tr>
@@ -606,6 +655,7 @@ const DashboardEditore = ({ onEdit }) => {
   );
 };
 
+// Stili standard esterni definiti correttamente
 const thStyle = { padding: '16px 15px', fontSize: '11px', textTransform: 'uppercase', color: '#6c757d', fontWeight: '700' };
 const tdStyle = { padding: '15px 15px', borderBottom: '1px solid #f1f3f5', verticalAlign: 'middle' };
 const inputStyle = { padding: '10px 12px', borderRadius: '6px', border: '1px solid #dee2e6', fontSize: '13px', width: '100%' };

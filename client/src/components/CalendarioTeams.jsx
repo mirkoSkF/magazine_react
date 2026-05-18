@@ -8,6 +8,9 @@ const CalendarioTeams = ({ colors }) => {
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
   
+  // Stato per gestire la modale di conferma rimozione personalizzata
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  
   // Recupero del token per le chiamate autenticate
   const token = localStorage.getItem('token');
 
@@ -112,28 +115,31 @@ const CalendarioTeams = ({ colors }) => {
     }
   };
 
-  // Rimuove l'evento dal backend
-  const handleEliminaEvento = async () => {
+  // Sostituto dell'alert di conferma: apre la modale custom
+  const handleEliminaEvento = () => {
     if (!newEvent.id) return;
+    setShowConfirmDelete(true);
+  };
 
-    if (window.confirm("Sei sicuro di voler eliminare questo evento?")) {
-      try {
-        const response = await fetch(`http://localhost:8096/api/eventi/${newEvent.id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          setShowModal(false);
-          fetchEventi();
-        } else {
-          console.error("Impossibile eliminare l'evento dal server");
+  // Esegue l'effettiva rimozione dell'evento dal backend dopo la conferma custom
+  const eseguiEliminaEffettiva = async () => {
+    try {
+      const response = await fetch(`http://localhost:8096/api/eventi/${newEvent.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      } catch (error) {
-        console.error("Errore durante l'eliminazione dell'evento:", error);
+      });
+
+      if (response.ok) {
+        setShowConfirmDelete(false);
+        setShowModal(false);
+        fetchEventi();
+      } else {
+        console.error("Impossibile eliminare l'evento dal server");
       }
+    } catch (error) {
+      console.error("Errore durante l'eliminazione dell'evento:", error);
     }
   };
 
@@ -172,7 +178,7 @@ const CalendarioTeams = ({ colors }) => {
         slotEventOverlap={false}
       />
 
-      {/* --- REGOLE CSS PULITE (SENZA POPUP) --- */}
+      {/* --- REGOLE CSS PULITE --- */}
       <style>{`
         .fc .fc-timegrid-col.fc-day-today {
           background-color: rgba(0, 123, 255, 0.05) !important;
@@ -215,7 +221,91 @@ const CalendarioTeams = ({ colors }) => {
         .fc-daygrid-event-dot {
           margin-top: 5px !important;
         }
+
+        /* Effetti hover per i bottoni della modale di conferma */
+        .btn-confirm-delete {
+          transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .btn-confirm-delete:hover {
+          background-color: #dc3545 !important;
+          color: #fff !important;
+          transform: translateY(-1px);
+        }
+        .btn-cancel-delete {
+          transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .btn-cancel-delete:hover {
+          background-color: #e2e6ea !important;
+          transform: translateY(-1px);
+        }
+
+        /* Effetti hover per i bottoni della modale dell'evento principale */
+        .btn-modal-delete {
+          transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .btn-modal-delete:hover {
+          background-color: #dc3545 !important;
+          color: #fff !important;
+          transform: translateY(-1px);
+        }
+
+        .btn-modal-cancel {
+          transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .btn-modal-cancel:hover {
+          background-color: #e2e6ea !important;
+          transform: translateY(-1px);
+        }
+
+        .btn-modal-save {
+          transition: filter 0.2s ease, transform 0.1s ease;
+        }
+        .btn-modal-save:hover {
+          filter: brightness(0.9);
+          transform: translateY(-1px);
+        }
       `}</style>
+
+      {/* MODALE DI CONFERMA ELIMINAZIONE PERSONALE (z-index forzato a 10000) */}
+      {showConfirmDelete && (
+        <div style={{ ...modalOverlayStyle, zIndex: 10000 }}>
+          <div style={{ ...modalContentStyle(colors), maxWidth: '400px', textAlign: 'center' }}>
+            <div style={{ fontSize: '40px', marginBottom: '10px' }}>⚠️</div>
+            <h3 style={{ marginTop: 0, fontWeight: '800', color: colors?.dark || '#111' }}>
+              Conferma Eliminazione
+            </h3>
+            <p style={{ fontSize: '14px', color: '#666', lineHeight: '1.5', marginBottom: '25px' }}>
+              Sei sicuro di voler eliminare questo evento? L'azione non è reversibile.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              <button 
+                type="button"
+                className="btn-cancel-delete"
+                onClick={() => setShowConfirmDelete(false)}
+                style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff', fontWeight: '600', cursor: 'pointer' }}
+              >
+                Annulla
+              </button>
+              <button 
+                type="button"
+                className="btn-confirm-delete"
+                onClick={eseguiEliminaEffettiva}
+                style={{ 
+                  padding: '10px 20px', 
+                  borderRadius: '8px', 
+                  border: '1px solid #dc3545', 
+                  background: 'rgba(220, 53, 69, 0.1)', 
+                  color: '#dc3545', 
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Conferma
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODALE DI PROGRAMMAZIONE / VISUALIZZAZIONE EVENTO */}
       {showModal && (
@@ -277,6 +367,7 @@ const CalendarioTeams = ({ colors }) => {
                 {newEvent.id && (
                   <button 
                     type="button" 
+                    className="btn-modal-delete"
                     onClick={handleEliminaEvento}
                     style={{ 
                       padding: '10px 15px', 
@@ -295,6 +386,7 @@ const CalendarioTeams = ({ colors }) => {
 
                 <button 
                   type="button" 
+                  className="btn-modal-cancel"
                   onClick={() => setShowModal(false)}
                   style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff', cursor: 'pointer' }}
                 >
@@ -302,6 +394,7 @@ const CalendarioTeams = ({ colors }) => {
                 </button>
                 <button 
                   type="submit" 
+                  className="btn-modal-save"
                   style={{ 
                     padding: '10px 20px', 
                     borderRadius: '8px', 
