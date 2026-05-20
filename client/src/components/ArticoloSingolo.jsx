@@ -158,22 +158,26 @@ const ArticoloSingolo = ({ id, onBack }) => {
         .poll-option-btn { display: block; width: 100%; padding: 16px; margin-bottom: 12px; background-color: #fff; border: 2px solid #007bff; color: #007bff; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.2s ease; }
         .poll-option-btn:hover:not(:disabled) { background-color: #f0f7ff !important; transform: translateY(-1px); }
         .mobile-share { display: none !important; margin-top: 30px; justify-content: center; }
-        @media (max-width: 768px) { .author-avatar-container { display: none !important; } .article-container { flex-direction: column !important; } .sidebar-share { display: none !important; } .mobile-share { display: flex !important; } article { padding: 0 15px !important; } }
+        .sticky-left-nav { position: fixed; top: 50%; left: calc(50% - 500px); transform: translateY(-50%); z-index: 1000; display: flex; flex-direction: column; }
+        @media (max-width: 1200px) { .sticky-left-nav { display: none !important; } }
+        @media (max-width: 768px) { .author-avatar-container { display: none !important; } .article-container { flex-direction: column !important; } .mobile-share { display: flex !important; } article { padding: 0 15px !important; } }
       `}</style>
+
+      <div className="sticky-left-nav">
+          <button onClick={handleCopyLink} title="Copia link" className="social-btn" style={{ backgroundColor: copiato ? '#28a745' : '#6c757d', color: 'white' }}>
+            {copiato ? <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" /></svg> : <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" /></svg>}
+          </button>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} title="Torna in cima" className="social-btn" style={{ backgroundColor: '#007bff', color: 'white' }}>
+            <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" /></svg>
+          </button>
+      </div>
 
       <nav style={{ padding: '20px', borderBottom: '1px solid #eee', maxWidth: '1200px', margin: '0 auto' }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#007bff', fontWeight: 'bold', cursor: 'pointer', fontSize: '16px' }}>&larr; Torna al Magazine</button>
       </nav>
 
       <div className="article-container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', gap: '40px', position: 'relative' }}>
-        
-        <aside className="sidebar-share" style={{ width: '50px', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '40px', position: 'sticky', top: '100px', height: 'fit-content' }}>
-          <button onClick={handleCopyLink} title="Copia link articolo" className="social-btn" style={{ backgroundColor: copiato ? '#28a745' : '#6c757d', color: 'white' }}>
-            {copiato ? <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" /></svg> : <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" /></svg>}
-          </button>
-        </aside>
-
-        <div style={{ flexGrow: 1, maxWidth: '900px' }}>
+        <div style={{ flexGrow: 1, maxWidth: '900px', margin: '0 auto' }}>
           <article style={{ margin: '40px 0', padding: '0 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', background: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #dee2e6', marginBottom: '30px' }}>
               <div className="author-avatar-container" style={{ display: 'flex', alignItems: 'center' }}>
@@ -193,6 +197,21 @@ const ArticoloSingolo = ({ id, onBack }) => {
                   const opzioni = parsePollOptions(m.contenuto);
                   return (
                     <div key={i} style={{ background: '#f8f9fa', padding: '30px', borderRadius: '15px', border: '2px solid #007bff', marginBottom: '40px' }}>
+                      {isEditore && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', padding: '10px', background: '#fff3cd', border: '1px solid #ffeeba', borderRadius: '5px' }}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#856404" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                          </svg>
+                          <span style={{ color: '#856404', fontWeight: '600', fontSize: '15px' }}>
+                            Modalità Visualizzazione:{' '}
+                            <span style={{ fontWeight: '400' }}>
+                              Come Editore, puoi consultare i risultati ma non partecipare alla votazione.
+                            </span>
+                          </span>
+                        </div>
+                      )}
                       <h3 style={{ marginBottom: '10px', color: '#333' }}>{(votoEffettuato || isEditore) ? "Risultati in tempo reale" : "Esprimi la tua preferenza"}</h3>
                       <p style={{ color: '#666', marginBottom: '25px', fontSize: '14px' }}>Partecipanti totali: <b>{totalVoti}</b></p>
                       {opzioni.map((opt, idx) => {
