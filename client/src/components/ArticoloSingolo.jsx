@@ -378,6 +378,9 @@ const ArticoloSingolo = ({ id, onBack }) => {
 
         /* TABLET + MOBILE */
         @media (max-width: 768px) {
+          .author-avatar-container {
+            display: none !important;
+          }
           .article-container {
             flex-direction: column !important;
           }
@@ -452,6 +455,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
           position: 'relative'
         }}
       >
+        {" "}
         {/* BARRA LATERALE CONDIVISIONE */}
         <aside
           className="sidebar-share"
@@ -477,7 +481,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
             style={{ backgroundColor: '#3b5998' }}
           >
             <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
-              <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z"/>
+              <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z" />
             </svg>
           </a>
 
@@ -491,7 +495,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
             style={{ backgroundColor: '#000000' }}
           >
             <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
           </a>
 
@@ -505,7 +509,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
             style={{ backgroundColor: '#0077b5' }}
           >
             <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-              <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+              <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
             </svg>
           </a>
 
@@ -519,7 +523,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
             style={{ backgroundColor: '#25D366' }}
           >
             <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.503-5.734-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.963C16.528 1.981 14.062.953 11.453.953c-5.441 0-9.866 4.372-9.87 9.802-.001 1.777.475 3.51 1.378 5.042l-.95 3.472 3.593-.933zM17.3 14.38c-.32-.16-1.89-.93-2.185-1.04-.294-.11-.51-.16-.724.16-.214.32-.83 1.04-1.016 1.25-.187.21-.374.24-.694.08-.32-.16-1.353-.5-2.577-1.6-.952-.85-1.594-1.9-1.782-2.22-.187-.32-.02-.49.14-.65.144-.14.32-.37.48-.56.16-.19.21-.32.32-.54.11-.22.05-.41-.03-.57-.08-.16-.724-1.75-.992-2.4-.26-.63-.526-.55-.724-.56-.187-.01-.4-.01-.614-.01-.214 0-.56.08-.854.4-.294.32-1.123 1.1-1.123 2.68 0 1.58 1.15 3.11 1.31 3.32.16.22 2.26 3.45 5.476 4.84.765.33 1.363.53 1.83.68.77.24 1.472.21 2.025.13.617-.09 1.89-.77 2.156-1.48.266-.71.266-1.32.187-1.45-.08-.13-.294-.21-.614-.37z"/>
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.503-5.734-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.963C16.528 1.981 14.062.953 11.453.953c-5.441 0-9.866 4.372-9.87 9.802-.001 1.777.475 3.51 1.378 5.042l-.95 3.472 3.593-.933zM17.3 14.38c-.32-.16-1.89-.93-2.185-1.04-.294-.11-.51-.16-.724.16-.214.32-.83 1.04-1.016 1.25-.187.21-.374.24-.694.08-.32-.16-1.353-.5-2.577-1.6-.952-.85-1.594-1.9-1.782-2.22-.187-.32-.02-.49.14-.65.144-.14.32-.37.48-.56.16-.19.21-.32.32-.54.11-.22.05-.41-.03-.57-.08-.16-.724-1.75-.992-2.4-.26-.63-.526-.55-.724-.56-.187-.01-.4-.01-.614-.01-.214 0-.56.08-.854.4-.294.32-1.123 1.1-1.123 2.68 0 1.58 1.15 3.11 1.31 3.32.16.22 2.26 3.45 5.476 4.84.765.33 1.363.53 1.83.68.77.24 1.472.21 2.025.13.617-.09 1.89-.77 2.156-1.48.266-.71.266-1.32.187-1.45-.08-.13-.294-.21-.614-.37z" />
             </svg>
           </a>
 
@@ -528,8 +532,8 @@ const ArticoloSingolo = ({ id, onBack }) => {
             onClick={handleCopyLink}
             title="Copia link articolo"
             className="social-btn"
-            style={{ 
-              backgroundColor: copiato ? '#28a745' : '#6c757d', 
+            style={{
+              backgroundColor: copiato ? '#28a745' : '#6c757d',
               border: 'none',
               cursor: 'pointer',
               transition: 'background-color 0.3s ease'
@@ -537,11 +541,11 @@ const ArticoloSingolo = ({ id, onBack }) => {
           >
             {copiato ? (
               <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
               </svg>
             ) : (
               <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
               </svg>
             )}
           </button>
@@ -562,37 +566,39 @@ const ArticoloSingolo = ({ id, onBack }) => {
                 marginBottom: '30px'
               }}
             >
-              {autore?.fotoProfilo ? (
-                <img
-                  src={`data:image/jpeg;base64,${autore.fotoProfilo}`}
-                  style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    marginRight: '20px'
-                  }}
-                  alt="Avatar"
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: '#ccc',
-                    marginRight: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold',
-                    color: 'white'
-                  }}
-                >
-                  {autore?.nome?.charAt(0)}
-                  {autore?.cognome?.charAt(0)}
-                </div>
-              )}
+              <div className="author-avatar-container" style={{ display: 'flex', alignItems: 'center' }}>
+                {autore?.fotoProfilo ? (
+                  <img
+                    src={`data:image/jpeg;base64,${autore.fotoProfilo}`}
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      marginRight: '20px'
+                    }}
+                    alt="Avatar"
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      background: '#ccc',
+                      marginRight: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold',
+                      color: 'white'
+                    }}
+                  >
+                    {autore?.nome?.charAt(0)}
+                    {autore?.cognome?.charAt(0)}
+                  </div>
+                )}
+              </div>
 
               <div>
                 <h3 style={{ margin: 0 }}>
