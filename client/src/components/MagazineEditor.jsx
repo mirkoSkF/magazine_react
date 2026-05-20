@@ -13,19 +13,15 @@ const MagazineEditor = ({ editId }) => {
 
   const [publishHover, setPublishHover] = useState(false);
 
-  // STATO PER LA GESTIONE DEI MESSAGGI
   const [modal, setModal] = useState({
     show: false,
     message: '',
-    type: 'confirm', // 'confirm', 'success', 'error'
+    type: 'confirm',
     onConfirm: null
   });
 
   const token = localStorage.getItem('token');
-
-  const authHeader = {
-    'Authorization': `Bearer ${token}`
-  };
+  const authHeader = { 'Authorization': `Bearer ${token}` };
 
   const colors = {
     primary: '#007bff',
@@ -49,7 +45,6 @@ const MagazineEditor = ({ editId }) => {
           setTitolo(data.titolo || '');
           setCopertina(data.copertina || null);
           setTipo(data.tipo || 'ARTICOLO');
-
           if (data.moduli?.length > 0) {
             setContent(data.moduli[0].contenuto);
           }
@@ -154,8 +149,6 @@ const MagazineEditor = ({ editId }) => {
 
   return (
     <div style={{ backgroundColor: colors.lightGray, minHeight: '100vh', position: 'relative' }}>
-
-      {/* MODALE IN STILE DASHBOARD INTERVISTE */}
       {modal.show && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
@@ -262,7 +255,6 @@ const MagazineEditor = ({ editId }) => {
         `}
       </style>
 
-      {/* BLOCCO DI AVVISO MOBILE CON RIMANDO ALLA DASHBOARD */}
       <div className="mobile-warning">
         <div style={{ fontSize: '50px', marginBottom: '20px' }}> 📱 </div>
         <h2>Editor non disponibile</h2>
@@ -378,7 +370,7 @@ const MagazineEditor = ({ editId }) => {
               }}
               value={content}
               init={{
-                min_height: 600,
+                min_height: 1200, 
                 menubar: true,
                 language: 'it',
                 language_url: '/tinymce/langs/it.js',
@@ -396,7 +388,7 @@ const MagazineEditor = ({ editId }) => {
                 inline_styles: true,
                 forced_root_block: 'p',
                 font_family_formats: "Arial=arial,helvetica,sans-serif;Arial Black=arial black,avant garde;Book Antiqua=book antiqua,palatino;Comic Sans MS=comic sans ms,sans-serif;Courier New=courier new,courier;Georgia=georgia,palatino;Helvetica=helvetica;Impact=impact,chicago;Inter=Inter,sans-serif;Lato=Lato,sans-serif;Montserrat=Montserrat,sans-serif;Open Sans=Open Sans,sans-serif;Oswald=Oswald,sans-serif;Playfair Display=playfair display,serif;Poppins=Poppins,sans-serif;Roboto=Roboto,sans-serif;Tahoma=tahoma,arial,helvetica,sans-serif;Times New Roman=times new roman,times;Trebuchet MS=trebuchet ms,geneva;Verdana=verdana,geneva;",
-                plugins: ['advlist','autolink','lists','link','image','charmap','anchor','searchreplace','visualblocks','code','fullscreen','insertdatetime','media','table','wordcount','help','autosave','directionality','pagebreak','nonbreaking','visualchars','autoresize'],
+                plugins: ['advlist','autolink','lists','link','image','charmap','anchor','searchreplace','visualblocks','code','fullscreen','insertdatetime','media','table','wordcount','help','autosave','directionality','pagebreak','nonbreaking','visualchars'],
                 toolbar_mode: 'wrap',
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | charmap anchor pagebreak | visualblocks visualchars code fullscreen | help',
                 content_style: `
@@ -450,7 +442,6 @@ const MagazineEditor = ({ editId }) => {
   );
 };
 
-// STILE BOTTONI BASE (EREDITATO DA DASHBOARD)
 const btnBase = {
   padding: '12px 24px',
   border: 'none',
