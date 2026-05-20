@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
-const CalendarioTeams = ({ colors }) => {
+const CalendarioTeams = ({ colors, onBackToDashboard }) => {
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
   
@@ -158,42 +158,75 @@ const CalendarioTeams = ({ colors }) => {
   };
 
   return (
-    <div style={{ padding: '20px', background: '#fff', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+    <div className="calendar-container" style={{ padding: '20px', background: '#fff', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', position: 'relative' }}>
       
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek"
-        headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        }}
-        
-        locale="it"
-        buttonText={{
-          today: 'Oggi',
-          month: 'Mese',
-          week: 'Settimana',
-          day: 'Giorno'
-        }}
+      {/* BLOCCO DI AVVISO MOBILE (Pulsante Rimosso) */}
+      <div className="mobile-warning" style={{
+        display: 'none',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        padding: '40px 20px',
+        fontFamily: 'system-ui, sans-serif',
+        minHeight: '300px'
+      }}>
+        <div style={{ fontSize: '50px', marginBottom: '20px' }}> 📱 </div>
+        <h2 style={{ margin: '0 0 10px 0', color: colors?.dark || '#111', fontWeight: '800' }}>Interfaccia non disponibile</h2>
+        <p style={{ margin: '0', color: '#666', fontSize: '15px', lineHeight: '1.5' }}> Questa schermata richiede uno schermo più ampio (Tablet o PC). </p>
+      </div>
 
-        firstDay={1}
-        slotMinTime="09:00:00"
-        slotMaxTime="19:00:00"
-        allDaySlot={false}
-        selectable={true}
-        selectMirror={true}
-        
-        select={handleSelectSlot}
-        eventClick={handleEventClick}
-        
-        events={events}
-        height="auto"
-        slotEventOverlap={false}
-      />
+      {/* BLOCCO CALENDARIO DESKTOP */}
+      <div className="desktop-calendar">
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="timeGridWeek"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          }}
+          
+          locale="it"
+          buttonText={{
+            today: 'Oggi',
+            month: 'Mese',
+            week: 'Settimana',
+            day: 'Giorno'
+          }}
 
-      {/* --- REGOLE CSS PER HOVER DETTAGLIATO --- */}
+          firstDay={1}
+          slotMinTime="09:00:00"
+          slotMaxTime="19:00:00"
+          allDaySlot={false}
+          selectable={true}
+          selectMirror={true}
+          
+          select={handleSelectSlot}
+          eventClick={handleEventClick}
+          
+          events={events}
+          height="auto"
+          slotEventOverlap={false}
+        />
+      </div>
+
+      {/* --- REGOLE CSS ED EFFETTI RESPONSIVE --- */}
       <style>{`
+        /* RESPONSIVE TRICK: Mostra avviso su mobile, nasconde calendario */
+        @media (max-width: 767px) {
+          .desktop-calendar {
+            display: none !important;
+          }
+          .mobile-warning {
+            display: flex !important;
+          }
+          /* Nasconde anche eventuali modali rimaste aperte */
+          .modal-overlay-responsive {
+            display: none !important;
+          }
+        }
+
         .fc .fc-timegrid-col.fc-day-today {
           background-color: rgba(0, 123, 255, 0.05) !important;
         }
@@ -213,7 +246,7 @@ const CalendarioTeams = ({ colors }) => {
           cursor: pointer;
         }
         
-        /* Hover specifico per il giorno corrente (evita sovrapposizioni opache strane) */
+        /* Hover specifico per il giorno corrente */
         .fc .fc-timegrid-col.fc-day-today:hover,
         .fc .fc-daygrid-day.fc-day-today:hover {
           background-color: rgba(0, 123, 255, 0.08) !important;
@@ -299,7 +332,7 @@ const CalendarioTeams = ({ colors }) => {
 
       {/* MODALE DI CONFERMA ELIMINAZIONE PERSONALE */}
       {showConfirmDelete && (
-        <div style={{ ...modalOverlayStyle, zIndex: 10000 }}>
+        <div className="modal-overlay-responsive" style={{ ...modalOverlayStyle, zIndex: 10000 }}>
           <div style={{ ...modalContentStyle(colors), maxWidth: '400px', textAlign: 'center' }}>
             <div style={{ fontSize: '40px', marginBottom: '10px' }}>⚠️</div>
             <h3 style={{ marginTop: 0, fontWeight: '800', color: colors?.dark || '#111' }}>
@@ -340,7 +373,7 @@ const CalendarioTeams = ({ colors }) => {
 
       {/* MODALE DI PROGRAMMAZIONE / VISUALIZZAZIONE EVENTO */}
       {showModal && (
-        <div style={modalOverlayStyle}>
+        <div className="modal-overlay-responsive" style={modalOverlayStyle}>
           <div style={modalContentStyle(colors)}>
             <h3 style={{ marginTop: 0, fontWeight: '800', color: colors?.dark || '#111' }}>
               {newEvent.id ? 'Dettagli / Modifica Evento' : 'Programma Nuovo Evento'}

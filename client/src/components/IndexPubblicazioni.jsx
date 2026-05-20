@@ -124,7 +124,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   // Filtriamo tutti i contenuti per escludere le bozze prima di applicare la ricerca e le suddivisioni
   const contenutiPubblicati = tuttiContenuti.filter(item => item.bozza === false);
 
-  const contenutiFiltrati = contenutiPubblicati.filter(item => {
+  const contenidosFiltrati = contenutiPubblicati.filter(item => {
     const searchLower = searchTerm.toLowerCase();
     const nelTitolo = item.titolo?.toLowerCase().includes(searchLower);
     const nellAutore = getAutore(item).toLowerCase().includes(searchLower);
@@ -263,12 +263,12 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       {searchTerm.trim() !== "" ? (
         <div style={{ minHeight: "60vh" }}>
           <h2 style={{ marginBottom: "20px", borderBottom: `2px solid ${colors.primary}`, paddingBottom: "10px" }}>
-            Risultati per: "{searchTerm}" ({contenutiFiltrati.length})
+            Risultati per: "{searchTerm}" ({contenuidosFiltrati.length})
           </h2>
 
-          {contenutiFiltrati.length > 0 ? (
+          {contenuidosFiltrati.length > 0 ? (
             <div style={{ display: "grid", gap: "20px" }}>
-              {contenutiFiltrati.map(item => (
+              {contenuidosFiltrati.map(item => (
                 <div
                   key={item.id}
                   onClick={() => onReadArticle(item.id)}
@@ -398,7 +398,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   </div>
 
                   <div
-                    style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }}
+                    style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px' }}
                     dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoArticolo, 600)) }}
                   />
 

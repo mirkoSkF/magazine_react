@@ -159,7 +159,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
 
           if (data.giaVotato) {
             setVotoEffettuato(true);
-
             localStorage.setItem(voteKey, 'true');
           }
         })
@@ -482,7 +481,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
             </svg>
           </a>
 
-          {/* X (Twitter) - Corretto passaggio del testo + url combinati per sicurezza */}
+          {/* X (Twitter) */}
           <a
             href={`https://twitter.com/intent/tweet?text=${articleTitleEncoded}%20${articleUrlEncoded}`}
             target="_blank"
@@ -601,7 +600,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
                 </h3>
                 <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>
                   Pubblicato il{' '}
-                  {new Date(articolo.dataPubblicazione).toLocaleDateString('it-IT')}
+                  {articolo.dataPubblicazione ? new Date(articolo.dataPubblicazione).toLocaleDateString('it-IT') : ''}
                 </p>
               </div>
             </div>

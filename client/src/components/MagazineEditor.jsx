@@ -262,14 +262,29 @@ const MagazineEditor = ({ editId }) => {
         `}
       </style>
 
+      {/* BLOCCO DI AVVISO MOBILE CON RIMANDO ALLA DASHBOARD */}
       <div className="mobile-warning">
         <div style={{ fontSize: '50px', marginBottom: '20px' }}> 📱 </div>
         <h2>Editor non disponibile</h2>
-        <p> L'interfaccia di scrittura richiede uno schermo più ampio (Tablet o PC). </p>
+        <p style={{ marginBottom: '30px' }}> L'interfaccia di scrittura richiede uno schermo più ampio (Tablet o PC). </p>
         <button
-          onClick={() => window.location.reload()}
-          style={{ ...btnBase, marginTop: '20px', background: colors.primary, color: 'white' }}
-        > Torna alla Home </button>
+          onClick={() => window.location.href = '/dashboard'}
+          onMouseOver={(e) => { e.target.style.background = '#f1f3f4'; }}
+          onMouseOut={(e) => { e.target.style.background = '#ffffff'; }}
+          style={{
+            ...btnBase,
+            background: '#ffffff',
+            color: colors.dark,
+            padding: '12px 30px',
+            borderRadius: '30px',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          ⬅️ Torna alla Home
+        </button>
       </div>
 
       <div className="floating-controls">
@@ -348,7 +363,7 @@ const MagazineEditor = ({ editId }) => {
             <div style={{ padding: '10px 20px', background: colors.lightGray, borderBottom: `1px solid ${colors.border}`, fontSize: '13px', color: '#666', fontFamily: 'Arial' }}>
               {
                 tipo === "SONDAGGIO" ? "⚠️ Importante: Elenca le opzioni di voto usando un elenco puntato" : 
-                tipo === "RUBRICA" ? "Scrivi il contenuto della rubrica qui sotto" : 
+                tipo === "RUBRICA" ? "Scrivi il contenuto della rubrica hier sotto" : 
                 tipo === "EVENTO" ? "Inserisci i dettagli e la descrizione dell'evento qui sotto" :
                 "Scrivi il corpo dell'articolo qui sotto"
               }
@@ -386,7 +401,7 @@ const MagazineEditor = ({ editId }) => {
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | charmap anchor pagebreak | visualblocks visualchars code fullscreen | help',
                 content_style: `
                   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Playfair+Display:wght@700&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap');
-                  body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.7; color: #333; padding: 40px !important; text-align: justify; margin: 0 !important; box-sizing: border-box; }
+                  body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.7; color: #333; padding: 40px !important; margin: 0 !important; box-sizing: border-box; }
                   img { max-width: 100%; height: auto !important; display: block; margin: 25px auto; border-radius: 8px; transition: margin 0.2s ease; }
                   img[style*="float: left"] { margin: 10px 25px 15px 0 !important; float: left; }
                   img[style*="float: right"] { margin: 10px 0 15px 25px !important; float: right; }
@@ -411,6 +426,10 @@ const MagazineEditor = ({ editId }) => {
                     div.querySelectorAll('p, span, div, li, td').forEach(el => {
                       if (!el.style.fontFamily) el.style.fontFamily = 'Arial, Helvetica, sans-serif';
                       if (!el.style.fontSize) el.style.fontSize = '14px';
+                      
+                      if (!el.style.textAlign) {
+                        el.style.textAlign = 'left';
+                      }
                     });
                     div.querySelectorAll('img').forEach(img => {
                       img.style.maxWidth = '100%';
