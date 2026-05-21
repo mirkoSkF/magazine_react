@@ -488,6 +488,9 @@ const ArticoloSingolo = ({ id, onBack }) => {
             padding: 10px 16px !important;
             font-size: 13px !important;
           }
+          .author-avatar {
+            display: none !important;
+          }
         }
       `}</style>
 
@@ -527,6 +530,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
           position: 'relative'
         }}
       >
+        {"\n"}
         {/* BARRA LATERALE CONDIVISIONE */}
         <aside
           className="sidebar-share"
@@ -583,60 +587,64 @@ const ArticoloSingolo = ({ id, onBack }) => {
         {/* COLONNA CONTENUTO ARTICOLO */}
         <div style={{ flexGrow: 1, maxWidth: '900px' }}>
           <article style={{ margin: '40px 0', padding: '0 20px' }}>
-            {/* AUTORE */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#f8f9fa',
-                padding: '20px',
-                borderRadius: '8px',
-                border: '1px solid #dee2e6',
-                marginBottom: '30px'
-              }}
-            >
-              {autore?.fotoProfilo ? (
-                <img
-                  src={`data:image/jpeg;base64,${autore.fotoProfilo}`}
-                  style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    marginRight: '20px'
-                  }}
-                  alt="Avatar"
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: '#ccc',
-                    marginRight: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold',
-                    color: 'white'
-                  }}
-                >
-                  {autore?.nome?.charAt(0)}
-                  {autore?.cognome?.charAt(0)}
-                </div>
-              )}
+            {/* AUTORE (MOSTRATO SOLO SE NON È UN SONDAGGIO) */}
+            {articolo.tipo !== "SONDAGGIO" && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: '#f8f9fa',
+                  padding: '20px',
+                  borderRadius: '8px',
+                  border: '1px solid #dee2e6',
+                  marginBottom: '30px'
+                }}
+              >
+                {autore?.fotoProfilo ? (
+                  <img
+                    className="author-avatar"
+                    src={`data:image/jpeg;base64,${autore.fotoProfilo}`}
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      marginRight: '20px'
+                    }}
+                    alt="Avatar"
+                  />
+                ) : (
+                  <div
+                    className="author-avatar"
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      background: '#ccc',
+                      marginRight: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold',
+                      color: 'white'
+                    }}
+                  >
+                    {autore?.nome?.charAt(0)}
+                    {autore?.cognome?.charAt(0)}
+                  </div>
+                )}
 
-              <div>
-                <h3 style={{ margin: 0 }}>
-                  {autore?.nome} {autore?.cognome}
-                </h3>
-                <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>
-                  Pubblicato il{' '}
-                  {new Date(articolo.dataPubblicazione).toLocaleDateString('it-IT')}
-                </p>
+                <div>
+                  <h3 style={{ margin: 0 }}>
+                    {autore?.nome} {autore?.cognome}
+                  </h3>
+                  <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>
+                    Pubblicato il{' '}
+                    {new Date(articolo.dataPubblicazione).toLocaleDateString('it-IT')}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             <h1
               className="article-title"
