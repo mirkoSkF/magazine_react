@@ -10,6 +10,9 @@ const ArticoloSingolo = ({ id, onBack }) => {
   // Stato sponsor
   const [sponsors, setSponsors] = useState([]);
 
+  // STATO PER IL BOTTONE TORNA SU (AGGIUNTO)
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
   const token = localStorage.getItem('token');
   const ruolo = localStorage.getItem('ruolo');
 
@@ -35,7 +38,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
   }, []);
 
   const voteKey = useMemo(
-    () => `poll_voted_${id}_${deviceId}`,
+            () => `poll_voted_${id}_${deviceId}`,
     [id, deviceId]
   );
 
@@ -133,6 +136,28 @@ const ArticoloSingolo = ({ id, onBack }) => {
     processNode(doc.body);
 
     return doc.body.innerHTML;
+  };
+
+  // EFFECT PER IL MONITORAGGIO DELLO SCROLL (AGGIUNTO)
+  useEffect(() => {
+    const checkScrollTop = () => {
+      if (!showScrollTop && window.pageYOffset > 400) {
+        setShowScrollTop(true);
+      } else if (showScrollTop && window.pageYOffset <= 400) {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', checkScrollTop);
+    return () => window.removeEventListener('scroll', checkScrollTop);
+  }, [showScrollTop]);
+
+  // FUNZIONE DI SCROLL AL TOP (AGGIUNTA)
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
   useEffect(() => {
@@ -359,6 +384,46 @@ const ArticoloSingolo = ({ id, onBack }) => {
           transform: translateY(0);
         }
 
+        /* Bottone Torna Su con stili e transizioni (AGGIUNTO) */
+        .back-to-top-btn {
+          position: fixed;
+          bottom: 40px;
+          right: calc(50% - 600px + 20px); 
+          z-index: 999;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          padding: 12px 20px;
+          font-weight: bold;
+          border-radius: 50px;
+          cursor: pointer;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(20px);
+        }
+
+        .back-to-top-btn.visible {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
+
+        .back-to-top-btn:hover {
+          background-color: #0056b3;
+          transform: translateY(-3px);
+          box-shadow: 0 6px 15px rgba(0, 56, 179, 0.3);
+        }
+
+        .back-to-top-btn:active {
+          transform: translateY(0);
+        }
+
         /* DESKTOP MEDIO */
         @media (min-width: 769px) and (max-width: 1024px) {
           .article-image {
@@ -374,6 +439,9 @@ const ArticoloSingolo = ({ id, onBack }) => {
           }
           .banner-container {
             width: 85% !important;
+          }
+          .back-to-top-btn {
+            right: 40px !important;
           }
         }
 
@@ -413,6 +481,12 @@ const ArticoloSingolo = ({ id, onBack }) => {
             word-spacing: -0.7px !important;
             letter-spacing: -0.1px !important;
             hyphens: auto !important;
+          }
+          .back-to-top-btn {
+            right: 20px !important;
+            bottom: 20px !important;
+            padding: 10px 16px !important;
+            font-size: 13px !important;
           }
         }
       `}</style>
@@ -468,48 +542,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
             height: 'fit-content'
           }}
         >
-          {/* Facebook */}
-          <a
-            href={`https://www.facebook.com/sharer/sharer.php?u=${articleUrlEncoded}`}
-            target="_blank"
-            role="noopener noreferrer"
-            title="Condividi su Facebook"
-            className="social-btn"
-            style={{ backgroundColor: '#3b5998' }}
-          >
-            <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
-              <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z"/>
-            </svg>
-          </a>
-
-          {/* X (Twitter) - Corretto passaggio del testo + url combinati per sicurezza */}
-          <a
-            href={`https://twitter.com/intent/tweet?text=${articleTitleEncoded}%20${articleUrlEncoded}`}
-            target="_blank"
-            role="noopener noreferrer"
-            title="Condividi su X"
-            className="social-btn"
-            style={{ backgroundColor: '#000000' }}
-          >
-            <svg width="18" height="18" fill="white" viewBox="0 0 24 24">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-            </svg>
-          </a>
-
-          {/* LinkedIn */}
-          <a
-            href={`https://www.linkedin.com/sharing/share-offsite/?url=${articleUrlEncoded}`}
-            target="_blank"
-            role="noopener noreferrer"
-            title="Condividi su LinkedIn"
-            className="social-btn"
-            style={{ backgroundColor: '#0077b5' }}
-          >
-            <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-              <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-            </svg>
-          </a>
-
           {/* WhatsApp */}
           <a
             href={`https://api.whatsapp.com/send?text=${articleTitleEncoded}%20${articleUrlEncoded}`}
@@ -761,6 +793,18 @@ const ArticoloSingolo = ({ id, onBack }) => {
           )}
         </div>
       </div>
+
+      {/* BOTTONE TORNA SU (AGGIUNTO) */}
+      <button
+        onClick={scrollToTop}
+        className={`back-to-top-btn ${showScrollTop ? 'visible' : ''}`}
+        title="Torna all'inizio della pagina"
+      >
+        <span>Torna su</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+      </button>
     </div>
   );
 };
