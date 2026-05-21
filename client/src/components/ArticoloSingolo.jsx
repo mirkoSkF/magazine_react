@@ -38,7 +38,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
   }, []);
 
   const voteKey = useMemo(
-            () => `poll_voted_${id}_${deviceId}`,
+    () => `poll_voted_${id}_${deviceId}`,
     [id, deviceId]
   );
 
@@ -587,8 +587,8 @@ const ArticoloSingolo = ({ id, onBack }) => {
         {/* COLONNA CONTENUTO ARTICOLO */}
         <div style={{ flexGrow: 1, maxWidth: '900px' }}>
           <article style={{ margin: '40px 0', padding: '0 20px' }}>
-            {/* AUTORE (MOSTRATO SOLO SE NON È UN SONDAGGIO) */}
-            {articolo.tipo !== "SONDAGGIO" && (
+            {/* AUTORE (MOSTRATO SOLO SE NON È UN SONDAGGIO O UN EVENTO) */}
+            {articolo.tipo !== "SONDAGGIO" && articolo.tipo !== "EVENTO" && (
               <div
                 style={{
                   display: 'flex',
