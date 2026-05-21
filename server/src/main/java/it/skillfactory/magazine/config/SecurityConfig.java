@@ -22,74 +22,77 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-	@Autowired
-	private JwtFilter jwtFilter;
+    @Autowired
+    private JwtFilter jwtFilter;
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http
-		.csrf(csrf -> csrf.disable())
-		.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-		.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
-		.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-		.authorizeHttpRequests(auth -> auth
-				.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-				.requestMatchers("/api/auth/**").permitAll()
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+        .csrf(csrf -> csrf.disable())
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
 
-				// --- DASHBOARD E PROFILO (RICHIESTA AUTENTICAZIONE) ---
-				.requestMatchers("/api/stats/**", "/api/statistiche/**").authenticated()
-				.requestMatchers("/api/profilo/**").authenticated()
-				.requestMatchers("/api/pagine/mie").authenticated()
-				
-				// Scrittura e gestione editoriale protette da autenticazione
-				.requestMatchers(HttpMethod.POST, "/api/pagine").authenticated()
-				.requestMatchers(HttpMethod.PUT, "/api/pagine/*").authenticated()
-				.requestMatchers(HttpMethod.DELETE, "/api/pagine/*").authenticated()
-				.requestMatchers(HttpMethod.PATCH, "/api/pagine/*/pubblica").authenticated()
+                // --- DASHBOARD E PROFILO (RICHIESTA AUTENTICAZIONE) ---
+                .requestMatchers("/api/stats/**", "/api/statistiche/**").authenticated()
+                .requestMatchers("/api/profilo/**").authenticated()
+                .requestMatchers("/api/pagine/mie").authenticated()
+                
+                // Scrittura e gestione editoriale protette da autenticazione
+                .requestMatchers(HttpMethod.POST, "/api/pagine").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/pagine/*").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/pagine/*").authenticated()
+                .requestMatchers(HttpMethod.PATCH, "/api/pagine/*/pubblica").authenticated()
 
-				// --- GESTIONE CALENDARIO ED EVENTI (GET resa pubblica) ---
-				.requestMatchers(HttpMethod.GET, "/api/eventi").permitAll()
-				.requestMatchers(HttpMethod.POST, "/api/eventi").authenticated()
-				.requestMatchers(HttpMethod.DELETE, "/api/eventi/*").authenticated()
+                // --- GESTIONE CALENDARIO ED EVENTI (GET resa pubblica) ---
+                .requestMatchers(HttpMethod.GET, "/api/eventi").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/eventi").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/eventi/*").authenticated()
 
-				// --- GESTIONE INTERVISTE ---
-				.requestMatchers(HttpMethod.POST, "/api/interviste/prenota").permitAll()
-				.requestMatchers("/api/interviste/elenco").authenticated()
-				.requestMatchers("/api/interviste/*").authenticated()
+                // --- GESTIONE INTERVISTE ---
+                .requestMatchers(HttpMethod.POST, "/api/interviste/prenota").permitAll()
+                .requestMatchers("/api/interviste/elenco").authenticated()
+                .requestMatchers("/api/interviste/*").authenticated()
 
-				// --- PUBBLICI ---
-				.requestMatchers(HttpMethod.GET, "/api/pagine/**").permitAll()
-				.requestMatchers(HttpMethod.PUT, "/api/pagine/*/view").permitAll()
-				.requestMatchers(HttpMethod.PUT, "/api/pagine/*/vota").permitAll()
-				.requestMatchers(HttpMethod.GET, "/api/sponsors/**").permitAll()
-				.requestMatchers(HttpMethod.PATCH, "/api/sponsors/*/click").permitAll()
+                // --- AGGIUNTO: ROTTA PUBBLICA PER CONDIVISIONE SOCIAL (CRAWLER) ---
+                .requestMatchers(HttpMethod.GET, "/api/pagine/share/*").permitAll()
 
-				.anyRequest().authenticated()
-				)
-		.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                // --- PUBBLICI ---
+                .requestMatchers(HttpMethod.GET, "/api/pagine/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/pagine/*/view").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/pagine/*/vota").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/sponsors/**").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/sponsors/*/click").permitAll()
 
-		return http.build();
-	}
+                .anyRequest().authenticated()
+                )
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-	@Bean
-	public CorsConfigurationSource corsConfigurationSource() {
-		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:[*]", "http://127.0.0.1:[*]"));
-		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Requested-With", "Accept", "Origin"));
-		configuration.setAllowCredentials(true);
-		configuration.setMaxAge(3600L);
+        return http.build();
+    }
 
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", configuration);
-		return source;
-	}
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:[*]", "http://127.0.0.1:[*]"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Requested-With", "Accept", "Origin"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
-	@Bean
-	public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
-	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-		return authConfig.getAuthenticationManager();
-	}
+    @Bean
+    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
 }
