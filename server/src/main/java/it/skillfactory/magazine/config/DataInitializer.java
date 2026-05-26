@@ -18,7 +18,8 @@ public class DataInitializer {
                 {"Mirko", "Onorato"},
                 {"Gino", "Visciano"},
                 {"Davide", "Grillo"},
-                {"Antonella", "Visciano"}
+                {"Antonella", "Visciano"},
+                {"Amelia", "Milone"}
             };
 
             for (String[] ed : editori) {

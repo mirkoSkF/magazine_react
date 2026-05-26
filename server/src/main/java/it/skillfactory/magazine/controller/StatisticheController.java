@@ -28,17 +28,15 @@ public class StatisticheController {
 
         StatisticheFullDTO dto = new StatisticheFullDTO();
 
-        // 1. Caricamento Totali Dashboard (Questi funzionano perché leggono i campi aggregati)
         dto.setTotArticoli(paginaRepo.countByTipo("ARTICOLO"));
         dto.setTotSondaggi(paginaRepo.countByTipo("SONDAGGIO"));
         dto.setTotRubriche(paginaRepo.countByTipo("RUBRICA"));
+        dto.setTotEditoriali(paginaRepo.countByTipo("EDITORIALE"));
+        dto.setTotEventi(paginaRepo.countByTipo("EVENTO"));
         dto.setTotVisualizzazioni(Optional.ofNullable(paginaRepo.sumTotalVisualizzazioni()).orElse(0L));
         dto.setTotClickSponsor(Optional.ofNullable(sponsorRepo.sumTotalClicks()).orElse(0L));
 
-        // 2. Recupero dati raggruppati per i grafici
         List<Object[]> pagineStats = paginaRepo.findStatsGroupByDay(targetMonth, targetYear);
-        
-        // Temporaneamente usiamo una lista vuota per i click giornalieri finché non implementi ClickSponsor
         List<Object[]> clickStats = new ArrayList<>(); 
 
         Map<Integer, Object[]> pagineMap = pagineStats.stream()
@@ -50,7 +48,6 @@ public class StatisticheController {
                     r -> ((Number) r[1]).longValue()
                 ));
 
-        // 3. Generazione timeline completa del mese
         List<DataPunto> graficoDati = new ArrayList<>();
         int giorniMese = YearMonth.of(targetYear, targetMonth).lengthOfMonth();
 
@@ -60,14 +57,15 @@ public class StatisticheController {
 
             if (pagineMap.containsKey(d)) {
                 Object[] r = pagineMap.get(d);
-                // Indici attesi: 0:Giorno, 1:Articoli, 2:Sondaggi, 3:Rubriche, 4:Visualizzazioni
+                
                 punto.setArticoli(((Number) r[1]).longValue());
                 punto.setSondaggi(((Number) r[2]).longValue());
                 punto.setRubriche(((Number) r[3]).longValue());
-                punto.setVisualizzazioni(((Number) r[4]).longValue());
+                punto.setEditoriali(((Number) r[4]).longValue());
+                punto.setEventi(((Number) r[5]).longValue());
+                punto.setVisualizzazioni(((Number) r[6]).longValue());
             }
             
-            // Sarà sempre 0L finché clickMap è vuota, evitando crash
             punto.setClickSponsor(clickMap.getOrDefault(d, 0L));
             graficoDati.add(punto);
         }
@@ -78,13 +76,13 @@ public class StatisticheController {
 
     @Data @NoArgsConstructor @AllArgsConstructor
     public static class StatisticheFullDTO {
-        private long totArticoli, totSondaggi, totRubriche, totVisualizzazioni, totClickSponsor;
+        private long totArticoli, totSondaggi, totRubriche, totEditoriali, totEventi, totVisualizzazioni, totClickSponsor;
         private List<DataPunto> graficoDati;
     }
 
     @Data @NoArgsConstructor @AllArgsConstructor
     public static class DataPunto {
         private String label;
-        private long articoli = 0, sondaggi = 0, rubriche = 0, visualizzazioni = 0, clickSponsor = 0;
+        private long articoli = 0, sondaggi = 0, rubriche = 0, editoriali = 0, eventi = 0, visualizzazioni = 0, clickSponsor = 0;
     }
 }

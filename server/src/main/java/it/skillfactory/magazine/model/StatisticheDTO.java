@@ -12,6 +12,8 @@ public class StatisticheDTO {
     private long totArticoli;
     private long totRubriche;
     private long totSondaggi;
+    private long totEditoriali; // AGGIUNTO
+    private long totEventi;      // AGGIUNTO
     private long totVisualizzazioni;
     private long totClickSponsor;
     private List<DataPunto> graficoDati;
@@ -20,10 +22,12 @@ public class StatisticheDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class DataPunto {
-        private String label; // Esempio: "01/05"
+        private String label; 
         private long articoli;
         private long rubriche;
         private long sondaggi;
+        private long editoriali; // AGGIUNTO
+        private long eventi;     // AGGIUNTO
         private long visualizzazioni;
         private long clickSponsor;
     }

@@ -27,6 +27,8 @@ public interface PaginaRepository extends JpaRepository<PaginaMagazine, Long> {
            "SUM(CASE WHEN p.tipo = 'ARTICOLO' THEN 1 ELSE 0 END), " +
            "SUM(CASE WHEN p.tipo = 'SONDAGGIO' THEN 1 ELSE 0 END), " +
            "SUM(CASE WHEN p.tipo = 'RUBRICA' THEN 1 ELSE 0 END), " + 
+           "SUM(CASE WHEN p.tipo = 'EDITORIALE' THEN 1 ELSE 0 END), " +
+           "SUM(CASE WHEN p.tipo = 'EVENTO' THEN 1 ELSE 0 END), " +
            "SUM(p.visualizzazioni) " + 
            "FROM PaginaMagazine p " +
            "WHERE MONTH(p.dataPubblicazione) = :month AND YEAR(p.dataPubblicazione) = :year " +
