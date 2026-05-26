@@ -11,7 +11,7 @@ const DashboardEditore = ({ onEdit }) => {
   const [view, setView] = useState('CONTENUTI'); 
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [tipoFiltro, setTipoFiltro] = useState('TUTTI'); // TUTTI, ARTICOLO, RUBRICA, SONDAGGIO, EVENTO
+  const [tipoFiltro, setTipoFiltro] = useState('TUTTI'); // TUTTI, ARTICOLO, EDITORIALE, RUBRICA, SONDAGGIO, EVENTO
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -87,7 +87,6 @@ const DashboardEditore = ({ onEdit }) => {
       }
 
       // 2. Scegliamo l'endpoint in base al ruolo dell'utente
-      // Se l'utente è ROLE_ADMIN chiama l'API generale di tutte le pagine, altrimenti solo le proprie
       const endpointArticoli = utenteCorrente && utenteCorrente.ruolo === 'ROLE_ADMIN'
         ? 'https://magazine.skillfactory.it/api/pagine'
         : 'https://magazine.skillfactory.it/api/pagine/mie';
@@ -231,7 +230,6 @@ const DashboardEditore = ({ onEdit }) => {
     }
   };
 
-  // Logica per differenziare il messaggio del modale a seconda del tipo di contenuto
   const pubblicaContenuto = (articolo) => {
     const messaggio = articolo.tipo === 'EVENTO'
       ? "Vuoi pubblicare questo evento? Nota: l'evento pubblicato sarà raggiungibile attraverso il campo 'Eventi' della navbar in modalità utente."
@@ -247,6 +245,7 @@ const DashboardEditore = ({ onEdit }) => {
 
   const getTipoBadge = (tipo) => {
     switch (tipo) {
+      case 'EDITORIALE': return { text: 'EDIT', background: '#e11d48' }; // Rosso/Fucsia scuro per differenziarlo
       case 'SONDAGGIO': return { text: 'POLL', background: colors.accent };
       case 'RUBRICA': return { text: 'RUB', background: '#17a2b8' };
       case 'EVENTO': return { text: 'EVNT', background: '#fd7e14' };
@@ -591,6 +590,7 @@ const DashboardEditore = ({ onEdit }) => {
           >
             <option value="TUTTI">📋 Tutte le pubblicazioni</option>
             <option value="ARTICOLO">📰 Solo Articoli</option>
+            <option value="EDITORIALE">✍️ Solo Editoriali</option>
             <option value="RUBRICA">📚 Solo Rubriche</option>
             <option value="SONDAGGIO">📊 Solo Sondaggi</option>
             <option value="EVENTO">📅 Solo Eventi</option>

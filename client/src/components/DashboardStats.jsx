@@ -57,10 +57,11 @@ const DashboardStats = ({ colors }) => {
     fetchData();
   }, [fetchData]);
 
+  // DIMENSIONI RIDOTTE DEI BOX CONTATORI (Padding ridotto da 20px a 12px, flex ridotto da 150px a 120px)
   const cardStyle = {
-    background: 'white', padding: '20px', borderRadius: '12px',
+    background: 'white', padding: '12px 10px', borderRadius: '10px',
     border: `1px solid ${colors?.border || '#eee'}`, textAlign: 'center',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.02)', flex: "1 1 180px"
+    boxShadow: '0 4px 6px rgba(0,0,0,0.02)', flex: "1 1 120px"
   };
 
   const chartContainerStyle = {
@@ -97,26 +98,34 @@ const DashboardStats = ({ colors }) => {
 
       {/* CARD STATISTICHE */}
       {stats && (
-        <div style={{ display: 'flex', gap: '15px', marginBottom: '40px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '40px', flexWrap: 'wrap' }}>
           <div style={cardStyle}>
-            <h4 style={{ color: '#666', fontSize: '13px' }}>Articoli</h4>
-            <p style={{ fontSize: '24px', fontWeight: 'bold', color: colors?.dark }}>{stats.totArticoli}</p>
+            <h4 style={{ color: '#666', fontSize: '12px', margin: '0 0 5px 0' }}>Articoli</h4>
+            <p style={{ fontSize: '20px', fontWeight: 'bold', color: colors?.dark, margin: 0 }}>{stats.totArticoli}</p>
           </div>
           <div style={cardStyle}>
-            <h4 style={{ color: '#666', fontSize: '13px' }}>Sondaggi</h4>
-            <p style={{ fontSize: '24px', fontWeight: 'bold', color: colors?.accent }}>{stats.totSondaggi}</p>
+            <h4 style={{ color: '#666', fontSize: '12px', margin: '0 0 5px 0' }}>Sondaggi</h4>
+            <p style={{ fontSize: '20px', fontWeight: 'bold', color: colors?.primary, margin: 0 }}>{stats.totSondaggi}</p>
           </div>
           <div style={cardStyle}>
-            <h4 style={{ color: '#666', fontSize: '13px' }}>Rubriche</h4>
-            <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#9b59b6' }}>{stats.totRubriche}</p>
+            <h4 style={{ color: '#666', fontSize: '12px', margin: '0 0 5px 0' }}>Rubriche</h4>
+            <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#9b59b6', margin: 0 }}>{stats.totRubriche ?? stats.rubriche ?? 0}</p>
           </div>
           <div style={cardStyle}>
-            <h4 style={{ color: '#666', fontSize: '13px' }}>Views Totali</h4>
-            <p style={{ fontSize: '24px', fontWeight: 'bold', color: colors?.primary }}>{stats.totVisualizzazioni?.toLocaleString()}</p>
+            <h4 style={{ color: '#666', fontSize: '12px', margin: '0 0 5px 0' }}>Editoriali</h4>
+            <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#6f42c1', margin: 0 }}>{stats.totEditoriali ?? stats.editoriali ?? 0}</p>
           </div>
           <div style={cardStyle}>
-            <h4 style={{ color: '#666', fontSize: '13px' }}>Click Sponsor</h4>
-            <p style={{ fontSize: '24px', fontWeight: 'bold', color: colors?.success }}>{stats.totClickSponsor}</p>
+            <h4 style={{ color: '#666', fontSize: '12px', margin: '0 0 5px 0' }}>Eventi</h4>
+            <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#fd7e14', margin: 0 }}>{stats.totEventi ?? stats.eventi ?? 0}</p>
+          </div>
+          <div style={cardStyle}>
+            <h4 style={{ color: '#666', fontSize: '12px', margin: '0 0 5px 0' }}>Views Totali</h4>
+            <p style={{ fontSize: '20px', fontWeight: 'bold', color: colors?.accent, margin: 0 }}>{stats.totVisualizzazioni?.toLocaleString()}</p>
+          </div>
+          <div style={cardStyle}>
+            <h4 style={{ color: '#666', fontSize: '12px', margin: '0 0 5px 0' }}>Click Sponsor</h4>
+            <p style={{ fontSize: '20px', fontWeight: 'bold', color: colors?.success, margin: 0 }}>{stats.totClickSponsor}</p>
           </div>
         </div>
       )}
@@ -150,6 +159,8 @@ const DashboardStats = ({ colors }) => {
               <Bar dataKey="articoli" name="Articoli" fill={colors?.accent} radius={[4, 4, 0, 0]} />
               <Bar dataKey="sondaggi" name="Sondaggi" fill={colors?.primary} radius={[4, 4, 0, 0]} />
               <Bar dataKey="rubriche" name="Rubriche" fill="#9b59b6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="editoriali" name="Editoriali" fill="#6f42c1" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="eventi" name="Eventi" fill="#fd7e14" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : <p>Caricamento dati...</p>}

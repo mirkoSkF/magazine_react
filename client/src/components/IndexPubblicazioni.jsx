@@ -6,10 +6,14 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [pageArticoli, setPageArticoli] = useState(1);
   const [pageRubriche, setPageRubriche] = useState(1);
   const [pageSondaggi, setPageSondaggi] = useState(1);
+  const [pageEditoriali, setPageEditoriali] = useState(1); // Nuovo stato per paginazione editoriali
   const [showCookieBanner, setShowCookieBanner] = useState(true);
 
   const [sponsorLaterale, setSponsorLaterale] = useState([]);
   const [sponsorFondo, setSponsorFondo] = useState([]);
+
+  // STATO PER IL BOTTONE TORNA SU (AGGIUNTO DA ARTICOLOSINGOLO)
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const itemsPerPage = 5;
 
@@ -19,7 +23,8 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     lightGray: "#f8f9fa",
     border: "#dee2e6",
     pollFocus: "#003d82",
-    accent: "#e63946"
+    accent: "#e63946",
+    editorial: "#6f42c1" // Colore dedicato per distinguere visivamente gli editoriali
   };
 
   const forceHyphenation = (text) => {
@@ -32,44 +37,59 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
   // GESTIONE CLICK E AGGIORNAMENTO CONTATORE
   const handleSponsorClick = (id, link) => {
-    // 1. Definiamo una chiave univoca per questo specifico banner
     const storageKey = `clicked_sponsor_${id}`;
-
-    // 2. Controlliamo se la chiave esiste già nel localStorage
     const hasClicked = localStorage.getItem(storageKey);
 
     if (!hasClicked) {
-      // Se non ha mai cliccato, inviamo la richiesta al backend
       fetch(`https://magazine.skillfactory.it/api/sponsors/${id}/click`, {
         method: 'PATCH'
       })
         .then(() => {
-          // 3. Salviamo nel localStorage che l'utente ha cliccato
           localStorage.setItem(storageKey, 'true');
         })
         .catch((err) => {
           console.error("Errore registrazione click:", err);
         })
         .finally(() => {
-          // Apriamo il link in ogni caso
           window.open(link, '_blank', 'noopener,noreferrer');
         });
     } else {
-      // Se ha già cliccato, apriamo solo il link senza chiamare il backend
       window.open(link, '_blank', 'noopener,noreferrer');
     }
   };
 
+  // EFFECT PER IL MONITORAGGIO DELLO SCROLL (AGGIUNTO DA ARTICOLOSINGOLO)
   useEffect(() => {
-    fetch("https://magazine.skillfactory.it/api/pagine")
-      .then((res) => res.json())
-      .then((data) => setTuttiContenuti(data.sort((a, b) => b.id - a.id)))
-      .catch((err) => console.error("Errore contenuti:", err));
+    const checkScrollTop = () => {
+      if (!showScrollTop && window.pageYOffset > 400) {
+        setShowScrollTop(true);
+      } else if (showScrollTop && window.pageYOffset <= 400) {
+        setShowScrollTop(false);
+      }
+    };
 
-    fetch("https://magazine.skillfactory.it/api/sponsors")
-      .then((res) => res.json())
-      .then((data) => {
-        const attivi = data.filter(s => s.attivo && s.tipoPagina === 'HOME');
+    window.addEventListener('scroll', checkScrollTop);
+    return () => window.removeEventListener('scroll', checkScrollTop);
+  }, [showScrollTop]);
+
+  // FUNZIONE DI SCROLL AL TOP (AGGIUNTA DA ARTICOLOSINGOLO)
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
+  // OTTIMIZZAZIONE CARICAMENTO INIZIALE PARALLELO
+  useEffect(() => {
+    Promise.all([
+      fetch("https://magazine.skillfactory.it/api/pagine").then((res) => res.json()),
+      fetch("https://magazine.skillfactory.it/api/sponsors").then((res) => res.json())
+    ])
+      .then(([pagineData, sponsorsData]) => {
+        setTuttiContenuti(pagineData.sort((a, b) => b.id - a.id));
+
+        const attivi = sponsorsData.filter(s => s.attivo && s.tipoPagina === 'HOME');
 
         const sidebar = attivi
           .filter(s => s.posizione === 'SIDEBAR')
@@ -84,7 +104,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         setSponsorLaterale(sidebar);
         setSponsorFondo(bottom);
       })
-      .catch((err) => console.error("Errore sponsor:", err));
+      .catch((err) => console.error("Errore caricamento API parallelo:", err));
 
     const consent = localStorage.getItem("cookie-consent");
     if (consent) setShowCookieBanner(false);
@@ -121,7 +141,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     return firma || "Redazione";
   };
 
-  // Filtriamo tutti i contenuti per escludere le bozze prima di applicare la ricerca e le suddivisioni
   const contenutiPubblicati = tuttiContenuti.filter(item => item.bozza === false);
 
   const contenutiFiltrati = contenutiPubblicati.filter(item => {
@@ -132,22 +151,23 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     return nelTitolo || nellAutore || nelTesto;
   });
 
-  // Modificato per escludere anche gli EVENTI dal flusso degli articoli standard
+  // Filtri separati per tipo di contenuto (incluso EDITORIALE) - ORIGINALE
   const soloArticoli = contenutiPubblicati.filter(
     c => c.tipo?.toUpperCase() !== "SONDAGGIO" && 
          c.tipo?.toUpperCase() !== "RUBRICA" && 
-         c.tipo?.toUpperCase() !== "EVENTO"
+         c.tipo?.toUpperCase() !== "EVENTO" &&
+         c.tipo?.toUpperCase() !== "EDITORIALE"
   );
   const soloRubriche = contenutiPubblicati.filter(c => c.tipo?.toUpperCase() === "RUBRICA");
   const soloSondaggi = contenutiPubblicati.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
+  const soloEditoriali = contenutiPubblicati.filter(c => c.tipo?.toUpperCase() === "EDITORIALE");
 
+  // Paginazioni - ORIGINALE
   const archivioArtBase = soloArticoli.slice(4);
   const totalPagesArt = Math.ceil(archivioArtBase.length / itemsPerPage);
   const currentArchivioArt = archivioArtBase.slice((pageArticoli - 1) * itemsPerPage, pageArticoli * itemsPerPage);
 
-  // STRATEGIA 1: Estraiamo le prime due rubriche per metterle in risalto al centro
   const inEvidenzaRubriche = soloRubriche.slice(0, 2);
-  // L'archivio mostrerà le rubriche successive dalla terza in poi
   const archivioRubricheBase = soloRubriche.slice(2);
   const totalPagesRubriche = Math.ceil(archivioRubricheBase.length / itemsPerPage);
   const currentRubriche = archivioRubricheBase.slice((pageRubriche - 1) * itemsPerPage, pageRubriche * itemsPerPage);
@@ -155,6 +175,11 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const archivioSonBase = soloSondaggi.slice(1);
   const totalPagesSon = Math.ceil(archivioSonBase.length / itemsPerPage);
   const currentSondaggi = archivioSonBase.slice((pageSondaggi - 1) * itemsPerPage, pageSondaggi * itemsPerPage);
+
+  const ultimoEditoriale = soloEditoriali[0] || {};
+  const archivioEdiBase = soloEditoriali.slice(1);
+  const totalPagesEdi = Math.ceil(archivioEdiBase.length / itemsPerPage);
+  const currentEditoriali = archivioEdiBase.slice((pageEditoriali - 1) * itemsPerPage, pageEditoriali * itemsPerPage);
 
   if (tuttiContenuti.length === 0)
     return <div style={{ textAlign: "center", padding: "50px", fontFamily: "Arial" }}>Caricamento...</div>;
@@ -180,6 +205,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
               setPage(i + 1);
               window.scrollTo({ top: 400, behavior: 'smooth' });
             }}
+            className="pagination-btn"
             style={{
               padding: '5px 12px',
               cursor: 'pointer',
@@ -189,7 +215,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
               borderRadius: '4px',
               fontSize: '13px',
               fontWeight: 'bold',
-              transition: 'all 0.2s'
+              transition: 'all 0.2s ease-in-out'
             }}
           >
             {i + 1}
@@ -222,6 +248,20 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           background-color: #333 !important;
         }
 
+        .editorial-btn:hover {
+          transform: translateY(-3px) scale(1.02);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+          background-color: #5a32a3 !important;
+        }
+
+        .pagination-btn:hover {
+          background-color: ${colors.lightGray} !important;
+          border-color: ${colors.primary} !important;
+          color: ${colors.primary} !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
         .poll-card-main {
           transition: all 0.3s ease !important;
         }
@@ -251,6 +291,61 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           transform: translateY(-2px);
           border-color: #17a2b8 !important;
           box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        /* STILI BOTTONE TORNA SU - DA ARTICOLOSINGOLO */
+        .back-to-top-btn {
+          position: fixed;
+          bottom: 40px;
+          right: calc(50% - 600px + 20px); 
+          z-index: 999;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          padding: 12px 20px;
+          font-weight: bold;
+          border-radius: 50px;
+          cursor: pointer;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(20px);
+        }
+
+        .back-to-top-btn.visible {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
+
+        .back-to-top-btn:hover {
+          background-color: #0056b3;
+          transform: translateY(-3px);
+          box-shadow: 0 6px 15px rgba(0, 56, 179, 0.3);
+        }
+
+        .back-to-top-btn:active {
+          transform: translateY(0);
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .back-to-top-btn {
+            right: 40px !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .back-to-top-btn {
+            right: 20px !important;
+            bottom: 20px !important;
+            padding: 10px 16px !important;
+            font-size: 13px !important;
+          }
         }
       `}</style>
 
@@ -328,6 +423,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         </div>
       ) : (
         <>
+          {/* I tre articoli in evidenza sotto la ricerca */}
           <div className="grid-evidenza" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
             {evidenza.map((a) => (
               <div
@@ -390,11 +486,52 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
           <div className="main-layout" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
             <section>
-              {/* Il blocco Ultim'ora viene renderizzato solo se l'articolo esiste e NON è una bozza */}
+              
+              {/* BOX DEDICATO ALL'ULTIMO EDITORIALE (In Evidenza sopra l'Ultim'ora) */}
+              {ultimoEditoriale.id && ultimoEditoriale.bozza !== true && (
+                <div style={{ backgroundColor: "#fdf8ff", border: `1px solid ${colors.editorial}`, padding: "25px", borderRadius: "8px", marginBottom: "40px", boxShadow: "0 4px 12px rgba(111, 66, 193, 0.05)" }}>
+                  <div style={{ backgroundColor: colors.editorial, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px', letterSpacing: '0.5px' }}>
+                    EDITORIALE IN EVIDENZA
+                  </div>
+
+                  <h2 style={{ fontSize: '32px', fontWeight: '700', marginBottom: '15px', lineHeight: '1.2', color: colors.dark }}>
+                    {ultimoEditoriale.titolo}
+                  </h2>
+
+                  <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
+                    Scritto da <strong>{getAutore(ultimoEditoriale)}</strong>
+                  </p>
+
+                  {ultimoEditoriale.copertina && (
+                    <div style={{ width: '100%', height: '300px', backgroundColor: '#eee', borderRadius: '6px', overflow: 'hidden', marginBottom: '20px' }}>
+                      <img
+                        src={`data:image/jpeg;base64,${ultimoEditoriale.copertina}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+                        alt="Editoriale Cover"
+                      />
+                    </div>
+                  )}
+
+                  <div
+                    style={{ fontSize: '16px', color: '#444', lineHeight: '1.7', marginBottom: '25px', textAlign: "justify" }}
+                    dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoEditoriale, 400)) }}
+                  />
+
+                  <button
+                    className="editorial-btn"
+                    onClick={() => onReadArticle(ultimoEditoriale.id)}
+                    style={{ padding: '12px 30px', backgroundColor: colors.editorial, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                  >
+                    Leggi l'Editoriale completo
+                  </button>
+                </div>
+              )}
+
+              {/* Il blocco Ultimo Articolo */}
               {ultimoArticolo.id && ultimoArticolo.bozza !== true && (
                 <>
                   <div style={{ backgroundColor: colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
-                    ULTIM'ORA
+                    ULTIMO ARTICOLO
                   </div>
 
                   <h1 className="main-title" style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
@@ -426,14 +563,13 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 </>
               )}
 
-              {/* HUB DELLE RUBRICHE: CARD UNA SOPRA L'ALTRA DENTRO LA LORO AREA DEDICATA */}
+              {/* HUB DELLE RUBRICHE */}
               {inEvidenzaRubriche.length > 0 && (
                 <div style={{ marginTop: '20px', paddingTop: '30px', borderTop: `1px solid ${colors.border}` }}>
                   <h2 style={{ fontSize: '22px', fontWeight: '700', color: colors.dark, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ color: '#17a2b8' }}>📚</span> Le Rubriche del Magazine
                   </h2>
                   
-                  {/* Utilizziamo flex-direction: column per impilarle in verticale occupando il 100% dell'area <section> */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', width: '100%' }}>
                     {inEvidenzaRubriche.map((r) => (
                       <div 
@@ -451,7 +587,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                         }}
                       >
                         <div>
-                          {/* Slot per l'immagine caricata come copertina della rubrica */}
                           {r.copertina && (
                             <div
                               style={{
@@ -544,6 +679,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 </div>
               )}
 
+              {/* ARCHIVIO ARTICOLI */}
               <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>
                 Archivio Articoli
               </h2>
@@ -571,6 +707,36 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 <p style={{ fontSize: '13px', color: '#999' }}>Nessun articolo precedente.</p>
               )}
 
+              {/* ELENCO IMPAGINATO DEGLI EDITORIALI PRECEDENTI */}
+              <div style={{ marginTop: '45px' }}>
+                <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.editorial}`, paddingBottom: '8px', marginBottom: '15px' }}>
+                  Editoriali Precedenti
+                </h2>
+                {currentEditoriali.length > 0 ? (
+                  <>
+                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                      {currentEditoriali.map(e => (
+                        <li key={e.id} style={listItemStyle}>
+                          <span
+                            onClick={() => onReadArticle(e.id)}
+                            style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}
+                          >
+                            ✍️ {e.titolo}
+                          </span>
+                          <small style={{ color: '#888', fontStyle: 'italic' }}>
+                            di {getAutore(e)}
+                          </small>
+                        </li>
+                      ))}
+                    </ul>
+                    <Pagination total={totalPagesEdi} current={pageEditoriali} setPage={setPageEditoriali} />
+                  </>
+                ) : (
+                  <p style={{ fontSize: '13px', color: '#999' }}>Nessun editoriale precedente.</p>
+                )}
+              </div>
+
+              {/* ALTRE RUBRICHE */}
               <div style={{ marginTop: '45px' }}>
                 <h2 style={{ fontSize: '20px', borderBottom: `2px solid #17a2b8`, paddingBottom: '8px', marginBottom: '15px' }}>
                   Altre Rubriche
@@ -599,6 +765,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 )}
               </div>
 
+              {/* SONDAGGI */}
               <div style={{ marginTop: '45px' }}>
                 <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.primary}`, paddingBottom: '8px', marginBottom: '15px' }}>
                   Sondaggi
@@ -652,6 +819,19 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           </button>
         </div>
       )}
+
+      {/* BOTTONE TORNA SU (AGGIUNTO DA ARTICOLOSINGOLO) */}
+      <button
+        onClick={scrollToTop}
+        className={`back-to-top-btn ${showScrollTop ? 'visible' : ''}`}
+        title="Torna all'inizio della pagina"
+      >
+        <span>Torna su</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="19" x2="12" y2="5"></line>
+          <polyline points="5 12 12 5 19 12"></polyline>
+        </svg>
+      </button>
     </div>
   );
 };

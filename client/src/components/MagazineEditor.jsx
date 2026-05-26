@@ -329,6 +329,7 @@ const MagazineEditor = ({ editId }) => {
                 style={{ padding: '5px 10px', borderRadius: '4px', border: `1px solid ${colors.border}`, fontFamily: 'Arial', fontSize: '12px', fontWeight: 'bold' }}
               >
                 <option value="ARTICOLO">📰 Articolo Standard</option>
+                <option value="EDITORIALE">✍️ Editoriale</option>
                 <option value="RUBRICA">📚 Rubrica</option>
                 <option value="SONDAGGIO">📊 Sondaggio Interattivo</option>
                 <option value="EVENTO">📅 Evento</option>
@@ -341,6 +342,7 @@ const MagazineEditor = ({ editId }) => {
                 tipo === "SONDAGGIO" ? "Inserisci la domanda del sondaggio..." : 
                 tipo === "RUBRICA" ? "Inserisci il titolo della rubrica..." : 
                 tipo === "EVENTO" ? "Inserisci il titolo dell'evento..." :
+                tipo === "EDITORIALE" ? "Inserisci il titolo dell'editoriale..." :
                 "Inserisci il titolo dell'articolo..."
               }
               value={titolo}
@@ -378,6 +380,7 @@ const MagazineEditor = ({ editId }) => {
                 tipo === "SONDAGGIO" ? "⚠️ Importante: Elenca le opzioni di voto usando un elenco puntato" : 
                 tipo === "RUBRICA" ? "Scrivi il contenuto della rubrica qui sotto" : 
                 tipo === "EVENTO" ? "Inserisci i dettagli e la descrizione dell'evento qui sotto" :
+                tipo === "EDITORIALE" ? "Scrivi il corpo dell'editoriale qui sotto" :
                 "Scrivi il corpo dell'articolo qui sotto"
               }
             </div>
