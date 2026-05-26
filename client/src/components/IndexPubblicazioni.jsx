@@ -145,7 +145,10 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const totalPagesArt = Math.ceil(archivioArtBase.length / itemsPerPage);
   const currentArchivioArt = archivioArtBase.slice((pageArticoli - 1) * itemsPerPage, pageArticoli * itemsPerPage);
 
-  const archivioRubricheBase = soloRubriche.slice(0);
+  // STRATEGIA 1: Estraiamo le prime due rubriche per metterle in risalto al centro
+  const inEvidenzaRubriche = soloRubriche.slice(0, 2);
+  // L'archivio mostrerà le rubriche successive dalla terza in poi
+  const archivioRubricheBase = soloRubriche.slice(2);
   const totalPagesRubriche = Math.ceil(archivioRubricheBase.length / itemsPerPage);
   const currentRubriche = archivioRubricheBase.slice((pageRubriche - 1) * itemsPerPage, pageRubriche * itemsPerPage);
 
@@ -203,6 +206,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           .main-layout { grid-template-columns: 1fr !important; }
           .sidebar-aside { border-left: none !important; border-top: 1px solid ${colors.border}; padding-left: 0 !important; padding-top: 30px; }
           .grid-evidenza { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
+          .grid-rubriche-evidenza { grid-template-columns: 1fr !important; }
         }
 
         @media (max-width: 600px) {
@@ -237,6 +241,16 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           transform: scale(1.02);
           filter: brightness(1.1);
           box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        }
+
+        .rubrica-card-hub {
+          transition: all 0.3s ease;
+          border: 1px solid #dee2e6;
+        }
+        .rubrica-card-hub:hover {
+          transform: translateY(-2px);
+          border-color: #17a2b8 !important;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         }
       `}</style>
 
@@ -405,11 +419,83 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <button
                     className="read-more-btn"
                     onClick={() => onReadArticle(ultimoArticolo.id)}
-                    style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                    style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '40px' }}
                   >
                     Continua a leggere
                   </button>
                 </>
+              )}
+
+              {/* HUB DELLE RUBRICHE: CARD UNA SOPRA L'ALTRA DENTRO LA LORO AREA DEDICATA */}
+              {inEvidenzaRubriche.length > 0 && (
+                <div style={{ marginTop: '20px', paddingTop: '30px', borderTop: `1px solid ${colors.border}` }}>
+                  <h2 style={{ fontSize: '22px', fontWeight: '700', color: colors.dark, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: '#17a2b8' }}>📚</span> Le Rubriche del Magazine
+                  </h2>
+                  
+                  {/* Utilizziamo flex-direction: column per impilarle in verticale occupando il 100% dell'area <section> */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', width: '100%' }}>
+                    {inEvidenzaRubriche.map((r) => (
+                      <div 
+                        key={r.id} 
+                        className="rubrica-card-hub"
+                        onClick={() => onReadArticle(r.id)}
+                        style={{ 
+                          backgroundColor: '#fafafa', 
+                          padding: '20px', 
+                          borderRadius: '8px', 
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <div>
+                          {/* Slot per l'immagine caricata come copertina della rubrica */}
+                          {r.copertina && (
+                            <div
+                              style={{
+                                width: '100%',
+                                height: '240px',
+                                backgroundColor: '#eee',
+                                borderRadius: '6px',
+                                overflow: 'hidden',
+                                marginBottom: '15px'
+                              }}
+                            >
+                              <img
+                                src={`data:image/jpeg;base64,${r.copertina}`}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                  objectPosition: 'center'
+                                }}
+                                alt="Copertina Rubrica"
+                              />
+                            </div>
+                          )}
+
+                          <div style={{ display: 'inline-block', backgroundColor: '#e2f6f8', color: '#17a2b8', fontSize: '10px', fontWeight: 'bold', padding: '3px 8px', borderRadius: '4px', textTransform: 'uppercase', marginBottom: '12px' }}>
+                            Rubrica d'Autore
+                          </div>
+                          <h3 style={{ fontSize: '18px', fontWeight: '700', margin: '0 0 10px 0', lineHeight: '1.3', color: colors.dark }}>
+                            {r.titolo}
+                          </h3>
+                          <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5', margin: '0 0 15px 0' }}>
+                            {extractText(r, 140)}
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee', paddingTop: '12px', marginTop: '5px' }}>
+                          <span style={{ fontSize: '12px', color: '#555', fontWeight: '500' }}>
+                            di <strong>{getAutore(r)}</strong>
+                          </span>
+                          <span style={{ color: '#17a2b8', fontWeight: 'bold', fontSize: '13px' }}>Leggi →</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* SPONSOR FONDO */}
@@ -487,7 +573,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
               <div style={{ marginTop: '45px' }}>
                 <h2 style={{ fontSize: '20px', borderBottom: `2px solid #17a2b8`, paddingBottom: '8px', marginBottom: '15px' }}>
-                  Rubriche
+                  Altre Rubriche
                 </h2>
                 {currentRubriche.length > 0 ? (
                   <>
@@ -509,7 +595,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     <Pagination total={totalPagesRubriche} current={pageRubriche} setPage={setPageRubriche} />
                   </>
                 ) : (
-                  <p style={{ fontSize: '13px', color: '#999' }}>Nessuna rubrica pubblicata.</p>
+                  <p style={{ fontSize: '13px', color: '#999' }}>Nessun'alta rubrica precedente.</p>
                 )}
               </div>
 

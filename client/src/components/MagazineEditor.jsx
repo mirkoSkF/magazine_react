@@ -8,6 +8,7 @@ const MagazineEditor = ({ editId }) => {
   const [zoom, setZoom] = useState(100);
 
   const [titolo, setTitolo] = useState('');
+  const [sottotitolo, setSottotitolo] = useState(''); // Stato per il sottotitolo opzionale
   const [copertina, setCopertina] = useState(null);
   const [tipo, setTipo] = useState('ARTICOLO');
 
@@ -43,6 +44,7 @@ const MagazineEditor = ({ editId }) => {
         .then(res => res.json())
         .then(data => {
           setTitolo(data.titolo || '');
+          setSottotitolo(data.sottotitolo || ''); // Carica il sottotitolo se esistente
           setCopertina(data.copertina || null);
           setTipo(data.tipo || 'ARTICOLO');
           if (data.moduli?.length > 0) {
@@ -53,6 +55,7 @@ const MagazineEditor = ({ editId }) => {
     } else {
       setContent('');
       setTitolo('');
+      setSottotitolo(''); // Reset in caso di nuova pagina
       setCopertina(null);
       setTipo('ARTICOLO');
     }
@@ -91,9 +94,17 @@ const MagazineEditor = ({ editId }) => {
   const handleZoomOut = () => updateEditorZoom(Math.max(zoom - 10, 50));
 
   const executePublish = async () => {
-    const currentContent = editorRef.current ? editorRef.current.getContent() : content;
+    let currentContent = editorRef.current ? editorRef.current.getContent() : content;
+    
+    // Se l'utente ha inserito un sottotitolo, lo inietta formattato in testa al contenuto HTML
+    if (sottotitolo.trim()) {
+      const subtitleHtml = `<p class="magazine-subtitle" style="font-size: 18px; color: #666; font-style: italic; margin-bottom: 25px; font-family: Arial, Helvetica, sans-serif;">${sottotitolo.trim()}</p>`;
+      currentContent = subtitleHtml + currentContent;
+    }
+
     const payload = {
       titolo: titolo,
+      sottotitolo: sottotitolo, // Aggiunto al payload generale nel caso servisse al backend
       copertina: copertina,
       tipo: tipo,
       numeroPagina: 1,
@@ -135,6 +146,7 @@ const MagazineEditor = ({ editId }) => {
       setModal({ show: true, message: "Attenzione: Inserisci un titolo prima di procedere.", type: 'error' });
       return;
     }
+    // Il sottotitolo viene saltato dai controlli di validazione per renderlo opzionale
     if (!currentContent || currentContent.trim() === "" || currentContent === '<p></p>') {
       setModal({ show: true, message: "Attenzione: Il contenuto non può essere vuoto.", type: 'error' });
       return;
@@ -333,7 +345,16 @@ const MagazineEditor = ({ editId }) => {
               }
               value={titolo}
               onChange={(e) => setTitolo(e.target.value)}
-              style={{ width: '100%', fontSize: '28px', fontWeight: 'bold', border: 'none', borderBottom: `2px solid ${tipo === "SONDAGGIO" ? colors.accent : colors.border}`, outline: 'none', marginBottom: '20px', paddingBottom: '10px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+              style={{ width: '100%', fontSize: '28px', fontWeight: 'bold', border: 'none', borderBottom: `2px solid ${tipo === "SONDAGGIO" ? colors.accent : colors.border}`, outline: 'none', marginBottom: '10px', paddingBottom: '10px', fontFamily: 'Arial, Helvetica, sans-serif' }}
+            />
+
+            {/* Input per il sottotitolo opzionale */}
+            <input
+              type="text"
+              placeholder="Inserisci un sottotitolo opzionale..."
+              value={sottotitolo}
+              onChange={(e) => setSottotitolo(e.target.value)}
+              style={{ width: '100%', fontSize: '18px', fontWeight: 'normal', fontStyle: 'italic', border: 'none', borderBottom: `1px dashed ${colors.border}`, outline: 'none', marginBottom: '20px', paddingBottom: '8px', color: '#666', fontFamily: 'Arial, Helvetica, sans-serif' }}
             />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -355,7 +376,7 @@ const MagazineEditor = ({ editId }) => {
             <div style={{ padding: '10px 20px', background: colors.lightGray, borderBottom: `1px solid ${colors.border}`, fontSize: '13px', color: '#666', fontFamily: 'Arial' }}>
               {
                 tipo === "SONDAGGIO" ? "⚠️ Importante: Elenca le opzioni di voto usando un elenco puntato" : 
-                tipo === "RUBRICA" ? "Scrivi il contenuto della rubrica hier sotto" : 
+                tipo === "RUBRICA" ? "Scrivi il contenuto della rubrica qui sotto" : 
                 tipo === "EVENTO" ? "Inserisci i dettagli e la descrizione dell'evento qui sotto" :
                 "Scrivi il corpo dell'articolo qui sotto"
               }
