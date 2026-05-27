@@ -1,70 +1,78 @@
+version: '3.8'
+
 services:
-  # DATABASE: MariaDB
-  db-magazine:
-    image: mariadb:11.4
-    container_name: sf-magazine-db
-    restart: always
-    environment:
-      - MARIADB_ROOT_PASSWORD=root
-      - MARIADB_DATABASE=magazine_db
-    volumes:
-      - sf_magazine_db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-proot"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+  db-magazine:
+    image: mariadb:11.4
+    container_name: sf-magazine-db
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=root
+      - MARIADB_DATABASE=magazine_db
+    volumes:
+      - sf_magazine_db_data:/var/lib/mysql
+    networks:
+      - sf-network
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # ADMINER: Accessibile su http://localhost:9000
-  adminer-magazine:
-    image: adminer:latest
-    container_name: sf-magazine-adminer
-    restart: always
-    ports:
-      - "9000:8080"
-    depends_on:
-      db-magazine:
-        condition: service_healthy
+  phpmyadmin-magazine:
+    image: phpmyadmin:latest
+    container_name: sf-magazine-phpmyadmin
+    restart: always
+    ports:
+      - "9001:80" # Mantiene la porta 9001 esterna, phpmyadmin risponde internamente sulla 80
+    depends_on:
+      db-magazine:
+        condition: service_healthy
+    environment:
+      - PMA_HOST=db-magazine # Sfrutta il DNS interno di Docker per raggiungere MariaDB
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - sf-network
 
-  # BACKEND: Spring Boot accessibile su http://localhost:8096
-  backend-magazine:
-    build: ./server
-    container_name: sf-magazine-backend
-    ports:
-      - "8096:8096"
-    depends_on:
-      - adminer-magazine
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mariadb://db-magazine:3306/magazine_db
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+  backend-magazine:
+    build: ./server
+    container_name: sf-magazine-backend
+    restart: always
+    ports:
+      - "8096:8096" # Espone la porta del backend per ricevere il traffico proxato da Vite
+    depends_on:
+      db-magazine:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://sf-magazine-db:3306/magazine_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      # Forza Spring Boot a fidarsi degli headers di Nginx per sbloccare il login (errore 403)
+      - SERVER_FORWARD_HEADERS_STRATEGY=framework
+    networks:
+      - sf-network
 
-  # FRONTEND: React + Vite accessibile su http://localhost:5173
-  frontend-magazine:
-    build: ./client
-    container_name: sf-magazine-frontend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./client:/app
-      - /app/node_modules
-    depends_on:
-      - backend-magazine
-
-  # REVERSE PROXY: Commentato per ora (da configurare per l'integrazione con Moodle)
-  # gateway:
-  #   image: nginx:latest
-  #   container_name: sf-magazine-gateway
-  #   restart: always
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./nginx/conf.d:/etc/nginx/conf.d:ro
-  #     - ./nginx/certs:/etc/nginx/certs:ro
-  #   depends_on:
-  #     - frontend-magazine
+  frontend-magazine:
+    build: ./client
+    container_name: sf-magazine-frontend
+    restart: always
+    ports:
+      - "5173:5173" # Espone la porta di Vite per Nginx Proxy Manager
+    # Forza Vite ad accettare connessioni esterne al container sulla porta di default (5173)
+    command: npm run dev -- --host 0.0.0.0
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - VITE_ALLOW_HOSTS=all
+    depends_on:
+      - backend-magazine
+    networks:
+      - sf-network
 
 volumes:
-  sf_magazine_db_data:
+  sf_magazine_db_data:
+
+networks:
+  sf-network:
+    external: true
