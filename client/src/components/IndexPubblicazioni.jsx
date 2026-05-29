@@ -128,7 +128,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   };
 
   const getAutore = (a) => {
-    // 1. Controlla prima se esistono campi espliciti nomeAutore/cognomeAutore (per compatibilità)
     let nome = a.nomeAutore || "";
     let cognome = a.cognomeAutore || "";
 
@@ -139,27 +138,17 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
     let firma = `${nome} ${cognome}`.trim();
 
-    // 2. Se non ha trovato nulla (situazione della query ottimizzata /api/pagine)
-    // andiamo ad analizzare lo username estratto leggero
     if (!firma && a.autore && a.autore.username) {
       const username = a.autore.username.trim();
-
-      // Se lo username contiene un punto (es: mirko.onorato)
       if (username.includes('.')) {
         const parti = username.split('.');
-        
-        // Estrae le parti, mette la prima lettera in maiuscolo (Mirko Onorato)
         const nomeFormattato = parti[0].charAt(0).toUpperCase() + parti[0].slice(1);
         const cognomeFormattato = parti[1].charAt(0).toUpperCase() + parti[1].slice(1);
-        
         return `${nomeFormattato} ${cognomeFormattato}`;
       } else {
-        // Fallback se l'username non ha il punto: esce con la prima lettera maiuscola (es: Admin -> Admin)
         return username.charAt(0).toUpperCase() + username.slice(1);
       }
     }
-
-    // 3. Fallback finale se non viene estratto nessun dato utile
     return firma || "Redazione";
   };
 
@@ -173,7 +162,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     return nelTitolo || nellAutore || nelTesto;
   });
 
-  // Filtri separati per tipo di contenuto (incluso EDITORIALE) - ORIGINALE
   const soloArticoli = contenutiPubblicati.filter(
     c => c.tipo?.toUpperCase() !== "SONDAGGIO" && 
          c.tipo?.toUpperCase() !== "RUBRICA" && 
@@ -184,7 +172,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const soloSondaggi = contenutiPubblicati.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
   const soloEditoriali = contenutiPubblicati.filter(c => c.tipo?.toUpperCase() === "EDITORIALE");
 
-  // Paginazioni - ORIGINALE
   const archivioArtBase = soloArticoli.slice(4);
   const totalPagesArt = Math.ceil(archivioArtBase.length / itemsPerPage);
   const currentArchivioArt = archivioArtBase.slice((pageArticoli - 1) * itemsPerPage, pageArticoli * itemsPerPage);
@@ -315,7 +302,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         }
 
-        /* STILI BOTTONE TORNA SU - DA ARTICOLOSINGOLO */
         .back-to-top-btn {
           position: fixed;
           bottom: 40px;
@@ -445,7 +431,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         </div>
       ) : (
         <>
-          {/* I tre articoli in evidenza sotto la ricerca */}
           <div className="grid-evidenza" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
             {evidenza.map((a) => (
               <div
@@ -509,9 +494,45 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           <div className="main-layout" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
             <section>
               
-              {/* BOX DEDICATO ALL'ULTIMO EDITORIALE (In Evidenza sopra l'Ultim'ora) */}
+              {/* CORREZIONE: Blocco Ultimo Articolo con cornice e font 32px */}
+              {ultimoArticolo.id && ultimoArticolo.bozza !== true && (
+                <div style={{ border: `1px solid ${colors.border}`, padding: '20px', borderRadius: '8px', marginBottom: '40px' }}>
+                  <div style={{ backgroundColor: colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
+                    ULTIMO ARTICOLO
+                  </div>
+
+                  <h1 className="main-title" style={{ fontSize: '32px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
+                    {ultimoArticolo.titolo}
+                  </h1>
+
+                  <div className="main-image-container" style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center' }}>
+                    {ultimoArticolo.copertina && (
+                      <img
+                        src={`data:image/jpeg;base64,${ultimoArticolo.copertina}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+                        alt="Main"
+                      />
+                    )}
+                  </div>
+
+                  <div
+                    style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }}
+                    dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoArticolo, 600)) }}
+                  />
+
+                  <button
+                    className="read-more-btn"
+                    onClick={() => onReadArticle(ultimoArticolo.id)}
+                    style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                  >
+                    Continua a leggere
+                  </button>
+                </div>
+              )}
+
+              {/* INVERSIONE: Il blocco Editoriale ora è sotto */}
               {ultimoEditoriale.id && ultimoEditoriale.bozza !== true && (
-                <div style={{ backgroundColor: "#fdf8ff", border: `1px solid ${colors.editorial}`, padding: "25px", borderRadius: "8px", marginBottom: "40px", boxShadow: "0 4px 12px rgba(111, 66, 193, 0.05)" }}>
+                <div style={{ backgroundColor: "#fdf8ff", border: `1px solid ${colors.editorial}`, padding: "25px", borderRadius: "8px", marginBottom: "40px", boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                   <div style={{ backgroundColor: colors.editorial, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px', letterSpacing: '0.5px' }}>
                     EDITORIALE IN EVIDENZA
                   </div>
@@ -547,42 +568,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     Leggi l'Editoriale completo
                   </button>
                 </div>
-              )}
-
-              {/* Il blocco Ultimo Articolo */}
-              {ultimoArticolo.id && ultimoArticolo.bozza !== true && (
-                <>
-                  <div style={{ backgroundColor: colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
-                    ULTIMO ARTICOLO
-                  </div>
-
-                  <h1 className="main-title" style={{ fontSize: '42px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
-                    {ultimoArticolo.titolo}
-                  </h1>
-
-                  <div className="main-image-container" style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center' }}>
-                    {ultimoArticolo.copertina && (
-                      <img
-                        src={`data:image/jpeg;base64,${ultimoArticolo.copertina}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-                        alt="Main"
-                      />
-                    )}
-                  </div>
-
-                  <div
-                    style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }}
-                    dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoArticolo, 600)) }}
-                  />
-
-                  <button
-                    className="read-more-btn"
-                    onClick={() => onReadArticle(ultimoArticolo.id)}
-                    style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '40px' }}
-                  >
-                    Continua a leggere
-                  </button>
-                </>
               )}
 
               {/* SPONSOR FONDO */}
