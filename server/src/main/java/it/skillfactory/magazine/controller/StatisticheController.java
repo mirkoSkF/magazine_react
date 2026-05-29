@@ -37,16 +37,8 @@ public class StatisticheController {
         dto.setTotClickSponsor(Optional.ofNullable(sponsorRepo.sumTotalClicks()).orElse(0L));
 
         List<Object[]> pagineStats = paginaRepo.findStatsGroupByDay(targetMonth, targetYear);
-        List<Object[]> clickStats = new ArrayList<>(); 
-
         Map<Integer, Object[]> pagineMap = pagineStats.stream()
                 .collect(Collectors.toMap(r -> ((Number) r[0]).intValue(), r -> r));
-        
-        Map<Integer, Long> clickMap = clickStats.stream()
-                .collect(Collectors.toMap(
-                    r -> ((Number) r[0]).intValue(), 
-                    r -> ((Number) r[1]).longValue()
-                ));
 
         List<DataPunto> graficoDati = new ArrayList<>();
         int giorniMese = YearMonth.of(targetYear, targetMonth).lengthOfMonth();
@@ -57,21 +49,22 @@ public class StatisticheController {
 
             if (pagineMap.containsKey(d)) {
                 Object[] r = pagineMap.get(d);
-                
-                punto.setArticoli(((Number) r[1]).longValue());
-                punto.setSondaggi(((Number) r[2]).longValue());
-                punto.setRubriche(((Number) r[3]).longValue());
-                punto.setEditoriali(((Number) r[4]).longValue());
-                punto.setEventi(((Number) r[5]).longValue());
-                punto.setVisualizzazioni(((Number) r[6]).longValue());
+                punto.setArticoli(getValue(r[1]));
+                punto.setSondaggi(getValue(r[2]));
+                punto.setRubriche(getValue(r[3]));
+                punto.setEditoriali(getValue(r[4]));
+                punto.setEventi(getValue(r[5]));
+                punto.setVisualizzazioni(getValue(r[6]));
             }
-            
-            punto.setClickSponsor(clickMap.getOrDefault(d, 0L));
             graficoDati.add(punto);
         }
 
         dto.setGraficoDati(graficoDati);
         return dto;
+    }
+
+    private long getValue(Object obj) {
+        return (obj == null) ? 0L : ((Number) obj).longValue();
     }
 
     @Data @NoArgsConstructor @AllArgsConstructor

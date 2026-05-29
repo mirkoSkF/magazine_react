@@ -11,25 +11,32 @@ import java.util.List;
 @Repository
 public interface PaginaRepository extends JpaRepository<PaginaMagazine, Long> {
 
-    @EntityGraph(value = "PaginaMagazine.full", type = EntityGraph.EntityGraphType.LOAD)
-    List<PaginaMagazine> findByAutoreId(Long autoreId);
+    // --- Metodi per l'ottimizzazione prestazioni ---
+    @Query("SELECT p.id, p.titolo, p.dataPubblicazione, p.visualizzazioni, p.tipo, p.bozza, a.username, p.copertina " +
+           "FROM PaginaMagazine p LEFT JOIN p.autore a")
+    List<Object[]> findAllLight();
 
-    @Override
     @EntityGraph(value = "PaginaMagazine.full", type = EntityGraph.EntityGraphType.LOAD)
-    List<PaginaMagazine> findAll();
+    @Query("SELECT p FROM PaginaMagazine p WHERE p.id = :id")
+    PaginaMagazine findFullById(@Param("id") Long id);
 
+    // --- Metodi mancanti che causavano l'errore di compilazione ---
     long countByTipo(String tipo);
 
     @Query("SELECT SUM(p.visualizzazioni) FROM PaginaMagazine p")
     Long sumTotalVisualizzazioni();
 
+    // --- Metodi esistenti ---
+    @EntityGraph(value = "PaginaMagazine.full", type = EntityGraph.EntityGraphType.LOAD)
+    List<PaginaMagazine> findByAutoreId(Long autoreId);
+
     @Query("SELECT DAY(p.dataPubblicazione), " +
-           "SUM(CASE WHEN p.tipo = 'ARTICOLO' THEN 1 ELSE 0 END), " +
-           "SUM(CASE WHEN p.tipo = 'SONDAGGIO' THEN 1 ELSE 0 END), " +
-           "SUM(CASE WHEN p.tipo = 'RUBRICA' THEN 1 ELSE 0 END), " + 
-           "SUM(CASE WHEN p.tipo = 'EDITORIALE' THEN 1 ELSE 0 END), " +
-           "SUM(CASE WHEN p.tipo = 'EVENTO' THEN 1 ELSE 0 END), " +
-           "SUM(p.visualizzazioni) " + 
+           "COALESCE(SUM(CASE WHEN p.tipo = 'ARTICOLO' THEN 1 ELSE 0 END), 0), " +
+           "COALESCE(SUM(CASE WHEN p.tipo = 'SONDAGGIO' THEN 1 ELSE 0 END), 0), " +
+           "COALESCE(SUM(CASE WHEN p.tipo = 'RUBRICA' THEN 1 ELSE 0 END), 0), " + 
+           "COALESCE(SUM(CASE WHEN p.tipo = 'EDITORIALE' THEN 1 ELSE 0 END), 0), " +
+           "COALESCE(SUM(CASE WHEN p.tipo = 'EVENTO' THEN 1 ELSE 0 END), 0), " +
+           "COALESCE(SUM(p.visualizzazioni), 0) " + 
            "FROM PaginaMagazine p " +
            "WHERE MONTH(p.dataPubblicazione) = :month AND YEAR(p.dataPubblicazione) = :year " +
            "GROUP BY DAY(p.dataPubblicazione)")

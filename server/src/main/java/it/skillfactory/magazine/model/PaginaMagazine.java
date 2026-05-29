@@ -66,7 +66,6 @@ public class PaginaMagazine {
     @Column(name = "identificativo_utente")
     private Set<String> identificativiVotanti = new HashSet<>();
 
-    // Separata correttamente per evitare il conflitto con i votanti del sondaggio
     @ElementCollection
     @CollectionTable(name = "pagina_identificativi_visualizzazioni", joinColumns = @JoinColumn(name = "pagina_id"))
     @Column(name = "identificativo_visualizzatore")
