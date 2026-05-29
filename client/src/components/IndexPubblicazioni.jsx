@@ -128,16 +128,38 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   };
 
   const getAutore = (a) => {
+    // 1. Controlla prima se esistono campi espliciti nomeAutore/cognomeAutore (per compatibilità)
     let nome = a.nomeAutore || "";
     let cognome = a.cognomeAutore || "";
+
     if (!nome.trim() && a.utente) {
       nome = a.utente.nome || "";
       cognome = a.utente.cognome || "";
-    } else if (!nome.trim() && a.autore) {
-      nome = a.autore.nome || "";
-      cognome = a.autore.cognome || "";
     }
-    const firma = `${nome} ${cognome}`.trim();
+
+    let firma = `${nome} ${cognome}`.trim();
+
+    // 2. Se non ha trovato nulla (situazione della query ottimizzata /api/pagine)
+    // andiamo ad analizzare lo username estratto leggero
+    if (!firma && a.autore && a.autore.username) {
+      const username = a.autore.username.trim();
+
+      // Se lo username contiene un punto (es: mirko.onorato)
+      if (username.includes('.')) {
+        const parti = username.split('.');
+        
+        // Estrae le parti, mette la prima lettera in maiuscolo (Mirko Onorato)
+        const nomeFormattato = parti[0].charAt(0).toUpperCase() + parti[0].slice(1);
+        const cognomeFormattato = parti[1].charAt(0).toUpperCase() + parti[1].slice(1);
+        
+        return `${nomeFormattato} ${cognomeFormattato}`;
+      } else {
+        // Fallback se l'username non ha il punto: esce con la prima lettera maiuscola (es: Admin -> Admin)
+        return username.charAt(0).toUpperCase() + username.slice(1);
+      }
+    }
+
+    // 3. Fallback finale se non viene estratto nessun dato utile
     return firma || "Redazione";
   };
 
@@ -561,76 +583,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     Continua a leggere
                   </button>
                 </>
-              )}
-
-              {/* HUB DELLE RUBRICHE */}
-              {inEvidenzaRubriche.length > 0 && (
-                <div style={{ marginTop: '20px', paddingTop: '30px', borderTop: `1px solid ${colors.border}` }}>
-                  <h2 style={{ fontSize: '22px', fontWeight: '700', color: colors.dark, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ color: '#17a2b8' }}>📚</span> Le Rubriche del Magazine
-                  </h2>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', width: '100%' }}>
-                    {inEvidenzaRubriche.map((r) => (
-                      <div 
-                        key={r.id} 
-                        className="rubrica-card-hub"
-                        onClick={() => onReadArticle(r.id)}
-                        style={{ 
-                          backgroundColor: '#fafafa', 
-                          padding: '20px', 
-                          borderRadius: '8px', 
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between'
-                        }}
-                      >
-                        <div>
-                          {r.copertina && (
-                            <div
-                              style={{
-                                width: '100%',
-                                height: '240px',
-                                backgroundColor: '#eee',
-                                borderRadius: '6px',
-                                overflow: 'hidden',
-                                marginBottom: '15px'
-                              }}
-                            >
-                              <img
-                                src={`data:image/jpeg;base64,${r.copertina}`}
-                                style={{
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover',
-                                  objectPosition: 'center'
-                                }}
-                                alt="Copertina Rubrica"
-                              />
-                            </div>
-                          )}
-
-                          <div style={{ display: 'inline-block', backgroundColor: '#e2f6f8', color: '#17a2b8', fontSize: '10px', fontWeight: 'bold', padding: '3px 8px', borderRadius: '4px', textTransform: 'uppercase', marginBottom: '12px' }}>
-                            Rubrica d'Autore
-                          </div>
-                          <h3 style={{ fontSize: '18px', fontWeight: '700', margin: '0 0 10px 0', lineHeight: '1.3', color: colors.dark }}>
-                            {r.titolo}
-                          </h3>
-                          <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5', margin: '0 0 15px 0' }}>
-                            {extractText(r, 140)}
-                          </p>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee', paddingTop: '12px', marginTop: '5px' }}>
-                          <span style={{ fontSize: '12px', color: '#555', fontWeight: '500' }}>
-                            di <strong>{getAutore(r)}</strong>
-                          </span>
-                          <span style={{ color: '#17a2b8', fontWeight: 'bold', fontSize: '13px' }}>Leggi →</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               )}
 
               {/* SPONSOR FONDO */}
