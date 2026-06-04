@@ -104,26 +104,34 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   };
 
   const getAutore = (a) => {
-    let nome = a.nomeAutore || "";
-    let cognome = a.cognomeAutore || "";
-    if (!nome.trim() && a.utente) {
-      nome = a.utente.nome || "";
-      cognome = a.utente.cognome || "";
+  let nome = a.nomeAutore || "";
+  let cognome = a.cognomeAutore || "";
+
+  if (!nome.trim() && a.utente) {
+    nome = a.utente.nome || "";
+    cognome = a.utente.cognome || "";
+  }
+
+  let firma = `${nome} ${cognome}`.trim();
+
+  // 🔥 QUI È IL PUNTO IMPORTANTE
+  const username = a.autore || "";
+
+  console.log("autore raw:", username);
+
+  if (!firma && username) {
+    if (username.includes('.')) {
+      const parti = username.split('.');
+      const nomeFormattato = parti[0].charAt(0).toUpperCase() + parti[0].slice(1);
+      const cognomeFormattato = parti[1].charAt(0).toUpperCase() + parti[1].slice(1);
+      return `${nomeFormattato} ${cognomeFormattato}`;
     }
-    let firma = `${nome} ${cognome}`.trim();
-    if (!firma && a.autore && a.autore.username) {
-      const username = a.autore.username.trim();
-      if (username.includes('.')) {
-        const parti = username.split('.');
-        const nomeFormattato = parti[0].charAt(0).toUpperCase() + parti[0].slice(1);
-        const cognomeFormattato = parti[1].charAt(0).toUpperCase() + parti[1].slice(1);
-        return `${nomeFormattato} ${cognomeFormattato}`;
-      } else {
-        return username.charAt(0).toUpperCase() + username.slice(1);
-      }
-    }
-    return firma || "Redazione";
-  };
+
+    return username.charAt(0).toUpperCase() + username.slice(1);
+  }
+
+  return firma || "Redazione";
+};
 
   // GESTIONE TOLLERANTE DEL FILTRO BOZZE PER IL RENDERING (Risolve il problema dello schermo bianco)
   const contenutiPubblicati = tuttiContenuti.filter(
