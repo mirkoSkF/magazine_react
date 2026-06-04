@@ -40,7 +40,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     const hasClicked = localStorage.getItem(storageKey);
 
     if (!hasClicked) {
-      fetch(`http://localhost:8096/api/sponsors/${id}/click`, { method: 'PATCH' })
+      fetch(`https://magazine.skillfactory.it/api/sponsors/${id}/click`, { method: 'PATCH' })
         .then(() => localStorage.setItem(storageKey, 'true'))
         .catch((err) => console.error("Errore registrazione click:", err))
         .finally(() => window.open(link, '_blank', 'noopener,noreferrer'));
@@ -67,8 +67,8 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
   useEffect(() => {
     Promise.all([
-      fetch("http://localhost:8096/api/pagine").then((res) => res.json()),
-      fetch("http://localhost:8096/api/sponsors").then((res) => res.json())
+      fetch("https://magazine.skillfactory.it/api/pagine").then((res) => res.json()),
+      fetch("https://magazine.skillfactory.it/api/sponsors").then((res) => res.json())
     ])
       .then(([pagineData, sponsorsData]) => {
         setTuttiContenuti(pagineData.sort((a, b) => b.id - a.id));
