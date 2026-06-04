@@ -100,7 +100,7 @@ const VisualizzaRubrica = ({ rubrica, tuttiContenuti, onReadArticle, onBack, get
               )}
 
               <p style={{ fontSize: "14px", color: "#666", margin: 0, fontStyle: "italic" }}>
-                di <strong>{getAutore(art)}</strong> — Pubblicato il {new Date(art.data_pubblicazione).toLocaleDateString('it-IT')}
+                di <strong>{getAutore(art)}</strong> — Pubblicato il {new Date(art.dataPubblicazione).toLocaleDateString('it-IT')}
               </p>
 
               <div
