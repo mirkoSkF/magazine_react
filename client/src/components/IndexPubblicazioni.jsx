@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import VisualizzaRubrica from "./VisualizzaRubrica"; // Import del componente JSX dedicato
 
 const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
@@ -65,26 +65,49 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    Promise.all([
-      fetch("https://magazine.skillfactory.it/api/pagine").then((res) => res.json()),
-      fetch("https://magazine.skillfactory.it/api/sponsors").then((res) => res.json())
-    ])
-      .then(([pagineData, sponsorsData]) => {
-        setTuttiContenuti(pagineData.sort((a, b) => b.id - a.id));
+  const hasFetched = useRef(false);
 
-        const attivi = sponsorsData.filter(s => s.attivo && s.tipoPagina === 'HOME');
-        const sidebar = attivi.filter(s => s.posizione === 'SIDEBAR').slice(0, 3).map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
-        const bottom = attivi.filter(s => s.posizione === 'BOTTOM').slice(0, 2).map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
+useEffect(() => {
+  if (hasFetched.current) return;
+  hasFetched.current = true;
 
-        setSponsorLaterale(sidebar);
-        setSponsorFondo(bottom);
-      })
-      .catch((err) => console.error("Errore caricamento API parallelo:", err));
+  Promise.all([
+    fetch("https://magazine.skillfactory.it/api/pagine").then((res) => res.json()),
+    fetch("https://magazine.skillfactory.it/api/sponsors").then((res) => res.json())
+  ])
+    .then(([pagineData, sponsorsData]) => {
+      setTuttiContenuti(pagineData.sort((a, b) => b.id - a.id));
 
-    const consent = localStorage.getItem("cookie-consent");
-    if (consent) setShowCookieBanner(false);
-  }, []);
+      const attivi = sponsorsData.filter(
+        s => s.attivo && s.tipoPagina === 'HOME'
+      );
+
+      const sidebar = attivi
+        .filter(s => s.posizione === 'SIDEBAR')
+        .slice(0, 3)
+        .map(s => ({
+          id: s.id,
+          immagine: s.bannerImage,
+          link: s.linkSito
+        }));
+
+      const bottom = attivi
+        .filter(s => s.posizione === 'BOTTOM')
+        .slice(0, 2)
+        .map(s => ({
+          id: s.id,
+          immagine: s.bannerImage,
+          link: s.linkSito
+        }));
+
+      setSponsorLaterale(sidebar);
+      setSponsorFondo(bottom);
+    })
+    .catch((err) => console.error("Errore caricamento API parallelo:", err));
+
+  const consent = localStorage.getItem("cookie-consent");
+  if (consent) setShowCookieBanner(false);
+}, []);
 
   const acceptCookies = () => {
     localStorage.setItem("cookie-consent", "true");
