@@ -43,7 +43,10 @@ public class PaginaMagazine {
     @Column(columnDefinition = "int default 0")
     private int visualizzazioni;
 
-    private String tipo = "ARTICOLO"; // "ARTICOLO" o "SONDAGGIO"
+    private String tipo = "ARTICOLO"; // "ARTICOLO", "EDITORIALE", "RUBRICA", "SONDAGGIO", "EVENTO"
+
+    // INTEGRATO: Campo strutturale per memorizzare la rubrica selezionata
+    private String rubrica; 
 
     @Column(name = "bozza", columnDefinition = "boolean default true", nullable = false)
     private boolean bozza = true; 

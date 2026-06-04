@@ -11,8 +11,8 @@ import java.util.List;
 @Repository
 public interface PaginaRepository extends JpaRepository<PaginaMagazine, Long> {
 
-    // --- Metodi per l'ottimizzazione prestazioni ---
-    @Query("SELECT p.id, p.titolo, p.dataPubblicazione, p.visualizzazioni, p.tipo, p.bozza, a.username, p.copertina " +
+    // AGGIORNATO: Aggiunto p.rubrica in coda alla SELECT leggera
+    @Query("SELECT p.id, p.titolo, p.dataPubblicazione, p.visualizzazioni, p.tipo, p.bozza, a.username, p.copertina, p.rubrica " +
            "FROM PaginaMagazine p LEFT JOIN p.autore a")
     List<Object[]> findAllLight();
 
@@ -20,13 +20,11 @@ public interface PaginaRepository extends JpaRepository<PaginaMagazine, Long> {
     @Query("SELECT p FROM PaginaMagazine p WHERE p.id = :id")
     PaginaMagazine findFullById(@Param("id") Long id);
 
-    // --- Metodi mancanti che causavano l'errore di compilazione ---
     long countByTipo(String tipo);
 
     @Query("SELECT SUM(p.visualizzazioni) FROM PaginaMagazine p")
     Long sumTotalVisualizzazioni();
 
-    // --- Metodi esistenti ---
     @EntityGraph(value = "PaginaMagazine.full", type = EntityGraph.EntityGraphType.LOAD)
     List<PaginaMagazine> findByAutoreId(Long autoreId);
 

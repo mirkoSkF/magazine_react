@@ -26,10 +26,8 @@ public class PaginaController {
     @Autowired
     private UtenteRepository utenteRepository;
 
-    // OTTIMIZZAZIONE: Ho modificato questo metodo per non scaricare i dati pesanti
-   @GetMapping
+    @GetMapping
     public List<Map<String, Object>> getAll() {
-        // Usiamo findAllLight() invece di findAll()
         return paginaRepository.findAllLight().stream().map(obj -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", obj[0]);
@@ -39,9 +37,8 @@ public class PaginaController {
             map.put("tipo", obj[4]);
             map.put("bozza", obj[5]);
             map.put("autore", obj[6]);
-            map.put("copertina", obj[7]); // obj[7] corrisponde alla posizione di p.copertina nella query
-            // Nota: Se vuoi anche l'immagine nella lista, 
-            // devi aggiungere p.copertina nella SELECT di findAllLight() nel Repository.
+            map.put("copertina", obj[7]); 
+            map.put("rubrica", obj[8]); // AGGIORNATO: Mappatura della rubrica nella risposta leggera
             return map;
         }).collect(Collectors.toList());
     }
@@ -55,7 +52,6 @@ public class PaginaController {
 
         String voterId = (fingerprint != null) ? fingerprint : request.getRemoteAddr();
 
-        // Usa il metodo che carica tutto solo quando serve il singolo dettaglio
         return paginaRepository.findById(id) 
                 .map(p -> {
                     if (p.getIdentificativiVotanti() != null && p.getIdentificativiVotanti().contains(voterId)) {
@@ -103,11 +99,10 @@ public class PaginaController {
 
             esistente.setTitolo(mod.getTitolo());
             esistente.setCopertina(mod.getCopertina());
-            // Ho ripristinato il campo che mancava
-            // Assicurati che esistente abbia il metodo setNumeroPagina nel model
-            // esistente.setNumeroPagina(mod.getNumeroPagina()); 
+            esistente.setNumeroPagina(mod.getNumeroPagina()); 
             esistente.setTipo(mod.getTipo());
             esistente.setBozza(mod.isBozza()); 
+            esistente.setRubrica(mod.getRubrica()); // AGGIORNATO: Assegnazione del valore rubrica al record persistito
 
             if (mod.getModuli() != null) {
                 esistente.getModuli().clear();
