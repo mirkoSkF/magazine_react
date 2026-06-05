@@ -39,12 +39,12 @@ const MagazineEditor = ({ editId }) => {
 
   // Array delle 6 rubriche per il menu di selezione
   const opzioniRubriche = [
-    { value: 'TECNOLOGIA', label: '💻 Tecnologia & Innovazione' },
-    { value: 'PROGRAMMAZIONE', label: '☕ Programmazione & Dev' },
-    { value: 'DIDATTICA', label: '📚 Didattica & Formazione' },
-    { value: 'ATTUALITA', label: '🌍 Attualità' },
-    { value: 'SPORT', label: '⚽ Sport' },
-    { value: 'CULTURA', label: '🎨 Cultura & Società' }
+    { value: 'FORMATORE', label: '📚 Il Formatore' },
+    { value: 'QUALITA', label: '📚 Formazione & Qualità' },
+    { value: 'IFP', label: '🌍 Ecosistema IFP' },
+    { value: 'DIGITALI', label: '💻 Competenze Digitali' },
+    { value: 'AI', label: '💻 AI & Formazione' },
+    { value: 'LAVORO', label: '📚 Orientamento & Lavoro' }
   ];
 
   useEffect(() => {
