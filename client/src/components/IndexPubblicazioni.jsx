@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [tuttiContenuti, setTuttiContenuti] = useState([]);
@@ -16,15 +16,15 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const itemsPerPage = 5;
-
+  const fetchAvviata = useRef(false);
   // Lista delle rubriche censite nell'applicazione
   const listaRubriche = [
-    { key: "FORMATORE", label: "Formatore" },
-    { key: "QUALITA", label: "Qualità" },
-    { key: "IFP", label: "IFP" },
-    { key: "DIGITALI", label: "Digitali" },
-    { key: "AI", label: "AI" },
-    { key: "LAVORO", label: "Lavoro" }
+    { key: "FORMATORE", label: "Il formatore" },
+    { key: "QUALITA", label: "Formazione & Qualità" },
+    { key: "IFP", label: "Ecosistema IFP" },
+    { key: "DIGITALI", label: "Competenze Digitali" },
+    { key: "AI", label: "AI & Formazione" },
+    { key: "LAVORO", label: "Orientamento & Lavoro" }
   ];
 
   const colors = {
@@ -98,33 +98,43 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   };
 
   useEffect(() => {
-    Promise.all([
-      fetch("https://magazine.skillfactory.it/api/pagine").then((res) => res.json()),
-      fetch("https://magazine.skillfactory.it/api/sponsors").then((res) => res.json())
-    ])
-      .then(([pagineData, sponsorsData]) => {
-        setTuttiContenuti(pagineData.sort((a, b) => b.id - a.id));
+  // Se la chiamata è già stata avviata o completata, ci fermiamo subito
+  if (fetchAvviata.current) return;
 
-        const attivi = sponsorsData.filter(s => s.attivo && s.tipoPagina === 'HOME');
+  // Segnamo immediatamente che la chiamata è partita
+  fetchAvviata.current = true;
 
-        const sidebar = attivi
-          .filter(s => s.posizione === 'SIDEBAR')
-          .slice(0, 3)
-          .map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
+  Promise.all([
+    fetch("https://magazine.skillfactory.it/api/pagine").then((res) => res.json()),
+    fetch("https://magazine.skillfactory.it/api/sponsors").then((res) => res.json())
+  ])
+    .then(([pagineData, sponsorsData]) => {
+      setTuttiContenuti(pagineData.sort((a, b) => b.id - a.id));
 
-        const bottom = attivi
-          .filter(s => s.posizione === 'BOTTOM')
-          .slice(0, 2)
-          .map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
+      const attivi = sponsorsData.filter(s => s.attivo && s.tipoPagina === 'HOME');
 
-        setSponsorLaterale(sidebar);
-        setSponsorFondo(bottom);
-      })
-      .catch((err) => console.error("Errore caricamento API parallelo:", err));
+      const sidebar = attivi
+        .filter(s => s.posizione === 'SIDEBAR')
+        .slice(0, 3)
+        .map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
 
-    const consent = localStorage.getItem("cookie-consent");
-    if (consent) setShowCookieBanner(false);
-  }, []);
+      const bottom = attivi
+        .filter(s => s.posizione === 'BOTTOM')
+        .slice(0, 2)
+        .map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
+
+      setSponsorLaterale(sidebar);
+      setSponsorFondo(bottom);
+    })
+    .catch((err) => {
+      console.error("Errore caricamento API parallelo:", err);
+      // In caso di errore pesante, puoi resettarlo per permettere un riprovo
+      // fetchAvviata.current = false;
+    });
+
+  const consent = localStorage.getItem("cookie-consent");
+  if (consent) setShowCookieBanner(false);
+}, []); // Array di dipendenze vuoto
 
   const acceptCookies = () => {
     localStorage.setItem("cookie-consent", "true");
