@@ -130,36 +130,60 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   };
 
   const getAutore = (a) => {
-  let nome = a.nomeAutore || "";
-  let cognome = a.cognomeAutore || "";
+    let nome = a.nomeAutore || "";
+    let cognome = a.cognomeAutore || "";
 
-  if (!nome.trim() && a.utente) {
-    nome = a.utente.nome || "";
-    cognome = a.utente.cognome || "";
-  }
-
-  let firma = `${nome} ${cognome}`.trim();
-
-  // 🔥 QUI È IL PUNTO IMPORTANTE
-  const username = a.autore || "";
-
-  console.log("autore raw:", username);
-
-  if (!firma && username) {
-    if (username.includes('.')) {
-      const parti = username.split('.');
-      const nomeFormattato = parti[0].charAt(0).toUpperCase() + parti[0].slice(1);
-      const cognomeFormattato = parti[1].charAt(0).toUpperCase() + parti[1].slice(1);
-      return `${nomeFormattato} ${cognomeFormattato}`;
+    if (!nome.trim() && a.utente) {
+      nome = a.utente.nome || "";
+      cognome = a.utente.cognome || "";
     }
 
-    return username.charAt(0).toUpperCase() + username.slice(1);
-  }
+    let firma = `${nome} ${cognome}`.trim();
 
-  return firma || "Redazione";
-};
+    const username = a.autore || "";
 
-  const contenutiPubblicati = tuttiContenuti.filter(item => item.bozza === false);
+    console.log("autore raw:", username);
+
+    if (!firma && username) {
+      if (username.includes('.')) {
+        const parti = username.split('.');
+        const nomeFormattato = parti[0].charAt(0).toUpperCase() + parti[0].slice(1);
+        const cognomeFormattato = parti[1].charAt(0).toUpperCase() + parti[1].slice(1);
+        return `${nomeFormattato} ${cognomeFormattato}`;
+      }
+
+      return username.charAt(0).toUpperCase() + username.slice(1);
+    }
+
+    return firma || "Redazione";
+  };
+
+  // Controllo di guardia inserito in alto per evitare ReferenceError
+  if (tuttiContenuti.length === 0)
+    return <div style={{ textAlign: "center", padding: "50px", fontFamily: "Arial" }}>Caricamento...</div>;
+
+  const contenutiPubblicatiBase = tuttiContenuti.filter(item => item.bozza === false);
+
+  // 🔥 APPLICAZIONE DEI FILTRI DELLA NAVBAR SUI DATI PUBBLICATI
+  const contenutiPubblicati = contenutiPubblicatiBase.filter(item => {
+    if (filtroCorrente === "NEWS") {
+      return item.tipo?.toUpperCase() === "ARTICOLO";
+    }
+    if (filtroCorrente === "EVENTI") {
+      return item.tipo?.toUpperCase() === "EVENTO";
+    }
+    if (filtroCorrente === "EDITORIALI") {
+      return item.tipo?.toUpperCase() === "EDITORIALE";
+    }
+    if (filtroCorrente === "RUBRICA") {
+      if (item.tipo?.toUpperCase() !== "RUBRICA") return false;
+      if (rubricaAttiva !== "") {
+        return item.rubrica?.toUpperCase() === rubricaAttiva.toUpperCase();
+      }
+      return true;
+    }
+    return true; // "HOME" o "TUTTO"
+  });
 
   const contenutiFiltrati = contenutiPubblicati.filter(item => {
     const searchLower = searchTerm.toLowerCase();
@@ -196,9 +220,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const archivioEdiBase = soloEditoriali.slice(1);
   const totalPagesEdi = Math.ceil(archivioEdiBase.length / itemsPerPage);
   const currentEditoriali = archivioEdiBase.slice((pageEditoriali - 1) * itemsPerPage, pageEditoriali * itemsPerPage);
-
-  if (tuttiContenuti.length === 0)
-    return <div style={{ textAlign: "center", padding: "50px", fontFamily: "Arial" }}>Caricamento...</div>;
 
   const ultimoArticolo = soloArticoli[0] || {};
   const evidenza = soloArticoli.slice(1, 4);
@@ -240,6 +261,14 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       </div>
     );
   };
+
+  // Funzione per impostare gli stili degli elementi attivi della navbar (Mantiene l'aspetto originale aggiungendo feedback visivo)
+  const getNavbarItemStyle = (isActive) => ({
+    cursor: "pointer",
+    borderBottom: isActive ? `2px solid ${colors.primary}` : "none",
+    color: isActive ? colors.primary : colors.dark,
+    paddingBottom: "2px"
+  });
 
   return (
     <div lang="it" style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif", position: "relative" }}>
@@ -383,77 +412,86 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           }}
         />
       </div>
+      
+      {/* NAVBAR DI FILTRAGGIO */}
       <div
-  style={{
-    display: "flex",
-    justifyContent: "center",
-    gap: "30px",
-    marginBottom: "30px",
-    flexWrap: "wrap",
-    fontWeight: "bold"
-  }}
->
-  <span
-    style={{ cursor: "pointer" }}
-    onClick={() => {
-      setFiltroCorrente("NEWS");
-      setRubricaAttiva("");
-    }}
-  >
-    News
-  </span>
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "30px",
+          marginBottom: "30px",
+          flexWrap: "wrap",
+          fontWeight: "bold"
+        }}
+      >
+        <span
+          style={getNavbarItemStyle(filtroCorrente === "NEWS")}
+          onClick={() => {
+            setFiltroCorrente("NEWS");
+            setRubricaAttiva("");
+            setPageArticoli(1);
+          }}
+        >
+          News
+        </span>
 
-  <select
-    value={rubricaAttiva}
-    onChange={(e) => {
-      setRubricaAttiva(e.target.value);
-      setFiltroCorrente("RUBRICA");
-    }}
-    style={{
-      border: "none",
-      fontWeight: "bold",
-      cursor: "pointer"
-    }}
-  >
-    <option value="">Rubriche ▼</option>
-    <option value="FORMATORE">Formatore</option>
-    <option value="QUALITA">Qualità</option>
-    <option value="IFP">IFP</option>
-    <option value="DIGITALI">Digitali</option>
-    <option value="AI">AI</option>
-    <option value="LAVORO">Lavoro</option>
-  </select>
+        <select
+          value={rubricaAttiva}
+          onChange={(e) => {
+            setRubricaAttiva(e.target.value);
+            setFiltroCorrente("RUBRICA");
+            setPageRubriche(1);
+          }}
+          style={{
+            border: "none",
+            fontWeight: "bold",
+            cursor: "pointer",
+            color: filtroCorrente === "RUBRICA" ? colors.primary : colors.dark,
+            borderBottom: filtroCorrente === "RUBRICA" ? `2px solid ${colors.primary}` : "none",
+            paddingBottom: "2px",
+            backgroundColor: "transparent"
+          }}
+        >
+          <option value="">Rubriche ▼</option>
+          <option value="FORMATORE">Formatore</option>
+          <option value="QUALITA">Qualità</option>
+          <option value="IFP">IFP</option>
+          <option value="DIGITALI">Digitali</option>
+          <option value="AI">AI</option>
+          <option value="LAVORO">Lavoro</option>
+        </select>
 
-  <span
-    style={{ cursor: "pointer" }}
-    onClick={() => {
-      setFiltroCorrente("EVENTI");
-      setRubricaAttiva("");
-    }}
-  >
-    Eventi
-  </span>
+        <span
+          style={getNavbarItemStyle(filtroCorrente === "EVENTI")}
+          onClick={() => {
+            setFiltroCorrente("EVENTI");
+            setRubricaAttiva("");
+          }}
+        >
+          Eventi
+        </span>
 
-  <span
-    style={{ cursor: "pointer" }}
-    onClick={() => {
-      setFiltroCorrente("EDITORIALI");
-      setRubricaAttiva("");
-    }}
-  >
-    Editoriali
-  </span>
+        <span
+          style={getNavbarItemStyle(filtroCorrente === "EDITORIALI")}
+          onClick={() => {
+            setFiltroCorrente("EDITORIALI");
+            setRubricaAttiva("");
+            setPageEditoriali(1);
+          }}
+        >
+          Editoriali
+        </span>
 
-  <span
-    style={{ cursor: "pointer" }}
-    onClick={() => {
-      setFiltroCorrente("HOME");
-      setRubricaAttiva("");
-    }}
-  >
-    Tutto
-  </span>
-</div>
+        <span
+          style={getNavbarItemStyle(filtroCorrente === "HOME")}
+          onClick={() => {
+            setFiltroCorrente("HOME");
+            setRubricaAttiva("");
+          }}
+        >
+          Tutto
+        </span>
+      </div>
 
       {searchTerm.trim() !== "" ? (
         <div style={{ minHeight: "60vh" }}>
@@ -509,74 +547,77 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         </div>
       ) : (
         <>
-          <div className="grid-evidenza" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
-            {evidenza.map((a) => (
-              <div
-                key={a.id}
-                style={{
-                  padding: '15px',
-                  backgroundColor: '#fff',
-                  border: '1px solid #eee',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-                }}
-              >
+          {/* SEZIONE IN EVIDENZA */}
+          {evidenza.length > 0 && (
+            <div className="grid-evidenza" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
+              {evidenza.map((a) => (
                 <div
+                  key={a.id}
                   style={{
-                    width: '100%',
-                    height: '140px',
-                    backgroundColor: '#eee',
-                    borderRadius: '4px',
-                    overflow: 'hidden',
-                    marginBottom: '15px'
+                    padding: '15px',
+                    backgroundColor: '#fff',
+                    border: '1px solid #eee',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
                   }}
                 >
-                  {a.copertina && (
-                    <img
-                      src={`data:image/jpeg;base64,${a.copertina}`}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        objectPosition: 'center'
-                      }}
-                      alt="Cover"
-                    />
-                  )}
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '140px',
+                      backgroundColor: '#eee',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      marginBottom: '15px'
+                    }}
+                  >
+                    {a.copertina && (
+                      <img
+                        src={`data:image/jpeg;base64,${a.copertina}`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          objectPosition: 'center'
+                        }}
+                        alt="Cover"
+                      />
+                    )}
+                  </div>
+
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>
+                    In Evidenza
+                  </span>
+
+                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>
+                    {a.titolo}
+                  </h3>
+
+                  <p style={{ fontSize: '12px', color: '#666', marginBottom: '15px', fontStyle: 'italic', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
+                    di <span style={{ fontWeight: '600', color: '#444', fontStyle: 'normal' }}>{getAutore(a)}</span>
+                  </p>
+
+                  <span
+                    onClick={() => onReadArticle(a.id)}
+                    style={{ color: colors.primary, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', display: 'inline-block' }}
+                  >
+                    Leggi →
+                  </span>
                 </div>
-
-                <span style={{ fontSize: '11px', fontWeight: '700', color: colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>
-                  In Evidenza
-                </span>
-
-                <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>
-                  {a.titolo}
-                </h3>
-
-                <p style={{ fontSize: '12px', color: '#666', marginBottom: '15px', fontStyle: 'italic', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
-                  di <span style={{ fontWeight: '600', color: '#444', fontStyle: 'normal' }}>{getAutore(a)}</span>
-                </p>
-
-                <span
-                  onClick={() => onReadArticle(a.id)}
-                  style={{ color: colors.primary, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', display: 'inline-block' }}
-                >
-                  Leggi →
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <div className="main-layout" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
             <section>
               
-              {/* CORREZIONE: Blocco Ultimo Articolo con cornice e font 32px */}
+              {/* ULTIMO ARTICOLO */}
               {ultimoArticolo.id && ultimoArticolo.bozza !== true && (
                 <div style={{ border: `1px solid ${colors.border}`, padding: '20px', borderRadius: '8px', marginBottom: '40px' }}>
                   <div style={{ backgroundColor: colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
-                    ULTIMO ARTICOLO
+                    ULTIMO ARTICOLO / CONTENUTO
                   </div>
 
                   <h1 className="main-title" style={{ fontSize: '32px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
@@ -608,8 +649,8 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 </div>
               )}
 
-              {/* INVERSIONE: Il blocco Editoriale ora è sotto */}
-              {ultimoEditoriale.id && ultimoEditoriale.bozza !== true && (
+              {/* EDITORIALE IN EVIDENZA */}
+              {ultimoEditoriale.id && ultimoEditoriale.bozza !== true && filtroCorrente !== "NEWS" && filtroCorrente !== "RUBRICA" && filtroCorrente !== "EVENTI" && (
                 <div style={{ backgroundColor: "#fdf8ff", border: `1px solid ${colors.editorial}`, padding: "25px", borderRadius: "8px", marginBottom: "40px", boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                   <div style={{ backgroundColor: colors.editorial, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px', letterSpacing: '0.5px' }}>
                     EDITORIALE IN EVIDENZA
@@ -694,121 +735,159 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 </div>
               )}
 
-              {/* ARCHIVIO ARTICOLI */}
-              <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>
-                Archivio Articoli
-              </h2>
-
-              {currentArchivioArt.length > 0 ? (
+              {/* ARCHIVIO ARTICOLI / NEWS */}
+              {(filtroCorrente === "HOME" || filtroCorrente === "NEWS") && (
                 <>
+                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>
+                    Archivio Articoli
+                  </h2>
+
+                  {currentArchivioArt.length > 0 ? (
+                    <>
+                      <ul style={{ listStyle: 'none', padding: 0 }}>
+                        {currentArchivioArt.map(a => (
+                          <li key={a.id} style={listItemStyle}>
+                            <span
+                              onClick={() => onReadArticle(a.id)}
+                              style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}
+                            >
+                              {a.titolo}
+                            </span>
+                            <small style={{ color: '#888', fontStyle: 'italic' }}>
+                              di {getAutore(a)}
+                            </small>
+                          </li>
+                        ))}
+                      </ul>
+                      <Pagination total={totalPagesArt} current={pageArticoli} setPage={setPageArticoli} />
+                    </>
+                  ) : (
+                    <p style={{ fontSize: '13px', color: '#999', marginBottom: '25px' }}>Nessun articolo precedente.</p>
+                  )}
+                </>
+              )}
+
+              {/* ELENCO EDITORIALI PRECEDENTI */}
+              {(filtroCorrente === "HOME" || filtroCorrente === "EDITORIALI") && (
+                <div style={{ marginTop: filtroCorrente === "EDITORIALI" ? '0px' : '45px' }}>
+                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.editorial}`, paddingBottom: '8px', marginBottom: '15px' }}>
+                    Editoriali Precedenti
+                  </h2>
+                  {currentEditoriali.length > 0 ? (
+                    <>
+                      <ul style={{ listStyle: 'none', padding: 0 }}>
+                        {currentEditoriali.map(e => (
+                          <li key={e.id} style={listItemStyle}>
+                            <span
+                              onClick={() => onReadArticle(e.id)}
+                              style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}
+                            >
+                              ✍️ {e.titolo}
+                            </span>
+                            <small style={{ color: '#888', fontStyle: 'italic' }}>
+                              di {getAutore(e)}
+                            </small>
+                          </li>
+                        ))}
+                      </ul>
+                      <Pagination total={totalPagesEdi} current={pageEditoriali} setPage={setPageEditoriali} />
+                    </>
+                  ) : (
+                    <p style={{ fontSize: '13px', color: '#999', marginBottom: '25px' }}>Nessun editoriale precedente.</p>
+                  )}
+                </div>
+              )}
+
+              {/* ALTRE RUBRICHE */}
+              {(filtroCorrente === "HOME" || filtroCorrente === "RUBRICA") && (
+                <div style={{ marginTop: filtroCorrente === "RUBRICA" ? '0px' : '45px' }}>
+                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid #17a2b8`, paddingBottom: '8px', marginBottom: '15px' }}>
+                    {filtroCorrente === "RUBRICA" && rubricaAttiva ? `Rubrica: ${rubricaAttiva}` : "Le Rubriche"}
+                  </h2>
+                  {currentRubriche.length > 0 ? (
+                    <>
+                      <ul style={{ listStyle: 'none', padding: 0 }}>
+                        {currentRubriche.map(r => (
+                          <li key={r.id} style={listItemStyle}>
+                            <span
+                              onClick={() => onReadArticle(r.id)}
+                              style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}
+                            >
+                              📚 {r.titolo}
+                            </span>
+                            <small style={{ color: '#888', fontStyle: 'italic' }}>
+                              di {getAutore(r)}
+                            </small>
+                          </li>
+                        ))}
+                      </ul>
+                      <Pagination total={totalPagesRubriche} current={pageRubriche} setPage={setPageRubriche} />
+                    </>
+                  ) : (
+                    <p style={{ fontSize: '13px', color: '#999', marginBottom: '25px' }}>Nessun contenuto trovato in questa sezione.</p>
+                  )}
+                </div>
+              )}
+
+              {/* EVENTI */}
+              {filtroCorrente === "EVENTI" && (
+                <div style={{ marginTop: '0px' }}>
+                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.accent}`, paddingBottom: '8px', marginBottom: '15px' }}>
+                    Elenco Eventi
+                  </h2>
+                  {contenutiPubblicati.length > 0 ? (
+                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                      {contenutiPubblicati.map(ev => (
+                        <li key={ev.id} style={listItemStyle}>
+                          <span
+                            onClick={() => onReadArticle(ev.id)}
+                            style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}
+                          >
+                            📅 {ev.titolo}
+                          </span>
+                          <small style={{ color: '#888', fontStyle: 'italic' }}>
+                            di {getAutore(ev)}
+                          </small>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p style={{ fontSize: '13px', color: '#999' }}>Nessun evento in programma.</p>
+                  )}
+                </div>
+              )}
+
+              {/* SONDAGGI */}
+              {filtroCorrente === "HOME" && (
+                <div style={{ marginTop: '45px' }}>
+                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.primary}`, paddingBottom: '8px', marginBottom: '15px' }}>
+                    Sondaggi
+                  </h2>
+                  {ultimoSondaggio && (
+                    <div
+                      className="poll-card-main"
+                      onClick={() => onReadArticle(ultimoSondaggio.id)}
+                      style={{ backgroundColor: colors.pollFocus, padding: '20px', borderRadius: '8px', color: 'white', cursor: 'pointer', marginBottom: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                    >
+                      <h3 style={{ fontSize: '18px', margin: 0 }}>{ultimoSondaggio.titolo}</h3>
+                      <p style={{ fontSize: '12px', marginTop: '10px', opacity: 0.8 }}>Vota ora →</p>
+                    </div>
+                  )}
                   <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {currentArchivioArt.map(a => (
-                      <li key={a.id} style={listItemStyle}>
+                    {currentSondaggi.map(s => (
+                      <li key={s.id} style={listItemStyle}>
                         <span
-                          onClick={() => onReadArticle(a.id)}
-                          style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}
+                          onClick={() => onReadArticle(s.id)}
+                          style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#444' }}
                         >
-                          {a.titolo}
+                          📊 {s.titolo}
                         </span>
-                        <small style={{ color: '#888', fontStyle: 'italic' }}>
-                          di {getAutore(a)}
-                        </small>
                       </li>
                     ))}
                   </ul>
-                  <Pagination total={totalPagesArt} current={pageArticoli} setPage={setPageArticoli} />
-                </>
-              ) : (
-                <p style={{ fontSize: '13px', color: '#999' }}>Nessun articolo precedente.</p>
+                  <Pagination total={totalPagesSon} current={pageSondaggi} setPage={setPageSondaggi} />
+                </div>
               )}
-
-              {/* ELENCO IMPAGINATO DEGLI EDITORIALI PRECEDENTI */}
-              <div style={{ marginTop: '45px' }}>
-                <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.editorial}`, paddingBottom: '8px', marginBottom: '15px' }}>
-                  Editoriali Precedenti
-                </h2>
-                {currentEditoriali.length > 0 ? (
-                  <>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                      {currentEditoriali.map(e => (
-                        <li key={e.id} style={listItemStyle}>
-                          <span
-                            onClick={() => onReadArticle(e.id)}
-                            style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}
-                          >
-                            ✍️ {e.titolo}
-                          </span>
-                          <small style={{ color: '#888', fontStyle: 'italic' }}>
-                            di {getAutore(e)}
-                          </small>
-                        </li>
-                      ))}
-                    </ul>
-                    <Pagination total={totalPagesEdi} current={pageEditoriali} setPage={setPageEditoriali} />
-                  </>
-                ) : (
-                  <p style={{ fontSize: '13px', color: '#999' }}>Nessun editoriale precedente.</p>
-                )}
-              </div>
-
-              {/* ALTRE RUBRICHE */}
-              <div style={{ marginTop: '45px' }}>
-                <h2 style={{ fontSize: '20px', borderBottom: `2px solid #17a2b8`, paddingBottom: '8px', marginBottom: '15px' }}>
-                  Altre Rubriche
-                </h2>
-                {currentRubriche.length > 0 ? (
-                  <>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                      {currentRubriche.map(r => (
-                        <li key={r.id} style={listItemStyle}>
-                          <span
-                            onClick={() => onReadArticle(r.id)}
-                            style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}
-                          >
-                            📚 {r.titolo}
-                          </span>
-                          <small style={{ color: '#888', fontStyle: 'italic' }}>
-                            di {getAutore(r)}
-                          </small>
-                        </li>
-                      ))}
-                    </ul>
-                    <Pagination total={totalPagesRubriche} current={pageRubriche} setPage={setPageRubriche} />
-                  </>
-                ) : (
-                  <p style={{ fontSize: '13px', color: '#999' }}>Nessun'alta rubrica precedente.</p>
-                )}
-              </div>
-
-              {/* SONDAGGI */}
-              <div style={{ marginTop: '45px' }}>
-                <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.primary}`, paddingBottom: '8px', marginBottom: '15px' }}>
-                  Sondaggi
-                </h2>
-                {ultimoSondaggio && (
-                  <div
-                    className="poll-card-main"
-                    onClick={() => onReadArticle(ultimoSondaggio.id)}
-                    style={{ backgroundColor: colors.pollFocus, padding: '20px', borderRadius: '8px', color: 'white', cursor: 'pointer', marginBottom: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                  >
-                    <h3 style={{ fontSize: '18px', margin: 0 }}>{ultimoSondaggio.titolo}</h3>
-                    <p style={{ fontSize: '12px', marginTop: '10px', opacity: 0.8 }}>Vota ora →</p>
-                  </div>
-                )}
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                  {currentSondaggi.map(s => (
-                    <li key={s.id} style={listItemStyle}>
-                      <span
-                        onClick={() => onReadArticle(s.id)}
-                        style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#444' }}
-                      >
-                        📊 {s.titolo}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <Pagination total={totalPagesSon} current={pageSondaggi} setPage={setPageSondaggi} />
-              </div>
             </aside>
           </div>
         </>
