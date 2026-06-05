@@ -17,6 +17,16 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
   const itemsPerPage = 5;
 
+  // Lista delle rubriche censite nell'applicazione
+  const listaRubriche = [
+    { key: "FORMATORE", label: "Formatore" },
+    { key: "QUALITA", label: "Qualità" },
+    { key: "IFP", label: "IFP" },
+    { key: "DIGITALI", label: "Digitali" },
+    { key: "AI", label: "AI" },
+    { key: "LAVORO", label: "Lavoro" }
+  ];
+
   const colors = {
     primary: "#007bff",
     dark: "#1a1a1a",
@@ -24,7 +34,8 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     border: "#dee2e6",
     pollFocus: "#003d82",
     accent: "#e63946",
-    editorial: "#6f42c1"
+    editorial: "#6f42c1",
+    rubriche: "#17a2b8"
   };
 
   const normalizzaStringa = (str) => {
@@ -161,21 +172,61 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   if (tuttiContenuti.length === 0)
     return <div style={{ textAlign: "center", padding: "50px", fontFamily: "Arial" }}>Caricamento...</div>;
 
-  // ==========================================
-  // BLOCCO LOGICO DI ESTRAZIONE DATI STRUTTURATI
-  // ==========================================
+  // Filtro contenuti pubblicati non in bozza
   const contenutiPubblicatiBase = tuttiContenuti.filter(item => item.bozza === false);
 
-  // Array estratti in modo PURO dal bacino totale (Non si azzerano tra di loro)
+  // Separazione flussi nativi puri
   const soloArticoli = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "ARTICOLO");
   const soloSondaggi = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
   const soloEditoriali = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "EDITORIALE");
+  const soloEventi = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "EVENTO");
   
   const soloRubriche = rubricaAttiva !== "" 
     ? contenutiPubblicatiBase.filter(item => normalizzaStringa(item.rubrica) === normalizzaStringa(rubricaAttiva))
     : contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "RUBRICA");
 
-  // Filtraggio usato esclusivamente per la barra di ricerca globale o per conteggi specifici
+  // Determinazione articolo principale del blocco centrale
+  let ultimoContenutoPrincipale = null;
+  if (rubricaAttiva !== "") {
+    ultimoContenutoPrincipale = soloRubriche[0] || null;
+  } else {
+    ultimoContenutoPrincipale = soloArticoli[0] || null;
+  }
+
+  // Lista eventi per la sidebar
+  const eventiSidebar = soloEventi;
+
+  // Esclusione primo piano dalle evidenze e archivio
+  const idArticoloCentrale = (rubricaAttiva === "" && ultimoContenutoPrincipale) ? ultimoContenutoPrincipale.id : null;
+  const articoliSenzaCentrale = idArticoloCentrale ? soloArticoli.filter(a => a.id !== idArticoloCentrale) : soloArticoli;
+
+  // Le 3 Evidenze sotto il primo piano (in HOME e senza rubriche attive)
+  const evidenza = (filtroCorrente === "HOME" && rubricaAttiva === "") ? articoliSenzaCentrale.slice(0, 3) : [];
+
+  // Archivio Articoli (Paginato)
+  const archivioArtBase = rubricaAttiva !== "" ? [] : (idArticoloCentrale ? articoliSenzaCentrale.slice(3) : soloArticoli);
+  const totalPagesArt = Math.ceil(archivioArtBase.length / itemsPerPage);
+  const currentArchivioArt = archivioArtBase.slice((pageArticoli - 1) * itemsPerPage, pageArticoli * itemsPerPage);
+
+  // Archivio Rubriche Paginato (Usato nel blocco centrale se una rubrica è attiva)
+  const archivioRubricheBase = rubricaAttiva !== "" ? soloRubriche.slice(1) : [];
+  const totalPagesRubriche = Math.ceil(archivioRubricheBase.length / itemsPerPage);
+  const currentRubriche = archivioRubricheBase.slice((pageRubriche - 1) * itemsPerPage, pageRubriche * itemsPerPage);
+
+  // Archivio Sondaggi
+  const archivioSonBase = soloSondaggi.slice(1);
+  const totalPagesSon = Math.ceil(archivioSonBase.length / itemsPerPage);
+  const currentSondaggi = archivioSonBase.slice((pageSondaggi - 1) * itemsPerPage, pageSondaggi * itemsPerPage);
+
+  // Editoriali
+  const ultimoEditoriale = soloEditoriali[0] || null;
+  const archivioEdiBase = soloEditoriali.slice(1);
+  const totalPagesEdi = Math.ceil(archivioEdiBase.length / itemsPerPage);
+  const currentEditoriali = archivioEdiBase.slice((pageEditoriali - 1) * itemsPerPage, pageEditoriali * itemsPerPage);
+
+  const ultimoSondaggio = soloSondaggi[0];
+
+  // Logica della barra di ricerca e filtri Navbar globali
   const contenutiFiltrati = contenutiPubblicatiBase.filter(item => {
     if (rubricaAttiva !== "") return normalizzaStringa(item.rubrica) === normalizzaStringa(rubricaAttiva);
     if (filtroCorrente === "NEWS") return item.tipo?.toUpperCase() === "ARTICOLO";
@@ -191,38 +242,25 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     );
   });
 
-  // Assegnazione Evidenze e Ultimi Arrivi
-  const ultimoArticolo = rubricaAttiva !== "" ? (soloRubriche[0] || null) : (soloArticoli[0] || null);
-  const evidenza = (filtroCorrente === "HOME" && rubricaAttiva === "") ? soloArticoli.slice(1, 4) : [];
-
-  // Paginazione Archivio Articoli
-  const archivioArtBase = rubricaAttiva !== "" ? [] : soloArticoli.slice(4);
-  const totalPagesArt = Math.ceil(archivioArtBase.length / itemsPerPage);
-  const currentArchivioArt = archivioArtBase.slice((pageArticoli - 1) * itemsPerPage, pageArticoli * itemsPerPage);
-
-  // Paginazione Archivio Rubriche
-  const archivioRubricheBase = rubricaAttiva !== "" ? soloRubriche.slice(1) : soloRubriche.slice(2);
-  const totalPagesRubriche = Math.ceil(archivioRubricheBase.length / itemsPerPage);
-  const currentRubriche = archivioRubricheBase.slice((pageRubriche - 1) * itemsPerPage, pageRubriche * itemsPerPage);
-
-  // Paginazione Archivio Sondaggi
-  const archivioSonBase = soloSondaggi.slice(1);
-  const totalPagesSon = Math.ceil(archivioSonBase.length / itemsPerPage);
-  const currentSondaggi = archivioSonBase.slice((pageSondaggi - 1) * itemsPerPage, pageSondaggi * itemsPerPage);
-
-  // Gestione Primo Editoriale e Archivio Editoriali
-  const ultimoEditoriale = soloEditoriali[0] || null;
-  const archivioEdiBase = soloEditoriali.slice(1);
-  const totalPagesEdi = Math.ceil(archivioEdiBase.length / itemsPerPage);
-  const currentEditoriali = archivioEdiBase.slice((pageEditoriali - 1) * itemsPerPage, pageEditoriali * itemsPerPage);
-
-  const ultimoSondaggio = soloSondaggi[0];
-
   const listItemStyle = {
     marginBottom: '12px',
     paddingBottom: '8px',
     borderBottom: '1px solid #f0f0f0'
   };
+
+  const rubricaLinkStyle = (isActive) => ({
+    display: 'block',
+    padding: '8px 12px',
+    margin: '4px 0',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: isActive ? 'white' : '#333',
+    backgroundColor: isActive ? colors.rubriche : 'transparent',
+    transition: 'all 0.2s ease',
+    borderLeft: isActive ? `4px solid ${colors.dark}` : '4px solid transparent'
+  });
 
   const Pagination = ({ total, current, setPage }) => {
     if (total <= 1) return null;
@@ -319,6 +357,12 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
         }
 
+        .rubrica-item-link:hover {
+          background-color: ${colors.lightGray} !important;
+          color: ${colors.rubriche} !important;
+          padding-left: 18px !important;
+        }
+
         .back-to-top-btn {
           position: fixed;
           bottom: 40px;
@@ -376,16 +420,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       </div>
       
       {/* NAVBAR DI FILTRAGGIO */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "30px",
-          marginBottom: "30px",
-          flexWrap: "wrap",
-          fontWeight: "bold"
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "center", gap: "30px", marginBottom: "30px", flexWrap: "wrap", fontWeight: "bold" }}>
         <span
           style={getNavbarItemStyle(filtroCorrente === "NEWS" && rubricaAttiva === "")}
           onClick={() => {
@@ -528,31 +563,41 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           <div className="main-layout" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
             <section>
               
-              {/* 1. SEZIONE PRIMO PIANO PRINCIPALE (ARTICOLI / RUBRICHE) */}
-              {filtroCorrente !== "EDITORIALI" && filtroCorrente !== "EVENTI" && ultimoArticolo && (
+              {/* 1. SEZIONE PRIMO PIANO CENTRALE NATURALE (ARTICOLO O RUBRICA) */}
+              {filtroCorrente !== "EDITORIALI" && filtroCorrente !== "EVENTI" && ultimoContenutoPrincipale && (
                 <div style={{ border: `1px solid ${colors.border}`, padding: '20px', borderRadius: '8px', marginBottom: '40px' }}>
-                  <div style={{ backgroundColor: rubricaAttiva !== "" ? "#17a2b8" : colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px', textTransform: "uppercase" }}>
+                  <div style={{ 
+                    backgroundColor: rubricaAttiva !== "" ? colors.rubriche : colors.accent, 
+                    color: 'white', 
+                    display: 'inline-block', 
+                    padding: '4px 12px', 
+                    fontSize: '12px', 
+                    fontWeight: 'bold', 
+                    marginBottom: '15px', 
+                    borderRadius: '2px', 
+                    textTransform: "uppercase" 
+                  }}>
                     {rubricaAttiva !== "" ? `RUBRICA: ${rubricaAttiva}` : "ULTIMO ARTICOLO"}
                   </div>
 
                   <h1 className="main-title" style={{ fontSize: '32px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
-                    {ultimoArticolo.titolo}
+                    {ultimoContenutoPrincipale.titolo}
                   </h1>
 
                   <div className="main-image-container" style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center' }}>
-                    {ultimoArticolo.copertina && (
-                      <img src={`data:image/jpeg;base64,${ultimoArticolo.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} alt="Main" />
+                    {ultimoContenutoPrincipale.copertina && (
+                      <img src={`data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} alt="Main" />
                     )}
                   </div>
 
                   <div
                     style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }}
-                    dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoArticolo, 600)) }}
+                    dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoContenutoPrincipale, 600)) }}
                   />
 
                   <button
                     className="read-more-btn"
-                    onClick={() => onReadArticle(ultimoArticolo.id)}
+                    onClick={() => onReadArticle(ultimoContenutoPrincipale.id)}
                     style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
                   >
                     Continua a leggere
@@ -560,10 +605,39 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 </div>
               )}
 
-              {/* FALLBACK IN CASO DI RUBRICA SELEZIONATA MA SENZA CONTENUTI */}
-              {filtroCorrente === "RUBRICA" && !ultimoArticolo && (
+              {/* BLOCCO ARCHIVIO IN LINEA PER RUBRICA ATTIVA */}
+              {filtroCorrente === "RUBRICA" && rubricaAttiva !== "" && currentRubriche.length > 0 && (
+                <div style={{ marginBottom: "40px" }}>
+                  <h3 style={{ fontSize: "22px", borderBottom: `2px solid ${colors.rubriche}`, paddingBottom: "10px", marginBottom: "20px" }}>
+                    Altri articoli di questa rubrica
+                  </h3>
+                  <div style={{ display: "grid", gap: "15px" }}>
+                    {currentRubriche.map(r => (
+                      <div key={r.id} onClick={() => onReadArticle(r.id)} style={{ padding: "15px", backgroundColor: colors.lightGray, borderRadius: "6px", cursor: "pointer", border: `1px solid ${colors.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <h4 style={{ margin: "0 0 5px 0", fontSize: "16px" }}>{r.titolo}</h4>
+                          <small>di {getAutore(r)}</small>
+                        </div>
+                        <span style={{ color: colors.rubriche, fontWeight: "bold" }}>Leggi →</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Pagination total={totalPagesRubriche} current={pageRubriche} setPage={setPageRubriche} />
+                </div>
+              )}
+
+              {/* FILTRO EVENTI: GUIDA LATERALE */}
+              {filtroCorrente === "EVENTI" && (
+                <div style={{ border: `1px solid ${colors.border}`, padding: '30px', borderRadius: '8px', marginBottom: '40px', backgroundColor: colors.lightGray, textAlign: 'center' }}>
+                  <h2 style={{ color: colors.dark, marginBottom: '10px' }}>Calendario Eventi della Skill Factory</h2>
+                  <p style={{ color: '#555', fontSize: '15px' }}>Trovi l'elenco completo di tutti i nostri appuntamenti, workshop e webinar all'interno della barra laterale dedicata.</p>
+                </div>
+              )}
+
+              {/* FALLBACK IN CASO DI RUBRICA SELEZIONATA MA COMPLETAMENTE VUOTA */}
+              {filtroCorrente === "RUBRICA" && !ultimoContenutoPrincipale && (
                 <div style={{ border: `1px dashed ${colors.border}`, padding: '40px 20px', borderRadius: '8px', marginBottom: '40px', textAlign: 'center', backgroundColor: colors.lightGray }}>
-                  <div style={{ backgroundColor: "#17a2b8", color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px', textTransform: "uppercase" }}>
+                  <div style={{ backgroundColor: colors.rubriche, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px', textTransform: "uppercase" }}>
                     RUBRICA: {rubricaAttiva}
                   </div>
                   <h3 style={{ color: '#666', margin: '10px 0' }}>Nessun contenuto disponibile</h3>
@@ -571,7 +645,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 </div>
               )}
 
-              {/* 2. SEZIONE EDITORIALE: PERFETTAMENTE VISIBILE SIA SU 'HOME' CHE SU FILTRO 'EDITORIALI' */}
+              {/* 2. SEZIONE EDITORIALE */}
               {ultimoEditoriale && (filtroCorrente === "HOME" || filtroCorrente === "EDITORIALI") && rubricaAttiva === "" && (
                 <div style={{ backgroundColor: "#fdf8ff", border: `1px solid ${colors.editorial}`, padding: "25px", borderRadius: "8px", marginBottom: "40px", boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                   <div style={{ backgroundColor: colors.editorial, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
@@ -591,7 +665,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 </div>
               )}
 
-              {/* FALLBACK SE IL FILTRO EDITORIALI VIENE SELEZIONATO MA NON CI SONO RECORD */}
+              {/* FALLBACK EDITORIALI VUOTI */}
               {filtroCorrente === "EDITORIALI" && !ultimoEditoriale && (
                 <div style={{ border: `1px dashed ${colors.border}`, padding: '40px 20px', borderRadius: '8px', marginBottom: '40px', textAlign: 'center', backgroundColor: colors.lightGray }}>
                   <h3 style={{ color: '#666' }}>Nessun editoriale presente</h3>
@@ -625,6 +699,56 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* SEZIONE "LE RUBRICHE" - TRASFORMATA IN UN ELENCO DI FILTRAGGIO DIRETTO */}
+              {(filtroCorrente === "HOME" || filtroCorrente === "RUBRICA") && (
+                <div style={{ marginBottom: "35px" }}>
+                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.rubriche}`, paddingBottom: '8px', marginBottom: '15px' }}>
+                    Le Rubriche
+                  </h2>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                    {listaRubriche.map((rub) => {
+                      const isActive = rubricaAttiva === rub.key;
+                      return (
+                        <span
+                          key={rub.key}
+                          className="rubrica-item-link"
+                          style={rubricaLinkStyle(isActive)}
+                          onClick={() => {
+                            setRubricaAttiva(rub.key);
+                            setFiltroCorrente("RUBRICA");
+                            setPageRubriche(1);
+                          }}
+                        >
+                          📚 {rub.label}
+                        </span>
+                      );
+                    })}
+                    
+                    {rubricaAttiva !== "" && (
+                      <button
+                        onClick={() => {
+                          setRubricaAttiva("");
+                          setFiltroCorrente("HOME");
+                        }}
+                        style={{
+                          marginTop: '10px',
+                          padding: '6px 12px',
+                          backgroundColor: '#6c757d',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '12px'
+                        }}
+                      >
+                        ❌ Rimuovi filtro rubrica
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -672,37 +796,13 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 </div>
               )}
 
-              {/* ARCHIVIO RUBRICHE */}
-              {(filtroCorrente === "HOME" || filtroCorrente === "RUBRICA") && (rubricaAttiva !== "" || filtroCorrente === "HOME") && (
-                <div style={{ marginTop: filtroCorrente === "RUBRICA" ? '0px' : '45px' }}>
-                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid #17a2b8`, paddingBottom: '8px', marginBottom: '15px' }}>
-                    {rubricaAttiva !== "" ? `Archivio: ${rubricaAttiva}` : "Le Rubriche"}
-                  </h2>
-                  {currentRubriche.length > 0 ? (
-                    <>
-                      <ul style={{ listStyle: 'none', padding: 0 }}>
-                        {currentRubriche.map(r => (
-                          <li key={r.id} style={listItemStyle}>
-                            <span onClick={() => onReadArticle(r.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📚 {r.titolo}</span>
-                            <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(r)}</small>
-                          </li>
-                        ))}
-                      </ul>
-                      <Pagination total={totalPagesRubriche} current={pageRubriche} setPage={setPageRubriche} />
-                    </>
-                  ) : (
-                    <p style={{ fontSize: '13px', color: '#999', marginBottom: '25px' }}>Nessun altro contenuto in questa sezione.</p>
-                  )}
-                </div>
-              )}
-
-              {/* ARCHIVIO EVENTI */}
-              {filtroCorrente === "EVENTI" && rubricaAttiva === "" && (
-                <div style={{ marginTop: '0px' }}>
+              {/* ELENCO EVENTI */}
+              {(filtroCorrente === "HOME" || filtroCorrente === "EVENTI") && rubricaAttiva === "" && (
+                <div style={{ marginTop: filtroCorrente === "EVENTI" ? '0px' : '45px' }}>
                   <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.accent}`, paddingBottom: '8px', marginBottom: '15px' }}>Elenco Eventi</h2>
-                  {contenutiFiltrati.length > 0 ? (
+                  {eventiSidebar.length > 0 ? (
                     <ul style={{ listStyle: 'none', padding: 0 }}>
-                      {contenutiFiltrati.map(ev => (
+                      {eventiSidebar.map(ev => (
                         <li key={ev.id} style={listItemStyle}>
                           <span onClick={() => onReadArticle(ev.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📅 {ev.titolo}</span>
                           <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(ev)}</small>
