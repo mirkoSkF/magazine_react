@@ -71,12 +71,13 @@ const DashboardEditore = ({ onEdit }) => {
     return "Autore Sconosciuto";
   };
 
-  const caricaDati = async () => {
+  const caricaDati = async (signal = null) => {
     if (!token) return;
     try {
-      // 1. Recuperiamo prima il profilo utente per conoscerne il ruolo
+      // 1. Recuperiamo prima il profilo utente per conoscerne il ruolo (passando il signal)
       const resUser = await fetch('https://magazine.skillfactory.it/api/profilo', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        signal: signal
       });
       
       let utenteCorrente = null;
@@ -91,21 +92,36 @@ const DashboardEditore = ({ onEdit }) => {
         ? 'https://magazine.skillfactory.it/api/pagine'
         : 'https://magazine.skillfactory.it/api/pagine/mie';
 
+      // Effettuiamo la seconda chiamata (passando il signal)
       const resArt = await fetch(endpointArticoli, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        signal: signal
       });
       if (resArt.ok) {
         const dataArt = await resArt.json();
         setArticoli(dataArt);
       }
     } catch (err) {
-      console.error("Errore di connessione:", err);
+      // Evitiamo di stampare errori in console se la chiamata viene annullata intenzionalmente
+      if (err.name !== 'AbortError') {
+        console.error("Errore di connessione:", err);
+      }
     }
   };
 
   useEffect(() => {
-    caricaDati();
-  }, []);
+    // Creiamo un controller per gestire il ciclo di vita di questa specifica chiamata
+    const controller = new AbortController();
+    
+    // Avviamo il caricamento passando il segnale di controllo
+    caricaDati(controller.signal);
+
+    // Questa funzione (cleanup) dice a React: "se smonti il componente o lo riavvii subito,
+    // annulla immediatamente le chiamate HTTP vecchie ancora appese"
+    return () => {
+      controller.abort();
+    };
+  }, []); // Resta l'array vuoto così parte solo al caricamento della pagina
 
   const articoliFiltratiRisultato = useMemo(() => {
     const filtrati = articoli.filter(a => {
@@ -254,7 +270,7 @@ const DashboardEditore = ({ onEdit }) => {
   };
 
   return (
-    <div className="dashboard-container" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
+    <div className="dashboard-container" style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
       
       {/* MODALE */}
       {modal.show && (
@@ -591,7 +607,6 @@ const DashboardEditore = ({ onEdit }) => {
             <option value="TUTTI">📋 Tutte le pubblicazioni</option>
             <option value="ARTICOLO">📰 Solo Articoli</option>
             <option value="EDITORIALE">✍️ Solo Editoriali</option>
-            <option value="RUBRICA">📚 Solo Rubriche</option>
             <option value="SONDAGGIO">📊 Solo Sondaggi</option>
             <option value="EVENTO">📅 Solo Eventi</option>
           </select>

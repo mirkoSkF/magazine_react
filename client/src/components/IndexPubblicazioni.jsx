@@ -98,43 +98,43 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   };
 
   useEffect(() => {
-  // Se la chiamata è già stata avviata o completata, ci fermiamo subito
-  if (fetchAvviata.current) return;
+    // Se la chiamata è già stata avviata o completata, ci fermiamo subito
+    if (fetchAvviata.current) return;
 
-  // Segnamo immediatamente che la chiamata è partita
-  fetchAvviata.current = true;
+    // Segnamo immediatamente che la chiamata è partita
+    fetchAvviata.current = true;
 
-  Promise.all([
-    fetch("https://magazine.skillfactory.it/api/pagine").then((res) => res.json()),
-    fetch("https://magazine.skillfactory.it/api/sponsors").then((res) => res.json())
-  ])
-    .then(([pagineData, sponsorsData]) => {
-      setTuttiContenuti(pagineData.sort((a, b) => b.id - a.id));
+    Promise.all([
+      fetch("https://magazine.skillfactory.it/api/pagine").then((res) => res.json()),
+      fetch("https://magazine.skillfactory.it/api/sponsors").then((res) => res.json())
+    ])
+      .then(([pagineData, sponsorsData]) => {
+        setTuttiContenuti(pagineData.sort((a, b) => b.id - a.id));
 
-      const attivi = sponsorsData.filter(s => s.attivo && s.tipoPagina === 'HOME');
+        const attivi = sponsorsData.filter(s => s.attivo && s.tipoPagina === 'HOME');
 
-      const sidebar = attivi
-        .filter(s => s.posizione === 'SIDEBAR')
-        .slice(0, 3)
-        .map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
+        const sidebar = attivi
+          .filter(s => s.posizione === 'SIDEBAR')
+          .slice(0, 3)
+          .map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
 
-      const bottom = attivi
-        .filter(s => s.posizione === 'BOTTOM')
-        .slice(0, 2)
-        .map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
+        const bottom = attivi
+          .filter(s => s.posizione === 'BOTTOM')
+          .slice(0, 2)
+          .map(s => ({ id: s.id, immagine: s.bannerImage, link: s.linkSito }));
 
-      setSponsorLaterale(sidebar);
-      setSponsorFondo(bottom);
-    })
-    .catch((err) => {
-      console.error("Errore caricamento API parallelo:", err);
-      // In caso di errore pesante, puoi resettarlo per permettere un riprovo
-      // fetchAvviata.current = false;
-    });
+        setSponsorLaterale(sidebar);
+        setSponsorFondo(bottom);
+      })
+      .catch((err) => {
+        console.error("Errore caricamento API parallelo:", err);
+        // In caso di errore pesante, puoi resettarlo per permettere un riprovo
+        // fetchAvviata.current = false;
+      });
 
-  const consent = localStorage.getItem("cookie-consent");
-  if (consent) setShowCookieBanner(false);
-}, []); // Array di dipendenze vuoto
+    const consent = localStorage.getItem("cookie-consent");
+    if (consent) setShowCookieBanner(false);
+  }, []); // Array di dipendenze vuoto
 
   const acceptCookies = () => {
     localStorage.setItem("cookie-consent", "true");
@@ -190,8 +190,8 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const soloSondaggi = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
   const soloEditoriali = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "EDITORIALE");
   const soloEventi = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "EVENTO");
-  
-  const soloRubriche = rubricaAttiva !== "" 
+
+  const soloRubriche = rubricaAttiva !== ""
     ? contenutiPubblicatiBase.filter(item => normalizzaStringa(item.rubrica) === normalizzaStringa(rubricaAttiva))
     : contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "RUBRICA");
 
@@ -311,7 +311,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   });
 
   return (
-    <div lang="it" style={{ maxWidth: "1200px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif", position: "relative" }}>
+    <div lang="it" style={{ maxWidth: "1300px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif", position: "relative" }}>
       <style>{`
         @media (max-width: 992px) {
           .main-layout { grid-template-columns: 1fr !important; }
@@ -410,7 +410,15 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       `}</style>
 
       {/* BARRA DI RICERCA */}
-      <div style={{ marginBottom: "30px", textAlign: "center" }}>
+      <div 
+        style={{ 
+          marginBottom: "30px", 
+          display: "flex",          // 👈 Forza un layout Flexbox
+          justifyContent: "center", // 👈 Centra perfettamente l'input in orizzontale
+          width: "100%",            // 👈 Occupa tutto lo spazio del contenitore principale
+          boxSizing: "border-box"
+        }}
+      >
         <input
           type="text"
           className="search-input"
@@ -424,11 +432,13 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
             fontSize: "16px",
             borderRadius: "30px",
             border: `1px solid ${colors.border}`,
-            transition: "all 0.3s"
+            transition: "all 0.3s",
+            boxSizing: "border-box", // 👈 Evita che il padding alteri la larghezza del 100% su smartphone
+            margin: "0 auto"         // 👈 Ulteriore sicurezza per il centraggio nativo dell'elemento block
           }}
         />
       </div>
-      
+
       {/* NAVBAR DI FILTRAGGIO */}
       <div style={{ display: "flex", justifyContent: "center", gap: "30px", marginBottom: "30px", flexWrap: "wrap", fontWeight: "bold" }}>
         <span
@@ -448,7 +458,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
             const val = e.target.value;
             setRubricaAttiva(val);
             if (val !== "") {
-              setFiltroCorrente("RUBRICA"); 
+              setFiltroCorrente("RUBRICA");
               setPageRubriche(1);
             } else {
               setFiltroCorrente("HOME");
@@ -461,7 +471,17 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
             color: rubricaAttiva !== "" ? colors.primary : colors.dark,
             borderBottom: rubricaAttiva !== "" ? `2px solid ${colors.primary}` : "none",
             paddingBottom: "2px",
-            backgroundColor: "transparent"
+            backgroundColor: "transparent",
+
+            // MODIFICHE PER DIMENSIONE E ADERENZA MASSIMA:
+            fontSize: "inherit",         // Eredita la dimensione esatta delle altre voci di menu
+            width: "95px",               // Larghezza fissa millimetrica per la parola "Rubriche" + freccia
+            paddingRight: "0px",         // Azzera padding superflui a destra
+            paddingLeft: "0px",          // Azzera padding superflui a sinistra
+            textOverflow: "ellipsis",    // Mette i tre puntini se una selezione successiva è più lunga
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            outline: "none"
           }}
         >
           <option value="">Rubriche</option>
@@ -556,7 +576,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
             <div className="grid-evidenza" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
               {evidenza.map((a) => (
                 <div key={a.id} style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                  <div style={{ width: '100%', height: '140px', backgroundColor: '#eee', borderRadius: '4px', overflow: 'hidden', marginBottom: '15px' }}>
+                  <div style={{ width: '100%', height: '200px', backgroundColor: '#eee', borderRadius: '4px', overflow: 'hidden', marginBottom: '15px' }}>
                     {a.copertina && <img src={`data:image/jpeg;base64,${a.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} alt="Cover" />}
                   </div>
                   <span style={{ fontSize: '11px', fontWeight: '700', color: colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>In Evidenza</span>
@@ -572,20 +592,20 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
           <div className="main-layout" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
             <section>
-              
+
               {/* 1. SEZIONE PRIMO PIANO CENTRALE NATURALE (ARTICOLO O RUBRICA) */}
               {filtroCorrente !== "EDITORIALI" && filtroCorrente !== "EVENTI" && ultimoContenutoPrincipale && (
                 <div style={{ border: `1px solid ${colors.border}`, padding: '20px', borderRadius: '8px', marginBottom: '40px' }}>
-                  <div style={{ 
-                    backgroundColor: rubricaAttiva !== "" ? colors.rubriche : colors.accent, 
-                    color: 'white', 
-                    display: 'inline-block', 
-                    padding: '4px 12px', 
-                    fontSize: '12px', 
-                    fontWeight: 'bold', 
-                    marginBottom: '15px', 
-                    borderRadius: '2px', 
-                    textTransform: "uppercase" 
+                  <div style={{
+                    backgroundColor: rubricaAttiva !== "" ? colors.rubriche : colors.accent,
+                    color: 'white',
+                    display: 'inline-block',
+                    padding: '4px 12px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    marginBottom: '15px',
+                    borderRadius: '2px',
+                    textTransform: "uppercase"
                   }}>
                     {rubricaAttiva !== "" ? `RUBRICA: ${rubricaAttiva}` : "ULTIMO ARTICOLO"}
                   </div>
@@ -670,7 +690,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   )}
                   <div style={{ fontSize: '16px', color: '#444', lineHeight: '1.7', marginBottom: '25px', textAlign: "justify" }} dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoEditoriale, 400)) }} />
                   <button className="editorial-btn" onClick={() => onReadArticle(ultimoEditoriale.id)} style={{ padding: '12px 30px', backgroundColor: colors.editorial, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-                    Leggi l'Editoriale completo
+                    Continua a leggere
                   </button>
                 </div>
               )}
@@ -711,7 +731,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   ))}
                 </div>
               )}
-              
+
               {/* ELENCO EVENTI */}
               {(filtroCorrente === "HOME" || filtroCorrente === "EVENTI") && rubricaAttiva === "" && (
                 <div style={{ marginTop: filtroCorrente === "EVENTI" ? '0px' : '45px' }}>
@@ -721,7 +741,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                       {eventiSidebar.map(ev => (
                         <li key={ev.id} style={listItemStyle}>
                           <span onClick={() => onReadArticle(ev.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📅 {ev.titolo}</span>
-                          <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(ev)}</small>
                         </li>
                       ))}
                     </ul>
@@ -730,7 +749,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   )}
                 </div>
               )}
-              
+
               {/* SEZIONE "LE RUBRICHE" - TRASFORMATA IN UN ELENCO DI FILTRAGGIO DIRETTO */}
               {(filtroCorrente === "HOME" || filtroCorrente === "RUBRICA") && (
                 <div style={{ marginBottom: "35px" }}>
@@ -755,7 +774,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                         </span>
                       );
                     })}
-                    
+
                     {rubricaAttiva !== "" && (
                       <button
                         onClick={() => {

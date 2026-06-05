@@ -238,7 +238,7 @@ function App() {
           </button>
 
           {/* Nuova voce di menu visibile in modalità visitatore / non loggato */}
-          {!isLoggedIn && (
+          {/*!isLoggedIn && (
             <button className={`nav-link ${view === 'eventi' ? 'active-link' : ''}`} onClick={() => navigateTo('eventi')}>
               Eventi
             </button>
@@ -248,7 +248,7 @@ function App() {
             <button className={`nav-link ${view === 'intervista' ? 'active-link' : ''}`} onClick={() => navigateTo('intervista')}>
               Prenota Intervista
             </button>
-          )}
+          )*/}
 
           {!isLoggedIn ? (
             <button className={`nav-link ${view === 'login' ? 'active-link' : ''}`} onClick={() => navigateTo('login')}>
@@ -259,9 +259,7 @@ function App() {
               <button className={`nav-link ${view === 'dashboard' ? 'active-link' : ''}`} onClick={() => navigateTo('dashboard')}>
                 Dashboard
               </button>
-              <button className={`nav-link ${view === 'admin-interviste' ? 'active-link' : ''}`} onClick={() => navigateTo('admin-interviste')}>
-                Richieste Interviste
-              </button>
+              
               <button className={`nav-link ${view === 'editor' ? 'active-link' : ''}`} onClick={() => handleNewArticle()}>
                 + Nuovo Articolo
               </button>
@@ -335,15 +333,30 @@ function App() {
 }
 
 const navBarStyle = { 
-  display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-  padding: '0 5%', background: colors.white, boxShadow: '0 4px 12px rgba(0,0,0,0.03)', 
-  position: 'sticky', top: 0, zIndex: 1000, height: '80px'
+  display: 'flex', 
+  justifyContent: 'space-between', 
+  alignItems: 'center', 
+  padding: '0 30px',           // 👈 Padding fisso generoso per staccare il logo dal bordo dello schermo
+  background: colors.white, 
+  boxShadow: '0 4px 12px rgba(0,0,0,0.03)', 
+  position: 'sticky', 
+  top: 0, 
+  zIndex: 1000, 
+  height: '80px',
+  width: '100%',               // 👈 Forza la navbar al 100% del monitor
+  boxSizing: 'border-box'
 };
 
 const mainContainerStyle = { 
-  paddingTop: '40px', paddingBottom: '60px', flex: '1', width: '100%', 
-  maxWidth: '1100px', margin: '0 auto', boxSizing: 'border-box', 
-  paddingLeft: '20px', paddingRight: '20px' 
+  paddingTop: '40px', 
+  paddingBottom: '60px', 
+  flex: '1', 
+  width: '100%',               // 👈 Prende tutto lo spazio
+  maxWidth: '100%',            // 👈 Forza l'estensione totale rimuovendo i limiti in % inferiori
+  margin: '0',                 // 👈 Rimuove il "0 auto" che stringe al centro
+  boxSizing: 'border-box', 
+  paddingLeft: '30px',         // Stacca i contenuti dal bordo sinistro dello schermo
+  paddingRight: '30px'         // Stacca i contenuti dal bordo destro dello schermo
 };
 
 const footerStyle = { 
