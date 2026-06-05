@@ -131,7 +131,7 @@ const MagazineEditor = ({ editId }) => {
     };
 
     const method = editId ? 'PUT' : 'POST';
-    const url = editId ? `https://magazine.skillfactory.it/api/pagine/${editId}` : 'http://localhost:8096/api/pagine';
+    const url = editId ? `https://magazine.skillfactory.it/api/pagine/${editId}` : 'https://magazine.skillfactory.it/api/pagine';
 
     try {
       const response = await fetch(url, {
@@ -354,7 +354,6 @@ const MagazineEditor = ({ editId }) => {
                 >
                   <option value="ARTICOLO">📰 Articolo Standard</option>
                   <option value="EDITORIALE">✍️ Editoriale</option>
-                  <option value="RUBRICA">📚 Rubrica</option>
                   <option value="SONDAGGIO">📊 Sondaggio Interattivo</option>
                   <option value="EVENTO">📅 Evento</option>
                 </select>
