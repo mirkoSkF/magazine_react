@@ -455,12 +455,12 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           }}
         >
           <option value="">Rubriche</option>
-          <option value="FORMATORE">Formatore</option>
-          <option value="QUALITA">Qualità</option>
-          <option value="IFP">IFP</option>
-          <option value="DIGITALI">Digitali</option>
-          <option value="AI">AI</option>
-          <option value="LAVORO">Lavoro</option>
+          <option value="FORMATORE">Il formatore</option>
+          <option value="QUALITA">Formazione & Qualità</option>
+          <option value="IFP">Ecosistema IFP</option>
+          <option value="DIGITALI">Competenze Digitali</option>
+          <option value="AI">AI & Formazione</option>
+          <option value="LAVORO">Orientamento & Lavoro</option>
         </select>
 
         <span
@@ -701,7 +701,48 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   ))}
                 </div>
               )}
+              
+              {/* ELENCO EVENTI */}
+              {(filtroCorrente === "HOME" || filtroCorrente === "EVENTI") && rubricaAttiva === "" && (
+                <div style={{ marginTop: filtroCorrente === "EVENTI" ? '0px' : '45px' }}>
+                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.accent}`, paddingBottom: '8px', marginBottom: '15px' }}>Elenco Eventi</h2>
+                  {eventiSidebar.length > 0 ? (
+                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                      {eventiSidebar.map(ev => (
+                        <li key={ev.id} style={listItemStyle}>
+                          <span onClick={() => onReadArticle(ev.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📅 {ev.titolo}</span>
+                          <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(ev)}</small>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p style={{ fontSize: '13px', color: '#999' }}>Nessun evento in programma.</p>
+                  )}
+                </div>
+              )}
 
+              {/* ARCHIVIO ARTICOLI */}
+              {(filtroCorrente === "HOME" || filtroCorrente === "NEWS") && rubricaAttiva === "" && (
+                <>
+                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>Archivio Articoli</h2>
+                  {currentArchivioArt.length > 0 ? (
+                    <>
+                      <ul style={{ listStyle: 'none', padding: 0 }}>
+                        {currentArchivioArt.map(a => (
+                          <li key={a.id} style={listItemStyle}>
+                            <span onClick={() => onReadArticle(a.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>{a.titolo}</span>
+                            <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(a)}</small>
+                          </li>
+                        ))}
+                      </ul>
+                      <Pagination total={totalPagesArt} current={pageArticoli} setPage={setPageArticoli} />
+                    </>
+                  ) : (
+                    <p style={{ fontSize: '13px', color: '#999', marginBottom: '25px' }}>Nessun articolo precedente.</p>
+                  )}
+                </>
+              )}
+              
               {/* SEZIONE "LE RUBRICHE" - TRASFORMATA IN UN ELENCO DI FILTRAGGIO DIRETTO */}
               {(filtroCorrente === "HOME" || filtroCorrente === "RUBRICA") && (
                 <div style={{ marginBottom: "35px" }}>
@@ -752,28 +793,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 </div>
               )}
 
-              {/* ARCHIVIO ARTICOLI */}
-              {(filtroCorrente === "HOME" || filtroCorrente === "NEWS") && rubricaAttiva === "" && (
-                <>
-                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.dark}`, paddingBottom: '8px', marginBottom: '15px' }}>Archivio Articoli</h2>
-                  {currentArchivioArt.length > 0 ? (
-                    <>
-                      <ul style={{ listStyle: 'none', padding: 0 }}>
-                        {currentArchivioArt.map(a => (
-                          <li key={a.id} style={listItemStyle}>
-                            <span onClick={() => onReadArticle(a.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>{a.titolo}</span>
-                            <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(a)}</small>
-                          </li>
-                        ))}
-                      </ul>
-                      <Pagination total={totalPagesArt} current={pageArticoli} setPage={setPageArticoli} />
-                    </>
-                  ) : (
-                    <p style={{ fontSize: '13px', color: '#999', marginBottom: '25px' }}>Nessun articolo precedente.</p>
-                  )}
-                </>
-              )}
-
               {/* ARCHIVIO EDITORIALI */}
               {(filtroCorrente === "HOME" || filtroCorrente === "EDITORIALI") && rubricaAttiva === "" && (
                 <div style={{ marginTop: filtroCorrente === "EDITORIALI" ? '0px' : '45px' }}>
@@ -792,25 +811,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     </>
                   ) : (
                     <p style={{ fontSize: '13px', color: '#999', marginBottom: '25px' }}>Nessun editoriale precedente.</p>
-                  )}
-                </div>
-              )}
-
-              {/* ELENCO EVENTI */}
-              {(filtroCorrente === "HOME" || filtroCorrente === "EVENTI") && rubricaAttiva === "" && (
-                <div style={{ marginTop: filtroCorrente === "EVENTI" ? '0px' : '45px' }}>
-                  <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.accent}`, paddingBottom: '8px', marginBottom: '15px' }}>Elenco Eventi</h2>
-                  {eventiSidebar.length > 0 ? (
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                      {eventiSidebar.map(ev => (
-                        <li key={ev.id} style={listItemStyle}>
-                          <span onClick={() => onReadArticle(ev.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📅 {ev.titolo}</span>
-                          <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(ev)}</small>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p style={{ fontSize: '13px', color: '#999' }}>Nessun evento in programma.</p>
                   )}
                 </div>
               )}
