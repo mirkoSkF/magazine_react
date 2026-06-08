@@ -515,6 +515,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         </span>
 
         <span
+          style={getNavbarItemStyle(colors.primary)}
           style={getNavbarItemStyle(filtroCorrente === "HOME" && rubricaAttiva === "")}
           onClick={() => {
             setFiltroCorrente("HOME");
@@ -576,8 +577,9 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
             <div className="grid-evidenza" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
               {evidenza.map((a) => (
                 <div key={a.id} style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                  <div style={{ width: '100%', height: '200px', backgroundColor: '#eee', borderRadius: '4px', overflow: 'hidden', marginBottom: '15px' }}>
-                    {a.copertina && <img src={`data:image/jpeg;base64,${a.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} alt="Cover" />}
+                  {/* MODIFICATO: Inserito objectFit 'contain' e sfondo neutro per le 3 card in evidenza */}
+                  <div style={{ width: '100%', height: '200px', backgroundColor: '#f1f3f4', borderRadius: '4px', overflow: 'hidden', marginBottom: '15px' }}>
+                    {a.copertina && <img src={`data:image/jpeg;base64,${a.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} alt="Cover" />}
                   </div>
                   <span style={{ fontSize: '11px', fontWeight: '700', color: colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>In Evidenza</span>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>{a.titolo}</h3>
@@ -619,9 +621,10 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     {ultimoContenutoPrincipale.sottotitolo}
   </p>
 )}
-                  <div className="main-image-container" style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center' }}>
+                  {/* MODIFICATO: Altezza impostata su 'auto' con altezza massima per rendere l'immagine del primo piano centrale proporzionale e senza tagli */}
+                  <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {ultimoContenutoPrincipale.copertina && (
-                      <img src={`data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} alt="Main" />
+                      <img src={`data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Main" />
                     )}
                   </div>
 
@@ -695,8 +698,9 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 )}
                   <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>Scritto da <strong>{getAutore(ultimoEditoriale)}</strong></p>
                   {ultimoEditoriale.copertina && (
-                    <div style={{ width: '100%', height: '300px', backgroundColor: '#eee', borderRadius: '6px', overflow: 'hidden', marginBottom: '20px' }}>
-                      <img src={`data:image/jpeg;base64,${ultimoEditoriale.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} alt="Editoriale Cover" />
+                    /* MODIFICATO: Modificato il contenitore dell'immagine dell'editoriale portando l'altezza a 'auto' con altezza massima per un ridimensionamento armonioso */
+                    <div style={{ width: '100%', height: 'auto', maxHeight: '400px', backgroundColor: 'transparent', borderRadius: '6px', overflow: 'hidden', marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+                      <img src={`data:image/jpeg;base64,${ultimoEditoriale.copertina}`} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Editoriale Cover" />
                     </div>
                   )}
                   <div style={{ fontSize: '16px', color: '#444', lineHeight: '1.7', marginBottom: '25px', textAlign: "justify" }} dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoEditoriale, 400)) }} />
