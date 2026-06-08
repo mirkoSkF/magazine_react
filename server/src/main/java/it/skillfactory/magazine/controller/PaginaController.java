@@ -38,7 +38,8 @@ public class PaginaController {
             map.put("bozza", obj[5]);
             map.put("autore", obj[6]);
             map.put("copertina", obj[7]); 
-            map.put("rubrica", obj[8]); // AGGIORNATO: Mappatura della rubrica nella risposta leggera
+            map.put("rubrica", obj[8]); // Mappatura della rubrica nella risposta leggera
+            map.put("sottotitolo", obj[9]); // 🛑 AGGIUNTO: Mappatura del sottotitolo ricavato dall'indice 9 della query light
             return map;
         }).collect(Collectors.toList());
     }
@@ -98,11 +99,12 @@ public class PaginaController {
             }
 
             esistente.setTitolo(mod.getTitolo());
+            esistente.setSottotitolo(mod.getSottotitolo()); // 🛑 AGGIUNTO: Aggiornamento del valore sottotitolo nel record persistito
             esistente.setCopertina(mod.getCopertina());
             esistente.setNumeroPagina(mod.getNumeroPagina()); 
             esistente.setTipo(mod.getTipo());
             esistente.setBozza(mod.isBozza()); 
-            esistente.setRubrica(mod.getRubrica()); // AGGIORNATO: Assegnazione del valore rubrica al record persistito
+            esistente.setRubrica(mod.getRubrica()); // Assegnazione del valore rubrica al record persistito
 
             if (mod.getModuli() != null) {
                 esistente.getModuli().clear();

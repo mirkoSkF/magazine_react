@@ -11,8 +11,8 @@ import java.util.List;
 @Repository
 public interface PaginaRepository extends JpaRepository<PaginaMagazine, Long> {
 
-    // AGGIORNATO: Aggiunto p.rubrica in coda alla SELECT leggera
-    @Query("SELECT p.id, p.titolo, p.dataPubblicazione, p.visualizzazioni, p.tipo, p.bozza, a.username, p.copertina, p.rubrica " +
+    // AGGIORNATO: Aggiunto p.sottotitolo in fondo alla SELECT per l'estrazione leggera
+    @Query("SELECT p.id, p.titolo, p.dataPubblicazione, p.visualizzazioni, p.tipo, p.bozza, a.username, p.copertina, p.rubrica, p.sottotitolo " +
            "FROM PaginaMagazine p LEFT JOIN p.autore a")
     List<Object[]> findAllLight();
 

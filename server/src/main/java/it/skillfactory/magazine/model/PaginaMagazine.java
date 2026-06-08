@@ -34,6 +34,10 @@ public class PaginaMagazine {
     
     private String titolo;
 
+    // 🛑 AGGIUNTO: Proprietà sottotitolo mappata sul database
+    @Column(name = "sottotitolo", length = 1000)
+    private String sottotitolo;
+
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String copertina; 
