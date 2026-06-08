@@ -330,7 +330,7 @@ const MagazineEditor = ({ editId }) => {
       </div>
 
       <div style={{ padding: '40px 20px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ background: 'white', padding: '30px', borderRadius: '12px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', gap: '20px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -468,7 +468,7 @@ const MagazineEditor = ({ editId }) => {
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | charmap anchor pagebreak | visualblocks visualchars code fullscreen | help',
                 content_style: `
                   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Playfair+Display:wght@700&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap');
-                  body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.7; color: #333; padding: 40px !important; margin: 0 !important; box-sizing: border-box; }
+                  body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.7; color: #333; padding: 40px !important; margin: 0 !important; box-sizing: border-box; }
                   img { max-width: 100%; height: auto !important; display: block; margin: 25px auto; border-radius: 8px; transition: margin 0.2s ease; }
                   img[style*="float: left"] { margin: 10px 25px 15px 0 !important; float: left; }
                   img[style*="float: right"] { margin: 10px 0 15px 25px !important; float: right; }
@@ -492,7 +492,7 @@ const MagazineEditor = ({ editId }) => {
                     div.innerHTML = e.content;
                     div.querySelectorAll('p, span, div, li, td').forEach(el => {
                       if (!el.style.fontFamily) el.style.fontFamily = 'Arial, Helvetica, sans-serif';
-                      if (!el.style.fontSize) el.style.fontSize = '14px';
+                      if (!el.style.fontSize) el.style.fontSize = '16px';
                       
                       if (!el.style.textAlign) {
                         el.style.textAlign = 'left';

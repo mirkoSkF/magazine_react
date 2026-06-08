@@ -522,7 +522,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
       <div
         className="article-container"
         style={{
-          maxWidth: '1200px',
+          maxWidth: '1000px',
           margin: '0 auto',
           padding: '0 20px',
           display: 'flex',

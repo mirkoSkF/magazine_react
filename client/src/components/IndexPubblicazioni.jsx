@@ -311,7 +311,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   });
 
   return (
-    <div lang="it" style={{ maxWidth: "1300px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif", position: "relative" }}>
+    <div lang="it" style={{ maxWidth: "1150px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif", position: "relative" }}>
       <style>{`
         @media (max-width: 992px) {
           .main-layout { grid-template-columns: 1fr !important; }
@@ -427,7 +427,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{
             width: "100%",
-            maxWidth: "600px",
+            maxWidth: "400px",
             padding: "12px 20px",
             fontSize: "16px",
             borderRadius: "30px",
