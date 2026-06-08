@@ -484,7 +484,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
             outline: "none"
           }}
         >
-          <option value="">Rubriche</option>
+          <option value="" disabled hidden>Rubriche</option>
           <option value="FORMATORE">Il formatore</option>
           <option value="QUALITA">Formazione & Qualità</option>
           <option value="IFP">Ecosistema IFP</option>
@@ -613,7 +613,12 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <h1 className="main-title" style={{ fontSize: '32px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
                     {ultimoContenutoPrincipale.titolo}
                   </h1>
-
+			{/* 🛑 NUOVO: SOTTOTITOLO DELL'ARTICOLO */}
+{ultimoContenutoPrincipale.sottotitolo && (
+  <p style={{ fontSize: '15px', color: '#555', margin: '-10px 0 20px 0', lineHeight: '1.4', fontWeight: 'normal', fontStyle: 'italic' }}>
+    {ultimoContenutoPrincipale.sottotitolo}
+  </p>
+)}
                   <div className="main-image-container" style={{ width: '100%', height: '400px', backgroundColor: '#eee', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center' }}>
                     {ultimoContenutoPrincipale.copertina && (
                       <img src={`data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} alt="Main" />
@@ -682,6 +687,12 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     EDITORIALE IN EVIDENZA
                   </div>
                   <h2 style={{ fontSize: '32px', fontWeight: '700', marginBottom: '15px', lineHeight: '1.2', color: colors.dark }}>{ultimoEditoriale.titolo}</h2>
+                  {/* ✍️ CORRETTO: Sottotitolo dell'editoriale fuori dal tag h2 */}
+{ultimoEditoriale.sottotitolo && (
+  <p style={{ fontSize: '15px', color: '#555', margin: '0 0 15px 0', lineHeight: '1.4', fontStyle: 'italic' }}>
+    {ultimoEditoriale.sottotitolo}
+  </p>
+)}
                   <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>Scritto da <strong>{getAutore(ultimoEditoriale)}</strong></p>
                   {ultimoEditoriale.copertina && (
                     <div style={{ width: '100%', height: '300px', backgroundColor: '#eee', borderRadius: '6px', overflow: 'hidden', marginBottom: '20px' }}>
@@ -770,7 +781,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                             setPageRubriche(1);
                           }}
                         >
-                          📚 {rub.label}
+                          	● {rub.label}
                         </span>
                       );
                     })}

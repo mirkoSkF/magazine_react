@@ -9,7 +9,7 @@ const MagazineEditor = ({ editId }) => {
 
   const [titolo, setTitolo] = useState('');
   const [sottotitolo, setSottotitolo] = useState(''); // Stato per il sottotitolo opzionale
-  const [rubrica, setRubrica] = useState('');         // Stato aggiunto per la gestione del campo rubrica (String)
+  const [rubrica, setRubrica] = useState('');          // Stato aggiunto per la gestione del campo rubrica (String)
   const [copertina, setCopertina] = useState(null);
   const [tipo, setTipo] = useState('ARTICOLO');
 
@@ -107,18 +107,14 @@ const MagazineEditor = ({ editId }) => {
   const handleZoomOut = () => updateEditorZoom(Math.max(zoom - 10, 50));
 
   const executePublish = async () => {
-    let currentContent = editorRef.current ? editorRef.current.getContent() : content;
+    const currentContent = editorRef.current ? editorRef.current.getContent() : content;
     
-    // Se l'utente ha inserito un sottotitolo, lo inietta formattato in testa al contenuto HTML
-    if (sottotitolo.trim()) {
-      const subtitleHtml = `<p class="magazine-subtitle" style="font-size: 18px; color: #666; font-style: italic; margin-bottom: 25px; font-family: Arial, Helvetica, sans-serif;">${sottotitolo.trim()}</p>`;
-      currentContent = subtitleHtml + currentContent;
-    }
-
+    // Opzione A: Il sottotitolo viene inviato in modo pulito nel suo campo dedicato del payload.
+    // Viene rimossa l'iniezione HTML forzata all'interno del modulo per evitare duplicazioni e bug in modifica.
     const payload = {
       titolo: titolo,
-      sottotitolo: sottotitolo, // Aggiunto al payload generale nel caso servisse al backend
-      rubrica: rubrica,         // Inserito nel payload mappando il campo String del backend
+      sottotitolo: sottotitolo.trim(), 
+      rubrica: rubrica,         
       copertina: copertina,
       tipo: tipo,
       numeroPagina: 1,
@@ -160,12 +156,10 @@ const MagazineEditor = ({ editId }) => {
       setModal({ show: true, message: "Attenzione: Inserisci un titolo prima di procedere.", type: 'error' });
       return;
     }
-    // Validazione opzionale: se l'utente mette tipo "RUBRICA", lo forziamo a scegliere quale rubrica sia
     if (tipo === "RUBRICA" && !rubrica) {
       setModal({ show: true, message: "Attenzione: Seleziona una rubrica per i contenuti di tipo Rubrica.", type: 'error' });
       return;
     }
-    // Il sottotitolo viene saltato dai controlli di validazione per renderlo opzionale
     if (!currentContent || currentContent.trim() === "" || currentContent === '<p></p>') {
       setModal({ show: true, message: "Attenzione: Il contenuto non può essere vuoto.", type: 'error' });
       return;
@@ -342,7 +336,6 @@ const MagazineEditor = ({ editId }) => {
                   onChange={(e) => {
                     const nuovoTipo = e.target.value;
                     setTipo(nuovoTipo);
-                    // Se non è né articolo né rubrica, svuota il campo rubrica per pulizia payload
                     if (nuovoTipo !== "ARTICOLO" && nuovoTipo !== "RUBRICA") {
                       setRubrica('');
                     }
@@ -359,7 +352,6 @@ const MagazineEditor = ({ editId }) => {
                 </select>
               </div>
 
-              {/* MENU DI ASSOCIAZIONE RUBRICA: visibile se il tipo è ARTICOLO oppure RUBRICA */}
               {(tipo === "ARTICOLO" || tipo === "RUBRICA") && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#495057', textTransform: 'uppercase', fontFamily: 'Arial' }}>
@@ -401,7 +393,7 @@ const MagazineEditor = ({ editId }) => {
               style={{ width: '100%', fontSize: '28px', fontWeight: 'bold', border: 'none', borderBottom: `2px solid ${tipo === "SONDAGGIO" ? colors.accent : colors.border}`, outline: 'none', marginBottom: '10px', paddingBottom: '10px', fontFamily: 'Arial, Helvetica, sans-serif' }}
             />
 
-            {/* Input per il sottotitolo opzionale */}
+            {/* Input per il sottotitolo opzionale - Mostra e aggiorna lo stato corrente del sottotitolo anche in modifica */}
             <input
               type="text"
               placeholder="Inserisci un sottotitolo opzionale..."
@@ -456,6 +448,22 @@ const MagazineEditor = ({ editId }) => {
                 elementpath: true,
                 image_advtab: true,
                 image_margins: true,
+
+                // --- AGGIUNTE PER ABILITARE L'UPLOAD LOCALE DELLE IMMAGINI ---
+                image_title: true,
+                automatic_uploads: true,
+                images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    resolve(reader.result); // Inietta la stringa Base64 direttamente nell'HTML sorgente
+                  };
+                  reader.onerror = () => {
+                    reject({ message: 'Errore durante il caricamento dell\'immagine', remove: true });
+                  };
+                  reader.readAsDataURL(blobInfo.blob());
+                }),
+                // -------------------------------------------------------------
+
                 valid_children: '+body[style],+p[style],+span[style]',
                 valid_styles: { '*': 'font-family,font-size,color,background-color,text-align,margin,margin-top,margin-right,margin-bottom,margin-left,padding,float,display,width,height,border' },
                 extended_valid_elements: 'p[style|align],div[style|align],span[style],img[class|src|border=0|alt|title|hspace|vspace|width|height|align|style]',

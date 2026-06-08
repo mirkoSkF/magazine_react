@@ -612,7 +612,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
                       marginRight: '20px'
                     }}
                     alt="Avatar"
-                  />
+                    />
                 ) : (
                   <div
                     className="author-avatar"
@@ -624,7 +624,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
                       marginRight: '20px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
+                      justifycontent: 'center',
                       fontWeight: 'bold',
                       color: 'white'
                     }}
@@ -651,12 +651,29 @@ const ArticoloSingolo = ({ id, onBack }) => {
               style={{
                 fontSize: '42px',
                 fontWeight: 'bold',
-                marginBottom: '30px',
+                marginBottom: articolo.sottotitolo ? '10px' : '30px',
                 lineHeight: '1.2'
               }}
             >
               {articolo.titolo}
             </h1>
+
+            {/* SOTTOTITOLO (AGGIUNTO SOTTO IL TITOLO) */}
+            {articolo.sottotitolo && (
+              <p
+                className="article-subtitle"
+                style={{
+                  fontSize: '20px',
+                  color: '#555',
+                  lineHeight: '1.5',
+                  marginBottom: '30px',
+                  fontStyle: 'italic',
+                  fontWeight: 'normal'
+                }}
+              >
+                {articolo.sottotitolo}
+              </p>
+            )}
 
             {/* AVVISO EDITORE */}
             {articolo.tipo === "SONDAGGIO" && isEditore && (
