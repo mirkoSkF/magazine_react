@@ -14,6 +14,7 @@ const MagazineEditor = ({ editId }) => {
   const [tipo, setTipo] = useState('ARTICOLO');
 
   const [publishHover, setPublishHover] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const [modal, setModal] = useState({
     show: false,
@@ -46,6 +47,26 @@ const MagazineEditor = ({ editId }) => {
     { value: 'AI', label: '💻 AI & Formazione' },
     { value: 'LAVORO', label: '📚 Orientamento & Lavoro' }
   ];
+
+  useEffect(() => {
+    const checkScrollTop = () => {
+      if (!showScrollTop && window.pageYOffset > 400) {
+        setShowScrollTop(true);
+      } else if (showScrollTop && window.pageYOffset <= 400) {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', checkScrollTop);
+    return () => window.removeEventListener('scroll', checkScrollTop);
+  }, [showScrollTop]);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   useEffect(() => {
     if (editId) {
@@ -108,7 +129,7 @@ const MagazineEditor = ({ editId }) => {
 
   const executePublish = async () => {
     const currentContent = editorRef.current ? editorRef.current.getContent() : content;
-    
+     
     // Opzione A: Il sottotitolo viene inviato in modo pulito nel suo campo dedicato del payload.
     // Viene rimossa l'iniezione HTML forzata all'interno del modulo per evitare duplicazioni e bug in modifica.
     const payload = {
@@ -276,6 +297,41 @@ const MagazineEditor = ({ editId }) => {
               box-sizing: border-box;
             }
             .zoom-container { flex-direction: row !important; padding: 5px 15px !important; border-radius: 50px !important; }
+          }
+
+          .back-to-top-btn {
+            position: fixed;
+            bottom: 40px;
+            right: 25px; 
+            z-index: 999;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+          }
+
+          .back-to-top-btn.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+          }
+
+          .back-to-top-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 56, 179, 0.3);
           }
         `}
       </style>
@@ -501,7 +557,7 @@ const MagazineEditor = ({ editId }) => {
                     div.querySelectorAll('p, span, div, li, td').forEach(el => {
                       if (!el.style.fontFamily) el.style.fontFamily = 'Arial, Helvetica, sans-serif';
                       if (!el.style.fontSize) el.style.fontSize = '16px';
-                      
+                       
                       if (!el.style.textAlign) {
                         el.style.textAlign = 'left';
                       }
@@ -521,6 +577,15 @@ const MagazineEditor = ({ editId }) => {
           </div>
         </div>
       </div>
+
+      {/* BOTTONE TORNA SU */}
+      <button onClick={scrollToTop} className={`back-to-top-btn ${showScrollTop ? 'visible' : ''}`} title="Torna all'inizio della pagina">
+        <span>Torna su</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="19" x2="12" y2="5"></line>
+          <polyline points="5 12 12 5 19 12"></polyline>
+        </svg>
+      </button>
     </div>
   );
 };
