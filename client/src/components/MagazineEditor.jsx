@@ -3,6 +3,7 @@ import { Editor } from '@tinymce/tinymce-react';
 
 const MagazineEditor = ({ editId }) => {
   const editorRef = useRef(null);
+  const fileInputRef = useRef(null); // Ref aggiunto per gestire il reset dell'input file
 
   const [content, setContent] = useState('');
   const [zoom, setZoom] = useState(100);
@@ -92,6 +93,7 @@ const MagazineEditor = ({ editId }) => {
       setRubrica('');     // Reset della rubrica
       setCopertina(null);
       setTipo('ARTICOLO');
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, [editId]);
 
@@ -104,6 +106,14 @@ const MagazineEditor = ({ editId }) => {
         setCopertina(base64String);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  // Funzione per rimuovere la copertina isolando lo stato del testo
+  const handleRemoveCover = () => {
+    setCopertina(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -129,7 +139,7 @@ const MagazineEditor = ({ editId }) => {
 
   const executePublish = async () => {
     const currentContent = editorRef.current ? editorRef.current.getContent() : content;
-     
+       
     // Opzione A: Il sottotitolo viene inviato in modo pulito nel suo campo dedicato del payload.
     // Viene rimossa l'iniezione HTML forzata all'interno del modulo per evitare duplicazioni e bug in modifica.
     const payload = {
@@ -463,11 +473,44 @@ const MagazineEditor = ({ editId }) => {
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#666', marginBottom: '8px', fontFamily: 'Arial, Helvetica, sans-serif' }}>
                   Immagine di Copertina
                 </label>
-                <input type="file" onChange={handleCoverUpload} accept="image/*" style={{ fontSize: '14px', fontFamily: 'Arial, Helvetica, sans-serif' }} />
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleCoverUpload} 
+                  accept="image/*" 
+                  style={{ fontSize: '14px', fontFamily: 'Arial, Helvetica, sans-serif' }} 
+                />
               </div>
               {copertina && (
-                <div style={{ width: '150px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: `1px solid ${colors.border}` }}>
-                  <img src={`data:image/jpeg;base64,${copertina}`} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'relative', width: '150px', height: '100px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
+                  <img src={`data:image/jpeg;base64,${copertina}`} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '7px' }} />
+                  <button
+                    onClick={handleRemoveCover}
+                    title="Rimuovi immagine"
+                    style={{
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      background: 'rgba(230, 57, 70, 0.9)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '22px',
+                      height: '22px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '11px',
+                      fontWeight: 'bold',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseOver={(e) => e.target.style.background = '#bd2130'}
+                    onMouseOut={(e) => e.target.style.background = 'rgba(230, 57, 70, 0.9)'}
+                  >
+                    ✕
+                  </button>
                 </div>
               )}
             </div>
@@ -504,22 +547,18 @@ const MagazineEditor = ({ editId }) => {
                 elementpath: true,
                 image_advtab: true,
                 image_margins: true,
-
-                // --- AGGIUNTE PER ABILITARE L'UPLOAD LOCALE DELLE IMMAGINI ---
                 image_title: true,
                 automatic_uploads: true,
                 images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
                   const reader = new FileReader();
                   reader.onloadend = () => {
-                    resolve(reader.result); // Inietta la stringa Base64 direttamente nell'HTML sorgente
+                    resolve(reader.result); 
                   };
                   reader.onerror = () => {
                     reject({ message: 'Errore durante il caricamento dell\'immagine', remove: true });
                   };
                   reader.readAsDataURL(blobInfo.blob());
                 }),
-                // -------------------------------------------------------------
-
                 valid_children: '+body[style],+p[style],+span[style]',
                 valid_styles: { '*': 'font-family,font-size,color,background-color,text-align,margin,margin-top,margin-right,margin-bottom,margin-left,padding,float,display,width,height,border' },
                 extended_valid_elements: 'p[style|align],div[style|align],span[style],img[class|src|border=0|alt|title|hspace|vspace|width|height|align|style]',
@@ -557,10 +596,7 @@ const MagazineEditor = ({ editId }) => {
                     div.querySelectorAll('p, span, div, li, td').forEach(el => {
                       if (!el.style.fontFamily) el.style.fontFamily = 'Arial, Helvetica, sans-serif';
                       if (!el.style.fontSize) el.style.fontSize = '16px';
-                       
-                      if (!el.style.textAlign) {
-                        el.style.textAlign = 'left';
-                      }
+                      if (!el.style.textAlign) el.style.textAlign = 'left';
                     });
                     div.querySelectorAll('img').forEach(img => {
                       img.style.maxWidth = '100%';
