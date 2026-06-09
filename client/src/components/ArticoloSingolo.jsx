@@ -506,6 +506,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
         <button
           onClick={onBack}
           style={{
+            marginTop:'2%',
             background: 'none',
             border: 'none',
             color: '#007bff',

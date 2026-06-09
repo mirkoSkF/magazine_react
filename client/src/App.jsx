@@ -92,10 +92,11 @@ function App() {
   const [editId, setEditId] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showNavbar, setShowNavbar] = useState(true);
 
   useEffect(() => {
     // CAMBIO TITOLO SCHEDA BROWSER
-    document.title = "Magazine SF";
+    document.title = "Magazine SkillFactory";
 
     const token = localStorage.getItem('token');
     if (token) setIsLoggedIn(true);
@@ -122,8 +123,30 @@ function App() {
     };
 
     window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+    let lastScrollY = window.scrollY;
+
+const handleScroll = () => {
+  // utenti loggati: navbar sempre visibile
+  if (isLoggedIn) {
+    setShowNavbar(true);
+    return;
+  }
+
+  if (window.scrollY > lastScrollY && window.scrollY > 150) {
+    setShowNavbar(false);
+  } else {
+    setShowNavbar(true);
+  }
+
+  lastScrollY = window.scrollY;
+};
+
+window.addEventListener('scroll', handleScroll);
+    return () => {
+  window.removeEventListener('popstate', handlePopState);
+  window.removeEventListener('scroll', handleScroll);
+};
+  }, [isLoggedIn]);
 
   const getDisplayName = () => {
     const rawName = localStorage.getItem('username') || 'Utente';
@@ -170,7 +193,21 @@ function App() {
     }
     window.scrollTo(0, 0);
   };
-
+  const navBarStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '0 30px',
+  background: colors.white,
+  boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+  position: 'fixed',
+  top: showNavbar ? 0 : '-90px',
+  zIndex: 1000,
+  height: '80px',
+  width: '100%',
+  boxSizing: 'border-box',
+  transition: 'top 0.3s ease'
+};
   return (
     <div style={{ 
       fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif", 
@@ -222,7 +259,7 @@ function App() {
 
       <nav className="nav-bar" style={navBarStyle}>
         <div 
-          style={{ fontWeight: '800', fontSize: '24px', letterSpacing: '-0.5px', color: colors.primary, cursor: 'pointer' }}
+          style={{ fontWeight: '800', fontSize: '24px', letterSpacing: '-0.5px', color: 'orange', cursor: 'pointer' }}
           onClick={() => navigateTo('index')}
         >
           Magazine.<span style={{ color: colors.dark }}>SkillFactory.it</span>
@@ -233,10 +270,11 @@ function App() {
         </button>
 
         <div className="nav-links">
+        {isLoggedIn && (
           <button className={`nav-link ${view === 'index' ? 'active-link' : ''}`} onClick={() => navigateTo('index')}>
-            Leggi Magazine
+            Anteprima Magazine
           </button>
-
+        )}
           {/* Nuova voce di menu visibile in modalità visitatore / non loggato */}
           {/*!isLoggedIn && (
             <button className={`nav-link ${view === 'eventi' ? 'active-link' : ''}`} onClick={() => navigateTo('eventi')}>
@@ -339,7 +377,7 @@ const navBarStyle = {
   padding: '0 30px',           // 👈 Padding fisso generoso per staccare il logo dal bordo dello schermo
   background: colors.white, 
   boxShadow: '0 4px 12px rgba(0,0,0,0.03)', 
-  position: 'sticky', 
+  position: 'fixed', 
   top: 0, 
   zIndex: 1000, 
   height: '80px',

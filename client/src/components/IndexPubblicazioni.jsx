@@ -186,7 +186,14 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const contenutiPubblicatiBase = tuttiContenuti.filter(item => item.bozza === false);
 
   // Separazione flussi nativi puri
-  const soloArticoli = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "ARTICOLO");
+  // Separazione flussi nativi puri (Se siamo in NEWS, escludiamo a monte gli articoli con rubrica)
+  const soloArticoli = contenutiPubblicatiBase.filter(c => {
+    if (c.tipo?.toUpperCase() !== "ARTICOLO") return false;
+    if (filtroCorrente === "NEWS") {
+      return !c.rubrica || c.rubrica.trim() === "";
+    }
+    return true;
+  });
   const soloSondaggi = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
   const soloEditoriali = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "EDITORIALE");
   const soloEventi = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "EVENTO");
@@ -214,7 +221,17 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const evidenza = (filtroCorrente === "HOME" && rubricaAttiva === "") ? articoliSenzaCentrale.slice(0, 3) : [];
 
   // Archivio Articoli (Paginato)
-  const archivioArtBase = rubricaAttiva !== "" ? [] : (idArticoloCentrale ? articoliSenzaCentrale.slice(3) : soloArticoli);
+  // Archivio Articoli (Paginato)
+  let archivioArtBase = [];
+  if (rubricaAttiva === "") {
+    if (filtroCorrente === "NEWS") {
+      // Sotto il filtro NEWS, non ci sono le 3 evidenze in alto, quindi escludiamo solo il primo piano centrale
+      archivioArtBase = idArticoloCentrale ? soloArticoli.filter(a => a.id !== idArticoloCentrale) : soloArticoli;
+    } else {
+      // Sotto il filtro HOME ("Tutto"), escludiamo il primo piano centrale e saltiamo i 3 finiti in evidenza
+      archivioArtBase = idArticoloCentrale ? articoliSenzaCentrale.slice(3) : soloArticoli;
+    }
+  }
   const totalPagesArt = Math.ceil(archivioArtBase.length / itemsPerPage);
   const currentArchivioArt = archivioArtBase.slice((pageArticoli - 1) * itemsPerPage, pageArticoli * itemsPerPage);
 
@@ -239,7 +256,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   // Logica della barra di ricerca e filtri Navbar globali
   const contenutiFiltrati = contenutiPubblicatiBase.filter(item => {
     if (rubricaAttiva !== "") return normalizzaStringa(item.rubrica) === normalizzaStringa(rubricaAttiva);
-    if (filtroCorrente === "NEWS") return item.tipo?.toUpperCase() === "ARTICOLO";
+    if (filtroCorrente === "NEWS") return item.tipo?.toUpperCase() === "ARTICOLO" && (!item.rubrica || item.rubrica.trim() === "");
     if (filtroCorrente === "EVENTI") return item.tipo?.toUpperCase() === "EVENTO";
     if (filtroCorrente === "EDITORIALI") return item.tipo?.toUpperCase() === "EDITORIALE";
     return true;
@@ -309,6 +326,13 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     color: isActive ? colors.primary : colors.dark,
     paddingBottom: "2px"
   });
+  
+  // Funzione helper per convertire la key della rubrica nella label estesa
+  const getNomeRubrica = (keyRubrica) => {
+    if (!keyRubrica) return "";
+    const rubrica = listaRubriche.find(r => r.key === normalizzaStringa(keyRubrica));
+    return rubrica ? rubrica.label : keyRubrica;
+  };
 
   return (
     <div lang="it" style={{ maxWidth: "1150px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif", position: "relative" }}>
@@ -412,6 +436,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       {/* BARRA DI RICERCA */}
       <div 
         style={{ 
+          marginTop: "5%",
           marginBottom: "30px", 
           display: "flex",          // 👈 Forza un layout Flexbox
           justifyContent: "center", // 👈 Centra perfettamente l'input in orizzontale
@@ -581,7 +606,11 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <div style={{ width: '100%', height: '200px', backgroundColor: '#f1f3f4', borderRadius: '4px', overflow: 'hidden', marginBottom: '15px' }}>
                     {a.copertina && <img src={`data:image/jpeg;base64,${a.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} alt="Cover" />}
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: '700', color: colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>In Evidenza</span>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: a.rubrica && a.rubrica.trim() !== "" ? "#ff6b0b" : colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>
+{a.rubrica && a.rubrica.trim() !== ""
+    ? `Rubrica | ${getNomeRubrica(a.rubrica)}`
+    : "Articolo"}
+</span>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>{a.titolo}</h3>
                   <p style={{ fontSize: '12px', color: '#666', marginBottom: '15px', fontStyle: 'italic', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
                     di <span style={{ fontWeight: '600', color: '#444', fontStyle: 'normal' }}>{getAutore(a)}</span>
@@ -609,17 +638,21 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     borderRadius: '2px',
                     textTransform: "uppercase"
                   }}>
-                    {rubricaAttiva !== "" ? `RUBRICA: ${rubricaAttiva}` : "ULTIMO ARTICOLO"}
+                    {rubricaAttiva !== "" ? `RUBRICA: ${getNomeRubrica(rubricaAttiva)}` : "ULTIMO ARTICOLO"}
                   </div>
 
                   <h1 className="main-title" style={{ fontSize: '32px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
                     {ultimoContenutoPrincipale.titolo}
                   </h1>
 			{/* 🛑 NUOVO: SOTTOTITOLO DELL'ARTICOLO */}
-{ultimoContenutoPrincipale.sottotitolo && (
+{ultimoContenutoPrincipale.sottotitolo && (<>
   <p style={{ fontSize: '15px', color: '#555', margin: '-10px 0 20px 0', lineHeight: '1.4', fontWeight: 'normal', fontStyle: 'italic' }}>
     {ultimoContenutoPrincipale.sottotitolo}
   </p>
+  <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
+                  Scritto da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
+                </p>
+              </>
 )}
                   {/* MODIFICATO: Altezza impostata su 'auto' con altezza massima per rendere l'immagine del primo piano centrale proporzionale e senza tagli */}
                   <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -676,7 +709,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
               {filtroCorrente === "RUBRICA" && !ultimoContenutoPrincipale && (
                 <div style={{ border: `1px dashed ${colors.border}`, padding: '40px 20px', borderRadius: '8px', marginBottom: '40px', textAlign: 'center', backgroundColor: colors.lightGray }}>
                   <div style={{ backgroundColor: colors.rubriche, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px', textTransform: "uppercase" }}>
-                    RUBRICA: {rubricaAttiva}
+                    RUBRICA: {getNomeRubrica(rubricaAttiva)}
                   </div>
                   <h3 style={{ color: '#666', margin: '10px 0' }}>Nessun contenuto disponibile</h3>
                   <p style={{ color: '#999', fontSize: '14px' }}>Non ci sono ancora articoli pubblicati in questa specifica rubrica.</p>
@@ -685,7 +718,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
               {/* 2. SEZIONE EDITORIALE */}
               {ultimoEditoriale && (filtroCorrente === "HOME" || filtroCorrente === "EDITORIALI") && rubricaAttiva === "" && (
-                <div style={{ backgroundColor: "#fdf8ff", border: `1px solid ${colors.editorial}`, padding: "25px", borderRadius: "8px", marginBottom: "40px", boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                <div style={{ border: `1px solid ${colors.editorial}`, padding: "25px", borderRadius: "8px", marginBottom: "40px", boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                   <div style={{ backgroundColor: colors.editorial, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px' }}>
                     EDITORIALE IN EVIDENZA
                   </div>

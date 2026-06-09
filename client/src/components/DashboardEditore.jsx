@@ -367,8 +367,39 @@ const DashboardEditore = ({ onEdit }) => {
         .btn-view-calendar { background-color: #00b5ad; color: white; }
         .btn-view-calendar:hover { background-color: #009c95; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 181, 173, 0.3); }
 
-        .controls-block-container { display: flex; flex-direction: column; gap: 15px; align-items: flex-end; text-align: right; width: 100%; margin-bottom: 25px; }
-        .buttons-horizontal-row { display: flex; gap: 10px; align-items: center; justify-content: flex-end; width: auto; flex-wrap: nowrap; }
+        .controls-block-container { 
+  display: flex; 
+  flex-direction: row; 
+  justify-content: space-between; 
+  align-items: center; 
+  gap: 15px; 
+  width: 100%; 
+  margin-bottom: 25px; 
+  flex-wrap: wrap;
+}
+.controls-title-section {
+  flex: 1 1 100%;
+  margin-bottom: 5px;
+}
+.controls-actions-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+.buttons-horizontal-row { 
+  display: flex; 
+  gap: 10px; 
+  align-items: center; 
+  justify-content: center; 
+  width: auto; 
+  flex-wrap: nowrap; 
+}
+.search-input, .filter-select { 
+  margin: 0;
+}
 
         @media (max-width: 950px) { 
           .dashboard-header { flex-direction: column; } 
@@ -425,22 +456,30 @@ const DashboardEditore = ({ onEdit }) => {
         }
 
         @media (max-width: 576px) {
-          .btn-view-switch {
-            padding: 10px 12px;
-            font-size: 12px;
-            gap: 4px;
-          }
-          .search-input, .filter-select { max-width: 100%; }
-          .buttons-horizontal-row { width: 100%; justify-content: space-between; }
-          .controls-block-container { align-items: stretch; text-align: left; }
-          .btn-modifica, .btn-elimina, .btn-pubblica {
-            flex: 1 1 100%;
-          }
-        }
+  .btn-view-switch {
+    padding: 10px 12px;
+    font-size: 12px;
+    gap: 4px;
+    flex: 1;
+  }
+  .controls-actions-section {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .search-input, .filter-select, .buttons-horizontal-row { 
+    max-width: 100%; 
+    width: 100% !important; 
+  }
+  .buttons-horizontal-row { justify-content: space-between; }
+  .btn-modifica, .btn-elimina, .btn-pubblica {
+    flex: 1 1 100%;
+  }
+}
       `}</style>
 
-      <div className="dashboard-header">
-        <div className="user-panel" style={{ flex: 2, display: 'flex', alignItems: 'center', background: colors.white, padding: '20px', borderRadius: '12px', border: `1px solid ${colors.border}` }}>
+      <div className="dashboard-header" style={{marginTop:'2%',}}>
+        <div className="user-panel" style={{flex: 2, display: 'flex', alignItems: 'center', background: colors.white, padding: '20px', borderRadius: '12px', border: `1px solid ${colors.border}` }}>
           <div className="user-info-container" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
             {utente?.fotoProfilo ? (
               <img src={`data:image/jpeg;base64,${utente.fotoProfilo}`} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginRight: '20px' }} alt="Avatar" />
@@ -525,77 +564,82 @@ const DashboardEditore = ({ onEdit }) => {
 
       {/* Intestazione e Comandi */}
       <div className="controls-block-container">
-        <h2 style={{ color: colors.dark, fontWeight: '700', margin: 0 }}>
-          {view === 'CONTENUTI' ? 'Gestione Contenuti' : view === 'SPONSOR' ? 'Gestione Sponsor' : view === 'STATS' ? 'Report Statistiche' : 'Calendario Editoriale'}
-        </h2>
+        <div className="controls-title-section">
+          <h2 style={{ color: colors.dark, fontWeight: '700', margin: 0, textAlign: 'left' }}>
+            {view === 'CONTENUTI' ? 'Gestione Contenuti' : view === 'SPONSOR' ? 'Gestione Sponsor' : view === 'STATS' ? 'Report Statistiche' : 'Calendario Editoriale'}
+          </h2>
+        </div>
         
-        {view === 'CONTENUTI' && (
-          <input 
-            type="text" 
-            className="search-input" 
-            placeholder="Cerca per titolo o data..." 
-            value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
-          />
-        )}
-        
-        <div className="buttons-horizontal-row">
-          {view === 'CONTENUTI' ? (
-            <button 
-              onClick={() => setView('STATS')}
-              className="btn-view-switch btn-view-stats"
-            >
-              📊 Statistiche
-            </button>
-          ) : view === 'STATS' && (
-            <button 
-              onClick={() => setView('CONTENUTI')}
-              className="btn-view-switch btn-view-contenuti"
-            >
-              📄 Torna ai Contenuti
-            </button>
+        <div className="controls-actions-section">
+          {view === 'CONTENUTI' && (
+            <input 
+              type="text" 
+              className="search-input" 
+              placeholder="Cerca per titolo o data..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              style={{ maxWidth: '300px' }}
+            />
           )}
           
-          {view === 'CONTENUTI' ? (
-            <button 
-              onClick={() => setView('CALENDARIO')}
-              className="btn-view-switch btn-view-calendar"
+          <div className="buttons-horizontal-row">
+            {view === 'CONTENUTI' ? (
+              <button 
+                onClick={() => setView('STATS')}
+                className="btn-view-switch btn-view-stats"
+              >
+                📊 Statistiche
+              </button>
+            ) : view === 'STATS' && (
+              <button 
+                onClick={() => setView('CONTENUTI')}
+                className="btn-view-switch btn-view-contenuti"
+              >
+                📄 Torna ai Contenuti
+              </button>
+            )}
+            
+            {view === 'CONTENUTI' ? (
+              <button 
+                onClick={() => setView('CALENDARIO')}
+                className="btn-view-switch btn-view-calendar"
+              >
+                📅 Calendario
+              </button>
+            ) : view === 'CALENDARIO' && (
+              <button 
+                onClick={() => setView('CONTENUTI')}
+                className="btn-view-switch btn-view-contenuti"
+              >
+                📄 Torna ai Contenuti
+              </button>
+            )}
+            
+            {(view === 'CONTENUTI' || view === 'SPONSOR') && (
+              <button 
+                onClick={() => setView(view === 'CONTENUTI' ? 'SPONSOR' : 'CONTENUTI')}
+                className={`btn-view-switch ${view === 'CONTENUTI' ? 'btn-view-sponsor' : 'btn-view-contenuti'}`}
+              >
+                {view === 'CONTENUTI' ? '📢 Sponsor' : '📄 Torna ai Contenuti'}
+              </button>
+            )}
+          </div>
+
+          {view === 'CONTENUTI' && (
+            <select 
+              className="filter-select"
+              value={tipoFiltro}
+              onChange={(e) => setTipoFiltro(e.target.value)}
+              style={{ maxWidth: '220px' }}
             >
-              📅 Calendario
-            </button>
-          ) : view === 'CALENDARIO' && (
-            <button 
-              onClick={() => setView('CONTENUTI')}
-              className="btn-view-switch btn-view-contenuti"
-            >
-              📄 Torna ai Contenuti
-            </button>
-          )}
-          
-          {(view === 'CONTENUTI' || view === 'SPONSOR') && (
-            <button 
-              onClick={() => setView(view === 'CONTENUTI' ? 'SPONSOR' : 'CONTENUTI')}
-              className={`btn-view-switch ${view === 'CONTENUTI' ? 'btn-view-sponsor' : 'btn-view-contenuti'}`}
-            >
-              {view === 'CONTENUTI' ? '📢 Sponsor' : '📄 Torna ai Contenuti'}
-            </button>
+              <option value="TUTTI">📋 Tutte le pubblicazioni</option>
+              <option value="ARTICOLO">📰 Solo Rubriche e Articoli</option>
+              <option value="EDITORIALE">✍️ Solo Editoriali</option>
+              <option value="SONDAGGIO">📊 Solo Sondaggi</option>
+              <option value="EVENTO">📅 Solo Eventi</option>
+            </select>
           )}
         </div>
-
-        {view === 'CONTENUTI' && (
-          <select 
-            className="filter-select"
-            value={tipoFiltro}
-            onChange={(e) => setTipoFiltro(e.target.value)}
-          >
-            <option value="TUTTI">📋 Tutte le pubblicazioni</option>
-            <option value="ARTICOLO">📰 Solo Articoli</option>
-            <option value="EDITORIALE">✍️ Solo Editoriali</option>
-            <option value="RUBRICA">📚 Solo Rubriche</option>
-            <option value="SONDAGGIO">📊 Solo Sondaggi</option>
-            <option value="EVENTO">📅 Solo Eventi</option>
-          </select>
-        )}
       </div>
 
       {view === 'CONTENUTI' ? (
