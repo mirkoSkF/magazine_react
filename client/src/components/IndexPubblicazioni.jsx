@@ -182,8 +182,14 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   if (tuttiContenuti.length === 0)
     return <div style={{ textAlign: "center", padding: "50px", fontFamily: "Arial" }}>Caricamento...</div>;
 
-  // Filtro contenuti pubblicati non in bozza
-  const contenutiPubblicatiBase = tuttiContenuti.filter(item => item.bozza === false);
+  // Filtro dinamico: se l'utente è loggato vede anche le bozze (item.bozza === true)
+  const contenutiPubblicatiBase = tuttiContenuti.filter(item => {
+    const isLoggato = !!localStorage.getItem("token"); // Controlla la sessione/token
+    if (isLoggato) {
+      return true; // Se è loggato, fa passare qualsiasi contenuto (bozze incluse)
+    }
+    return item.bozza === false; // Se non è loggato, mostra solo i contenuti non in bozza
+  });
 
   // Separazione flussi nativi puri
   // Separazione flussi nativi puri (Se siamo in NEWS, escludiamo a monte gli articoli con rubrica)
@@ -625,6 +631,12 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 {/* L'autore adesso è libero e indipendente: comparirà SEMPRE, anche senza sottotitolo */}
 <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
   Scritto da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
+  {/* Badge visivo bozza per il primo piano */}
+  {ultimoContenutoPrincipale.bozza === true && (
+    <span style={{ marginLeft: '10px', backgroundColor: '#e74c3c', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
+      BOZZA
+    </span>
+  )}
 </p>
                   {/* MODIFICATO: Altezza impostata su 'auto' con altezza massima per rendere l'immagine del primo piano centrale proporzionale e senza tagli */}
                   <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -831,6 +843,12 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                           <li key={a.id} style={listItemStyle}>
                             <span onClick={() => onReadArticle(a.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>{a.titolo}</span>
                             <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(a)}</small>
+                            {/* Badge visivo bozza per l'archivio laterale */}
+                            {a.bozza === true && (
+                              <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', marginLeft: '8px', display: 'inline-block' }}>
+                                BOZZA
+                              </span>
+                            )}
                           </li>
                         ))}
                       </ul>
