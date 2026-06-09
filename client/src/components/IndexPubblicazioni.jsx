@@ -182,13 +182,19 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   if (tuttiContenuti.length === 0)
     return <div style={{ textAlign: "center", padding: "50px", fontFamily: "Arial" }}>Caricamento...</div>;
 
-  // Filtro dinamico: se l'utente è loggato vede anche le bozze (item.bozza === true)
+  // Filtro dinamico: vedi i pubblicati di tutti, ma le bozze SOLO se sono tue
   const contenutiPubblicatiBase = tuttiContenuti.filter(item => {
-    const isLoggato = !!localStorage.getItem("token"); // Controlla la sessione/token
-    if (isLoggato) {
-      return true; // Se è loggato, fa passare qualsiasi contenuto (bozze incluse)
+    const isLoggato = !!localStorage.getItem("token"); 
+    const mioUsername = localStorage.getItem("username"); // 👈 Recupera il tuo username in sessione
+
+    // Se l'articolo NON è una bozza, lo vedono tutti indistintamente
+    if (item.bozza === false) {
+      return true;
     }
-    return item.bozza === false; // Se non è loggato, mostra solo i contenuti non in bozza
+
+    // Se l'articolo È una bozza (item.bozza === true):
+    // La mostra nell'index solo se l'utente è loggato e se l'autore dell'articolo coincide con l'utente in sessione
+    return isLoggato && item.autore === mioUsername;
   });
 
   // Separazione flussi nativi puri
@@ -591,6 +597,12 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>{a.titolo}</h3>
                   <p style={{ fontSize: '12px', color: '#666', marginBottom: '15px', fontStyle: 'italic', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
                     di <span style={{ fontWeight: '600', color: '#444', fontStyle: 'normal' }}>{getAutore(a)}</span>
+                    {/* ⚠️ SE È UNA BOZZA, MOSTRA IL BADGE ANCHE NELLA CARD IN EVIDENZA */}
+                    {a.bozza === true && (
+                      <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', marginLeft: '8px', display: 'inline-block', fontStyle: 'normal' }}>
+                        BOZZA
+                      </span>
+                    )}
                   </p>
                   <span onClick={() => onReadArticle(a.id)} style={{ color: colors.primary, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', display: 'inline-block' }}>Leggi →</span>
                 </div>
@@ -639,7 +651,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   )}
 </p>
                   {/* MODIFICATO: Altezza impostata su 'auto' con altezza massima per rendere l'immagine del primo piano centrale proporzionale e senza tagli */}
-                  <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '2px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {ultimoContenutoPrincipale.copertina && (
                       <img src={`data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Main" />
                     )}
@@ -716,7 +728,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>Scritto da <strong>{getAutore(ultimoEditoriale)}</strong></p>
                   {ultimoEditoriale.copertina && (
                     /* MODIFICATO: Modificato il contenitore dell'immagine dell'editoriale portando l'altezza a 'auto' con altezza massima per un ridimensionamento armonioso */
-                    <div style={{ width: '100%', height: 'auto', maxHeight: '400px', backgroundColor: 'transparent', borderRadius: '6px', overflow: 'hidden', marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+                    <div style={{ width: '100%', height: 'auto', maxHeight: '400px', backgroundColor: 'transparent', borderRadius: '2px', overflow: 'hidden', marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
                       <img src={`data:image/jpeg;base64,${ultimoEditoriale.copertina}`} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Editoriale Cover" />
                     </div>
                   )}
