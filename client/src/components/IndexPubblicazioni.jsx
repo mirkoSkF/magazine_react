@@ -477,46 +477,17 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           News
         </span>
 
-        <select
-          value={rubricaAttiva}
-          onChange={(e) => {
-            const val = e.target.value;
-            setRubricaAttiva(val);
-            if (val !== "") {
-              setFiltroCorrente("RUBRICA");
-              setPageRubriche(1);
-            } else {
-              setFiltroCorrente("HOME");
-            }
-          }}
-          style={{
-            border: "none",
-            fontWeight: "bold",
-            cursor: "pointer",
-            color: rubricaAttiva !== "" ? colors.primary : colors.dark,
-            borderBottom: rubricaAttiva !== "" ? `2px solid ${colors.primary}` : "none",
-            paddingBottom: "2px",
-            backgroundColor: "transparent",
-
-            // MODIFICHE PER DIMENSIONE E ADERENZA MASSIMA:
-            fontSize: "inherit",         // Eredita la dimensione esatta delle altre voci di menu
-            width: "95px",               // Larghezza fissa millimetrica per la parola "Rubriche" + freccia
-            paddingRight: "0px",         // Azzera padding superflui a destra
-            paddingLeft: "0px",          // Azzera padding superflui a sinistra
-            textOverflow: "ellipsis",    // Mette i tre puntini se una selezione successiva è più lunga
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            outline: "none"
-          }}
-        >
-          <option value="" disabled hidden>Rubriche</option>
-          <option value="FORMATORE">Il formatore</option>
-          <option value="QUALITA">Formazione & Qualità</option>
-          <option value="IFP">Ecosistema IFP</option>
-          <option value="DIGITALI">Competenze Digitali</option>
-          <option value="AI">AI & Formazione</option>
-          <option value="LAVORO">Orientamento & Lavoro</option>
-        </select>
+        <span
+    style={getNavbarItemStyle(filtroCorrente === "RUBRICA" && rubricaAttiva === "FORMATORE")}
+    onClick={() => {
+      setFiltroCorrente("RUBRICA");
+      setRubricaAttiva("FORMATORE");
+      setPageRubriche(1);
+    }}
+    style={{ ...getNavbarItemStyle(filtroCorrente === "RUBRICA" && rubricaAttiva === "FORMATORE"), cursor: "pointer" }}
+  >
+    Rubriche
+  </span>
 
         <span
           style={getNavbarItemStyle(filtroCorrente === "EVENTI" && rubricaAttiva === "")}
