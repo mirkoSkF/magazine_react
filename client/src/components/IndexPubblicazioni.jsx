@@ -645,15 +645,16 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     {ultimoContenutoPrincipale.titolo}
                   </h1>
 			{/* 🛑 NUOVO: SOTTOTITOLO DELL'ARTICOLO */}
-{ultimoContenutoPrincipale.sottotitolo && (<>
+{ultimoContenutoPrincipale.sottotitolo && (
   <p style={{ fontSize: '15px', color: '#555', margin: '-10px 0 20px 0', lineHeight: '1.4', fontWeight: 'normal', fontStyle: 'italic' }}>
     {ultimoContenutoPrincipale.sottotitolo}
   </p>
-  <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
-                  Scritto da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
-                </p>
-              </>
 )}
+
+{/* L'autore adesso è libero e indipendente: comparirà SEMPRE, anche senza sottotitolo */}
+<p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
+  Scritto da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
+</p>
                   {/* MODIFICATO: Altezza impostata su 'auto' con altezza massima per rendere l'immagine del primo piano centrale proporzionale e senza tagli */}
                   <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '8px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {ultimoContenutoPrincipale.copertina && (
