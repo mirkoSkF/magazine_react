@@ -36,6 +36,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
 
+                // 🔓 [AGGIUNTO] Permetti a chiunque di scaricare/vedere le immagini salvate sul server
+                .requestMatchers("/uploads/**").permitAll()
+
+                // 🔒 [AGGIUNTO] Proteggi l'endpoint di caricamento (solo utenti autenticati/editori)
+                .requestMatchers("/api/uploads/**").authenticated()
+
                 // --- DASHBOARD E PROFILO (RICHIESTA AUTENTICAZIONE) ---
                 .requestMatchers("/api/stats/**", "/api/statistiche/**").authenticated()
                 .requestMatchers("/api/profilo/**").authenticated()
@@ -77,7 +83,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:[*]", "http://127.0.0.1:[*]"));
+        // [OTTIMIZZATO] Aggiunto il pattern di produzione per evitare blocchi CORS futuri sulle risorse statiche
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:[*]", "http://127.0.0.1:[*]", "https://magazine.skillfactory.it"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Requested-With", "Accept", "Origin"));
         configuration.setAllowCredentials(true);
