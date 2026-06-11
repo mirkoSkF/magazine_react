@@ -26,6 +26,55 @@ const MagazineEditor = ({ editId }) => {
 
   const token = localStorage.getItem('token');
   const authHeader = { 'Authorization': `Bearer ${token}` };
+  
+  // 🚀 FUNZIONE AGGIUNTA: Gestisce l'upload asincrono delle immagini per TinyMCE
+  const handleEditorImageUpload = (blobInfo, progress) => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.withCredentials = true;
+      
+      // Punta all'endpoint che abbiamo creato su Spring Boot
+      xhr.open('POST', 'https://magazine.skillfactory.it/api/uploads/immagine');
+      
+      // Allega il token JWT per superare i controlli di sicurezza della SecurityConfig
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+      xhr.upload.onprogress = (e) => {
+        progress((e.loaded / e.total) * 100);
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 403 || xhr.status === 401) {
+          reject({ message: 'Sessione scaduta o non autorizzata', remove: true });
+          return;
+        }
+        if (xhr.status < 200 || xhr.status >= 300) {
+          reject('Errore durante il caricamento del file: ' + xhr.status);
+          return;
+        }
+
+        const json = JSON.parse(xhr.responseText);
+
+        if (!json || typeof json.location !== 'string') {
+          reject('Risposta del server non valida');
+          return;
+        }
+
+        // Restituisce l'URL finale (es: https://magazine.skillfactory.it/uploads/xyz.jpg)
+        // TinyMCE lo userà automaticamente come "src" del tag <img>
+        resolve(json.location);
+      };
+
+      xhr.onerror = () => {
+        reject('Errore di rete durante il caricamento.');
+      };
+
+      const formData = new FormData();
+      formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+      xhr.send(formData);
+    });
+  };
 
   const colors = {
     primary: '#007bff',
@@ -482,8 +531,12 @@ const MagazineEditor = ({ editId }) => {
                 />
               </div>
               {copertina && (
-                <div style={{ position: 'relative', width: '150px', height: '100px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
-                  <img src={`data:image/jpeg;base64,${copertina}`} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '7px' }} />
+  <div style={{ marginTop: '15px', textAlign: 'center' }}>
+    <img 
+      src={copertina.startsWith('http') ? copertina : `data:image/jpeg;base64,${copertina}`} 
+      alt="Anteprima copertina" 
+      style={{ maxWidth: '200px', maxHeight: '150px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #ddd' }} 
+    />
                   <button
                     onClick={handleRemoveCover}
                     title="Rimuovi immagine"
@@ -550,15 +603,50 @@ const MagazineEditor = ({ editId }) => {
                 image_title: true,
                 automatic_uploads: true,
                 images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    resolve(reader.result); 
-                  };
-                  reader.onerror = () => {
-                    reject({ message: 'Errore durante il caricamento dell\'immagine', remove: true });
-                  };
-                  reader.readAsDataURL(blobInfo.blob());
-                }),
+  const xhr = new XMLHttpRequest();
+  xhr.withCredentials = true;
+  
+  // URL dell'endpoint Spring Boot (se provi in locale usa http://localhost:8080/api/uploads/immagine)
+  xhr.open('POST', 'https://magazine.skillfactory.it/api/uploads/immagine');
+  
+  // Allega il token recuperato dal localStorage per superare i filtri di Spring Security
+  xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+  xhr.upload.onprogress = (e) => {
+    progress((e.loaded / e.total) * 100);
+  };
+
+  xhr.onload = () => {
+    if (xhr.status === 403 || xhr.status === 401) {
+      reject({ message: 'Sessione scaduta o non autorizzata', remove: true });
+      return;
+    }
+    if (xhr.status < 200 || xhr.status >= 300) {
+      reject('Errore nel caricamento del file, status: ' + xhr.status);
+      return;
+    }
+
+    const json = JSON.parse(xhr.responseText);
+
+    if (!json || typeof json.location !== 'string') {
+      reject('Risposta del server non valida');
+      return;
+    }
+
+    // Passa a TinyMCE l'URL finale (/uploads/nomefile.jpg). L'editor lo metterà nell'src del tag <img>
+    resolve(json.location);
+  };
+
+  xhr.onerror = () => {
+    reject('Errore di rete durante l\'upload.');
+  };
+
+  const formData = new FormData();
+  formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+  xhr.send(formData);
+}),
+paste_data_images: true, // 👈 AGGIUNGI ANCHE QUESTA RIGA SUBITO SOTTO
                 valid_children: '+body[style],+p[style],+span[style]',
                 valid_styles: { '*': 'font-family,font-size,color,background-color,text-align,margin,margin-top,margin-right,margin-bottom,margin-left,padding,float,display,width,height,border' },
                 extended_valid_elements: 'p[style|align],div[style|align],span[style],img[class|src|border=0|alt|title|hspace|vspace|width|height|align|style]',
@@ -607,6 +695,7 @@ const MagazineEditor = ({ editId }) => {
                     e.content = div.innerHTML;
                   });
                 }
+                
               }}
               onEditorChange={(newContent) => setContent(newContent)}
             />
