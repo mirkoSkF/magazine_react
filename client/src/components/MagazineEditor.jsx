@@ -27,13 +27,13 @@ const MagazineEditor = ({ editId }) => {
   const token = localStorage.getItem('token');
   const authHeader = { 'Authorization': `Bearer ${token}` };
   
-  // 🚀 FUNZIONE AGGIUNTA: Gestisce l'upload asincrono delle immagini per TinyMCE
+  // 🚀 FUNZIONE DI CARICAMENTO: Gestisce l'upload asincrono delle immagini per TinyMCE legando il Token JWT
   const handleEditorImageUpload = (blobInfo, progress) => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.withCredentials = true;
       
-      // Punta all'endpoint che abbiamo creato su Spring Boot
+      // Punta all'endpoint creato su Spring Boot
       xhr.open('POST', 'https://magazine.skillfactory.it/api/uploads/immagine');
       
       // Allega il token JWT per superare i controlli di sicurezza della SecurityConfig
@@ -189,8 +189,6 @@ const MagazineEditor = ({ editId }) => {
   const executePublish = async () => {
     const currentContent = editorRef.current ? editorRef.current.getContent() : content;
        
-    // Opzione A: Il sottotitolo viene inviato in modo pulito nel suo campo dedicato del payload.
-    // Viene rimossa l'iniezione HTML forzata all'interno del modulo per evitare duplicazioni e bug in modifica.
     const payload = {
       titolo: titolo,
       sottotitolo: sottotitolo.trim(), 
@@ -508,7 +506,6 @@ const MagazineEditor = ({ editId }) => {
               style={{ width: '100%', fontSize: '28px', fontWeight: 'bold', border: 'none', borderBottom: `2px solid ${tipo === "SONDAGGIO" ? colors.accent : colors.border}`, outline: 'none', marginBottom: '10px', paddingBottom: '10px', fontFamily: 'Arial, Helvetica, sans-serif' }}
             />
 
-            {/* Input per il sottotitolo opzionale - Mostra e aggiorna lo stato corrente del sottotitolo anche in modifica */}
             <input
               type="text"
               placeholder="Inserisci un sottotitolo opzionale..."
@@ -531,12 +528,12 @@ const MagazineEditor = ({ editId }) => {
                 />
               </div>
               {copertina && (
-  <div style={{ marginTop: '15px', textAlign: 'center' }}>
-    <img 
-      src={copertina.startsWith('http') ? copertina : `data:image/jpeg;base64,${copertina}`} 
-      alt="Anteprima copertina" 
-      style={{ maxWidth: '200px', maxHeight: '150px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #ddd' }} 
-    />
+                <div style={{ marginTop: '15px', textAlign: 'center', position: 'relative' }}>
+                  <img 
+                    src={copertina.startsWith('http') ? copertina : `data:image/jpeg;base64,${copertina}`} 
+                    alt="Anteprima copertina" 
+                    style={{ maxWidth: '200px', maxHeight: '150px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #ddd' }} 
+                  />
                   <button
                     onClick={handleRemoveCover}
                     title="Rimuovi immagine"
@@ -602,51 +599,11 @@ const MagazineEditor = ({ editId }) => {
                 image_margins: true,
                 image_title: true,
                 automatic_uploads: true,
-                images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
-  const xhr = new XMLHttpRequest();
-  xhr.withCredentials = true;
-  
-  // URL dell'endpoint Spring Boot (se provi in locale usa http://localhost:8080/api/uploads/immagine)
-  xhr.open('POST', 'https://magazine.skillfactory.it/api/uploads/immagine');
-  
-  // Allega il token recuperato dal localStorage per superare i filtri di Spring Security
-  xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-
-  xhr.upload.onprogress = (e) => {
-    progress((e.loaded / e.total) * 100);
-  };
-
-  xhr.onload = () => {
-    if (xhr.status === 403 || xhr.status === 401) {
-      reject({ message: 'Sessione scaduta o non autorizzata', remove: true });
-      return;
-    }
-    if (xhr.status < 200 || xhr.status >= 300) {
-      reject('Errore nel caricamento del file, status: ' + xhr.status);
-      return;
-    }
-
-    const json = JSON.parse(xhr.responseText);
-
-    if (!json || typeof json.location !== 'string') {
-      reject('Risposta del server non valida');
-      return;
-    }
-
-    // Passa a TinyMCE l'URL finale (/uploads/nomefile.jpg). L'editor lo metterà nell'src del tag <img>
-    resolve(json.location);
-  };
-
-  xhr.onerror = () => {
-    reject('Errore di rete durante l\'upload.');
-  };
-
-  const formData = new FormData();
-  formData.append('file', blobInfo.blob(), blobInfo.filename());
-
-  xhr.send(formData);
-}),
-paste_data_images: true, // 👈 AGGIUNGI ANCHE QUESTA RIGA SUBITO SOTTO
+                
+                // 🛠️ FIX: Aggancia direttamente l'handler pulito definito sopra evitando conflitti di contesto
+                images_upload_handler: handleEditorImageUpload,
+                
+                paste_data_images: true, 
                 valid_children: '+body[style],+p[style],+span[style]',
                 valid_styles: { '*': 'font-family,font-size,color,background-color,text-align,margin,margin-top,margin-right,margin-bottom,margin-left,padding,float,display,width,height,border' },
                 extended_valid_elements: 'p[style|align],div[style|align],span[style],img[class|src|border=0|alt|title|hspace|vspace|width|height|align|style]',
@@ -695,7 +652,6 @@ paste_data_images: true, // 👈 AGGIUNGI ANCHE QUESTA RIGA SUBITO SOTTO
                     e.content = div.innerHTML;
                   });
                 }
-                
               }}
               onEditorChange={(newContent) => setContent(newContent)}
             />
