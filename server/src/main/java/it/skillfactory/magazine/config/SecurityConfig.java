@@ -47,6 +47,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/pagine/*").authenticated()
                 .requestMatchers(HttpMethod.PATCH, "/api/pagine/*/pubblica").authenticated()
 
+                // --- GESTIONE UPLOADS IMMAGINI EDITOR (RICHIESTA AUTENTICAZIONE JWT) ---
+                .requestMatchers(HttpMethod.POST, "/api/uploads/**").authenticated()
+
                 // --- GESTIONE CALENDARIO ED EVENTI (GET resa pubblica) ---
                 .requestMatchers(HttpMethod.GET, "/api/eventi").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/eventi").authenticated()
@@ -77,7 +80,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:[*]", "http://127.0.0.1:[*]"));
+        
+        // 🛠️ FIX CORS: Inseriti pattern per consentire le chiamate sia dall'ambiente locale che dal dominio di produzione
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:[*]", 
+                "http://127.0.0.1:[*]",
+                "https://magazine.skillfactory.it"
+        ));
+        
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Requested-With", "Accept", "Origin"));
         configuration.setAllowCredentials(true);
