@@ -12,6 +12,10 @@ const MagazineEditor = ({ editId }) => {
   const [sottotitolo, setSottotitolo] = useState(''); // Stato per il sottotitolo opzionale
   const [rubrica, setRubrica] = useState('');          // Stato aggiunto per la gestione del campo rubrica (String)
   const [copertina, setCopertina] = useState(null);
+  
+  // ✅ INTEGRATO: Stato per memorizzare il file fisico da inviare al server
+  const [copertinaFile, setCopertinaFile] = useState(null);
+  
   const [tipo, setTipo] = useState('ARTICOLO');
 
   const [publishHover, setPublishHover] = useState(false);
@@ -79,7 +83,8 @@ const MagazineEditor = ({ editId }) => {
           setTitolo(data.titolo || '');
           setSottotitolo(data.sottotitolo || ''); // Carica il sottotitolo se esistente
           setRubrica(data.rubrica || '');         // Carica il valore della rubrica dal DB
-          setCopertina(data.copertina || null);
+          setCopertina(data.copertina || null);   // Sarà l'URL intero inviato dal server
+          setCopertinaFile(null);                 // Reset file fisico in modifica
           setTipo(data.tipo || 'ARTICOLO');
           if (data.moduli?.length > 0) {
             setContent(data.moduli[0].contenuto);
@@ -92,6 +97,7 @@ const MagazineEditor = ({ editId }) => {
       setSottotitolo(''); // Reset in caso di nuova pagina
       setRubrica('');     // Reset della rubrica
       setCopertina(null);
+      setCopertinaFile(null); // ✅ INTEGRATO: Reset file fisico
       setTipo('ARTICOLO');
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
@@ -100,10 +106,13 @@ const MagazineEditor = ({ editId }) => {
   const handleCoverUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // ✅ INTEGRATO: Salviamo il file reale per la futura sottomissione
+      setCopertinaFile(file);
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result.split(',')[1];
-        setCopertina(base64String);
+        setCopertina(base64String); // Mantenuto solo per mostrare l'anteprima a schermo
       };
       reader.readAsDataURL(file);
     }
@@ -112,6 +121,7 @@ const MagazineEditor = ({ editId }) => {
   // Funzione per rimuovere la copertina isolando lo stato del testo
   const handleRemoveCover = () => {
     setCopertina(null);
+    setCopertinaFile(null); // ✅ INTEGRATO: Rimuoviamo anche il riferimento al file fisico
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -140,13 +150,11 @@ const MagazineEditor = ({ editId }) => {
   const executePublish = async () => {
     const currentContent = editorRef.current ? editorRef.current.getContent() : content;
        
-    // Opzione A: Il sottotitolo viene inviato in modo pulito nel suo campo dedicato del payload.
-    // Viene rimossa l'iniezione HTML forzata all'interno del modulo per evitare duplicazioni e bug in modifica.
-    const payload = {
+    // ✅ INTEGRATO: Costruiamo l'oggetto dei metadati della pagina senza includere i megabyte del Base64
+    const paginaData = {
       titolo: titolo,
       sottotitolo: sottotitolo.trim(), 
       rubrica: rubrica,         
-      copertina: copertina,
       tipo: tipo,
       numeroPagina: 1,
       moduli: [{
@@ -157,14 +165,30 @@ const MagazineEditor = ({ editId }) => {
       }]
     };
 
+    // Gestione dello stato copertina per informare correttamente il DB
+    if (editId && !copertina) {
+      paginaData.copertina = null; // L'utente ha espressamente cancellato la vecchia copertina
+    } else if (editId && copertina && copertina.startsWith('http')) {
+      paginaData.copertina = copertina; // L'utente mantiene la vecchia copertina invariata
+    }
+
+    // ✅ INTEGRATO: Creazione del FormData per inviare dati misti (JSON + file binario)
+    const formData = new FormData();
+    formData.append("pagina", new Blob([JSON.stringify(paginaData)], { type: "application/json" }));
+    
+    if (copertinaFile) {
+      formData.append("copertinaFile", copertinaFile);
+    }
+
     const method = editId ? 'PUT' : 'POST';
     const url = editId ? `https://magazine.skillfactory.it/api/pagine/${editId}` : 'https://magazine.skillfactory.it/api/pagine';
 
     try {
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json', ...authHeader },
-        body: JSON.stringify(payload)
+        // NOTA: Con FormData non dobbiamo impostare 'Content-Type' manualmente, ci pensa il browser
+        headers: { ...authHeader },
+        body: formData
       });
 
       if (response.ok) {
@@ -483,7 +507,12 @@ const MagazineEditor = ({ editId }) => {
               </div>
               {copertina && (
                 <div style={{ position: 'relative', width: '150px', height: '100px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
-                  <img src={`data:image/jpeg;base64,${copertina}`} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '7px' }} />
+                  {/* ✅ INTEGRATO: Gestisce la sorgente dell'immagine sia se URL statico del server, sia se stringa base64 locale */}
+                  <img 
+                    src={copertina.startsWith('http') ? copertina : `data:image/jpeg;base64,${copertina}`} 
+                    alt="Preview" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '7px' }} 
+                  />
                   <button
                     onClick={handleRemoveCover}
                     title="Rimuovi immagine"

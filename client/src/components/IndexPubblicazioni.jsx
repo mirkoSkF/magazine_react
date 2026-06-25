@@ -490,16 +490,15 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         </span>
 
         <span
-    style={getNavbarItemStyle(filtroCorrente === "RUBRICA" && rubricaAttiva === "FORMATORE")}
-    onClick={() => {
-      setFiltroCorrente("RUBRICA");
-      setRubricaAttiva("FORMATORE");
-      setPageRubriche(1);
-    }}
-    style={{ ...getNavbarItemStyle(filtroCorrente === "RUBRICA" && rubricaAttiva === "FORMATORE"), cursor: "pointer" }}
-  >
-    Rubriche
-  </span>
+          style={{ ...getNavbarItemStyle(filtroCorrente === "RUBRICA" && rubricaAttiva === "FORMATORE"), cursor: "pointer" }}
+          onClick={() => {
+            setFiltroCorrente("RUBRICA");
+            setRubricaAttiva("FORMATORE");
+            setPageRubriche(1);
+          }}
+        >
+          Rubriche
+        </span>
 
         <span
           style={getNavbarItemStyle(filtroCorrente === "EVENTI" && rubricaAttiva === "")}
@@ -523,7 +522,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         </span>
 
         <span
-          style={getNavbarItemStyle(colors.primary)}
           style={getNavbarItemStyle(filtroCorrente === "HOME" && rubricaAttiva === "")}
           onClick={() => {
             setFiltroCorrente("HOME");
@@ -587,13 +585,18 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 <div key={a.id} style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                   {/* MODIFICATO: Inserito objectFit 'contain' e sfondo neutro per le 3 card in evidenza */}
                   <div style={{ width: '100%', height: '200px', backgroundColor: '#f1f3f4', borderRadius: '4px', overflow: 'hidden', marginBottom: '15px' }}>
-                    {a.copertina && <img src={`data:image/jpeg;base64,${a.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} alt="Cover" />}
+                    {/* MODIFICA 1: Verifica se la copertina è un URL statico o stringa Base64 */}
+                    {a.copertina && (
+                      <img 
+                        src={a.copertina.startsWith('http') || a.copertina.startsWith('/') ? a.copertina : `data:image/jpeg;base64,${a.copertina}`} 
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} 
+                        alt="Cover" 
+                      />
+                    )}
                   </div>
                   <span style={{ fontSize: '11px', fontWeight: '700', color: a.rubrica && a.rubrica.trim() !== "" ? "#ff6b0b" : colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>
-{a.rubrica && a.rubrica.trim() !== ""
-    ? `Rubrica | ${getNomeRubrica(a.rubrica)}`
-    : "Articolo"}
-</span>
+                    {a.rubrica && a.rubrica.trim() !== "" ? `Rubrica | ${getNomeRubrica(a.rubrica)}` : "Articolo"}
+                  </span>
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>{a.titolo}</h3>
                   <p style={{ fontSize: '12px', color: '#666', marginBottom: '15px', fontStyle: 'italic', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
                     di <span style={{ fontWeight: '600', color: '#444', fontStyle: 'normal' }}>{getAutore(a)}</span>
@@ -633,27 +636,32 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <h1 className="main-title" style={{ fontSize: '32px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
                     {ultimoContenutoPrincipale.titolo}
                   </h1>
-			{/* 🛑 NUOVO: SOTTOTITOLO DELL'ARTICOLO */}
-{ultimoContenutoPrincipale.sottotitolo && (
-  <p style={{ fontSize: '15px', color: '#555', margin: '-10px 0 20px 0', lineHeight: '1.4', fontWeight: 'normal', fontStyle: 'italic' }}>
-    {ultimoContenutoPrincipale.sottotitolo}
-  </p>
-)}
+                  {/* 🛑 NUOVO: SOTTOTITOLO DELL'ARTICOLO */}
+                  {ultimoContenutoPrincipale.sottotitolo && (
+                    <p style={{ fontSize: '15px', color: '#555', margin: '-10px 0 20px 0', lineHeight: '1.4', fontWeight: 'normal', fontStyle: 'italic' }}>
+                      {ultimoContenutoPrincipale.sottotitolo}
+                    </p>
+                  )}
 
-{/* L'autore adesso è libero e indipendente: comparirà SEMPRE, anche senza sottotitolo */}
-<p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
-  Scritto da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
-  {/* Badge visivo bozza per il primo piano */}
-  {ultimoContenutoPrincipale.bozza === true && (
-    <span style={{ marginLeft: '10px', backgroundColor: '#e74c3c', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
-      BOZZA
-    </span>
-  )}
-</p>
+                  {/* L'autore adesso è libero e indipendente: comparirà SEMPRE, anche senza sottotitolo */}
+                  <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
+                    Scritto da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
+                    {/* Badge visivo bozza per il primo piano */}
+                    {ultimoContenutoPrincipale.bozza === true && (
+                      <span style={{ marginLeft: '10px', backgroundColor: '#e74c3c', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
+                        BOZZA
+                      </span>
+                    )}
+                  </p>
                   {/* MODIFICATO: Altezza impostata su 'auto' con altezza massima per rendere l'immagine del primo piano centrale proporzionale e senza tagli */}
                   <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '2px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {/* MODIFICA 2: Gestione URL statico o Base64 per la copertina dell'articolo principale */}
                     {ultimoContenutoPrincipale.copertina && (
-                      <img src={`data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Main" />
+                      <img 
+                        src={ultimoContenutoPrincipale.copertina.startsWith('http') || ultimoContenutoPrincipale.copertina.startsWith('/') ? ultimoContenutoPrincipale.copertina : `data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`} 
+                        style={{ width: '100%', height: 'auto', display: 'block' }} 
+                        alt="Main" 
+                      />
                     )}
                   </div>
 
@@ -720,16 +728,21 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   </div>
                   <h2 style={{ fontSize: '32px', fontWeight: '700', marginBottom: '15px', lineHeight: '1.2', color: colors.dark }}>{ultimoEditoriale.titolo}</h2>
                   {/* ✍️ CORRETTO: Sottotitolo dell'editoriale fuori dal tag h2 */}
-{ultimoEditoriale.sottotitolo && (
-  <p style={{ fontSize: '15px', color: '#555', margin: '0 0 15px 0', lineHeight: '1.4', fontStyle: 'italic' }}>
-    {ultimoEditoriale.sottotitolo}
-  </p>
-)}
+                  {ultimoEditoriale.sottotitolo && (
+                    <p style={{ fontSize: '15px', color: '#555', margin: '0 0 15px 0', lineHeight: '1.4', fontStyle: 'italic' }}>
+                      {ultimoEditoriale.sottotitolo}
+                    </p>
+                  )}
                   <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>Scritto da <strong>{getAutore(ultimoEditoriale)}</strong></p>
                   {ultimoEditoriale.copertina && (
                     /* MODIFICATO: Modificato il contenitore dell'immagine dell'editoriale portando l'altezza a 'auto' con altezza massima per un ridimensionamento armonioso */
                     <div style={{ width: '100%', height: 'auto', maxHeight: '400px', backgroundColor: 'transparent', borderRadius: '2px', overflow: 'hidden', marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
-                      <img src={`data:image/jpeg;base64,${ultimoEditoriale.copertina}`} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Editoriale Cover" />
+                      {/* MODIFICA 3: Gestione URL statico o Base64 per l'immagine dell'editoriale in evidenza */}
+                      <img 
+                        src={ultimoEditoriale.copertina.startsWith('http') || ultimoEditoriale.copertina.startsWith('/') ? ultimoEditoriale.copertina : `data:image/jpeg;base64,${ultimoEditoriale.copertina}`} 
+                        style={{ width: '100%', height: 'auto', display: 'block' }} 
+                        alt="Editoriale Cover" 
+                      />
                     </div>
                   )}
                   <div style={{ fontSize: '16px', color: '#444', lineHeight: '1.7', marginBottom: '25px', textAlign: "justify" }} dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoEditoriale, 400)) }} />
@@ -814,7 +827,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                             setPageRubriche(1);
                           }}
                         >
-                          	● {rub.label}
+                          ● {rub.label}
                         </span>
                       );
                     })}
