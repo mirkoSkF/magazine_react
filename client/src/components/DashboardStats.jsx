@@ -107,10 +107,7 @@ const DashboardStats = ({ colors }) => {
             <h4 style={{ color: '#666', fontSize: '12px', margin: '0 0 5px 0' }}>Sondaggi</h4>
             <p style={{ fontSize: '20px', fontWeight: 'bold', color: colors?.primary, margin: 0 }}>{stats.totSondaggi}</p>
           </div>
-          <div style={cardStyle}>
-            <h4 style={{ color: '#666', fontSize: '12px', margin: '0 0 5px 0' }}>Rubriche</h4>
-            <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#9b59b6', margin: 0 }}>{stats.totRubriche ?? stats.rubriche ?? 0}</p>
-          </div>
+
           <div style={cardStyle}>
             <h4 style={{ color: '#666', fontSize: '12px', margin: '0 0 5px 0' }}>Editoriali</h4>
             <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#6f42c1', margin: 0 }}>{stats.totEditoriali ?? stats.editoriali ?? 0}</p>
@@ -158,7 +155,6 @@ const DashboardStats = ({ colors }) => {
               <Legend verticalAlign="top" height={36}/>
               <Bar dataKey="articoli" name="Articoli" fill={colors?.accent} radius={[4, 4, 0, 0]} />
               <Bar dataKey="sondaggi" name="Sondaggi" fill={colors?.primary} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="rubriche" name="Rubriche" fill="#9b59b6" radius={[4, 4, 0, 0]} />
               <Bar dataKey="editoriali" name="Editoriali" fill="#6f42c1" radius={[4, 4, 0, 0]} />
               <Bar dataKey="eventi" name="Eventi" fill="#fd7e14" radius={[4, 4, 0, 0]} />
             </BarChart>

@@ -588,64 +588,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
         {/* COLONNA CONTENUTO ARTICOLO */}
         <div style={{ flexGrow: 1, maxWidth: '1200px' }}>
           <article style={{ margin: '40px 0', padding: '0 20px' }}>
-            {/* AUTORE (MOSTRATO SOLO SE NON È UN SONDAGGIO O UN EVENTO) */}
-            {articolo.tipo !== "SONDAGGIO" && articolo.tipo !== "EVENTO" && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: '#f8f9fa',
-                  padding: '20px',
-                  borderRadius: '8px',
-                  border: '1px solid #dee2e6',
-                  marginBottom: '30px'
-                }}
-              >
-                {autore?.fotoProfilo ? (
-                  <img
-                    className="author-avatar"
-                    src={`data:image/jpeg;base64,${autore.fotoProfilo}`}
-                    style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      marginRight: '20px'
-                    }}
-                    alt="Avatar"
-                    />
-                ) : (
-                  <div
-                    className="author-avatar"
-                    style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '50%',
-                      background: '#ccc',
-                      marginRight: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifycontent: 'center',
-                      fontWeight: 'bold',
-                      color: 'white'
-                    }}
-                  >
-                    {autore?.nome?.charAt(0)}
-                    {autore?.cognome?.charAt(0)}
-                  </div>
-                )}
-
-                <div>
-                  <h3 style={{ margin: 0 }}>
-                    {autore?.nome} {autore?.cognome}
-                  </h3>
-                  <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>
-                    Pubblicato il{' '}
-                    {new Date(articolo.dataPubblicazione).toLocaleDateString('it-IT')}
-                  </p>
-                </div>
-              </div>
-            )}
+            
 
             <h1
               className="article-title"
@@ -675,6 +618,25 @@ const ArticoloSingolo = ({ id, onBack }) => {
                 {articolo.sottotitolo}
               </p>
             )}
+            
+            {/* IMMAGINE DI COPERTINA (CORRETTA E CON FALLBACK SUI NOMI DEI CAMPI) */}
+{(articolo.immagineCopertina || articolo.immagine || articolo.copertina) && (
+  <div style={{ display: 'block', textAlign: 'center', marginBottom: '40px' }}>
+    <img
+      src={`data:image/jpeg;base64,${articolo.immagineCopertina || articolo.immagine || articolo.copertina}`}
+      alt="Immagine di copertina"
+      style={{
+        width: '70%',        // Ridimensionata al 70% della colonna principale
+        maxHeight: '400px',   // Altezza massima per non renderla mastodontica
+        objectFit: 'cover',   // Mantiene le proporzioni tagliando l'eccesso se necessario
+        borderRadius: '2px', // Angoli arrotondati in linea con lo stile del layout
+        display: 'block',
+        marginLeft: '0',      // Allinea a sinistra azzerando il margine sinistro
+        marginRight: 'auto'   // Spinge lo spazio rimanente a destra
+      }}
+    />
+  </div>
+)}
 
             {/* AVVISO EDITORE */}
             {articolo.tipo === "SONDAGGIO" && isEditore && (
@@ -776,6 +738,70 @@ const ArticoloSingolo = ({ id, onBack }) => {
                 );
               })}
             </div>
+            
+            {/* AUTORE (MOSTRATO SOLO SE NON È UN SONDAGGIO O UN EVENTO) */}
+            {articolo.tipo !== "SONDAGGIO" && articolo.tipo !== "EVENTO" && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: '#f8f9fa',
+                  padding: '20px',
+                  borderRadius: '8px',
+                  border: '1px solid #dee2e6',
+                  marginBottom: '30px'
+                }}
+              >
+                {autore?.fotoProfilo ? (
+                  <img
+                    className="author-avatar"
+                    src={`data:image/jpeg;base64,${autore.fotoProfilo}`}
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+
+                      marginRight: '20px'
+                    }}
+                    alt="Avatar"
+                    />
+                ) : (
+                  <div
+                    className="author-avatar"
+                    style={{
+                      width: '80px',
+
+                      height: '80px',
+                      borderRadius: '50%',
+                      background: '#ccc',
+                      marginRight: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifycontent: 'center',
+                      fontWeight: 'bold',
+                      color: 'white'
+                    }}
+                  >
+                    {autore?.nome?.charAt(0)}
+                    {autore?.cognome?.charAt(0)}
+                  </div>
+                )}
+
+                <div>
+                  <h3 style={{ margin: 0 }}>
+                    {autore?.nome} {autore?.cognome}
+                  </h3>
+                  <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>
+                    Pubblicato il{' '}
+                    {new Date(articolo.dataPubblicazione).toLocaleDateString('it-IT')}
+
+                  </p>
+                </div>
+              </div>
+
+            )}
+            
           </article>
 
           {/* BANNER IN FONDO */}
