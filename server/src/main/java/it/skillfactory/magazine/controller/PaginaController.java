@@ -39,7 +39,7 @@ public class PaginaController {
             map.put("autore", obj[6]);
             map.put("copertina", obj[7]); 
             map.put("rubrica", obj[8]); // Mappatura della rubrica nella risposta leggera
-            map.put("sottotitolo", obj[9]); // 🛑 AGGIUNTO: Mappatura del sottotitolo ricavato dall'indice 9 della query light
+            map.put("sottotitolo", obj[9]); // Mappatura del sottotitolo ricavato dall'indice 9 della query light
             return map;
         }).collect(Collectors.toList());
     }
@@ -99,7 +99,7 @@ public class PaginaController {
             }
 
             esistente.setTitolo(mod.getTitolo());
-            esistente.setSottotitolo(mod.getSottotitolo()); // 🛑 AGGIUNTO: Aggiornamento del valore sottotitolo nel record persistito
+            esistente.setSottotitolo(mod.getSottotitolo()); // Aggiornamento del valore sottotitolo nel record persistito
             esistente.setCopertina(mod.getCopertina());
             esistente.setNumeroPagina(mod.getNumeroPagina()); 
             esistente.setTipo(mod.getTipo());
@@ -121,7 +121,7 @@ public class PaginaController {
             PaginaMagazine salvata = paginaRepository.save(esistente);
             calcolaStatisticheSondaggio(salvata);
             return ResponseEntity.ok(salvata);
-        }).orElse(ResponseEntity.notFound().build());
+        }).orElse(ResponseEntity.<PaginaMagazine>notFound().build()); // 🛠️ CORRETTO: Tipizzato esplicitamente per l'inferenza del compilatore
     }
 
     @DeleteMapping("/{id}")
