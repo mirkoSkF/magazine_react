@@ -38,17 +38,21 @@ services:
     container_name: sf-magazine-backend
     restart: always
     ports:
-      - "8096:8096" # Espone la porta del backend per ricevere il traffico proxato da Vite
+      - "8096:8096"
     depends_on:
       db-magazine:
         condition: service_healthy
+    volumes:
+      - ./uploads_data:/app/uploads
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mariadb://sf-magazine-db:3306/magazine_db
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      # Forza Spring Boot a fidarsi degli headers di Nginx per sbloccare il login (errore 403)
       - SERVER_FORWARD_HEADERS_STRATEGY=framework
+      # 🛠️ AGGIUNGI QUESTE DUE RIGHE QUI SOTTO:
+      - MAGAZINE_UPLOAD_DIR=/app/uploads/
+      - MAGAZINE_UPLOAD_BASE_URL=https://magazine.skillfactory.it/uploads/
     networks:
       - sf-network
 
