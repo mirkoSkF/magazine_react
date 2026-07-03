@@ -139,13 +139,13 @@ const MagazineEditor = ({ editId }) => {
 
   const executePublish = async () => {
     const currentContent = editorRef.current ? editorRef.current.getContent() : content;
-       
+
     // Opzione A: Il sottotitolo viene inviato in modo pulito nel suo campo dedicato del payload.
     // Viene rimossa l'iniezione HTML forzata all'interno del modulo per evitare duplicazioni e bug in modifica.
     const payload = {
       titolo: titolo,
-      sottotitolo: sottotitolo.trim(), 
-      rubrica: rubrica,         
+      sottotitolo: sottotitolo.trim(),
+      rubrica: rubrica,
       copertina: copertina,
       tipo: tipo,
       numeroPagina: 1,
@@ -229,13 +229,13 @@ const MagazineEditor = ({ editId }) => {
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               {modal.type === 'confirm' ? (
                 <>
-                  <button 
+                  <button
                     onClick={() => setModal({ ...modal, show: false })}
                     onMouseOver={(e) => { e.target.style.background = '#e2e6ea'; }}
                     onMouseOut={(e) => { e.target.style.background = '#f8f9fa'; }}
                     style={{ ...btnBase, background: '#f8f9fa', color: '#333', border: '1px solid #ddd' }}
                   > Annulla </button>
-                  <button 
+                  <button
                     onClick={() => { modal.onConfirm(); setModal({ ...modal, show: false }); }}
                     onMouseOver={(e) => { e.target.style.background = colors.hoverBlue; }}
                     onMouseOut={(e) => { e.target.style.background = colors.primary; }}
@@ -243,7 +243,7 @@ const MagazineEditor = ({ editId }) => {
                   > Procedi </button>
                 </>
               ) : (
-                <button 
+                <button
                   onClick={() => setModal({ ...modal, show: false })}
                   onMouseOver={(e) => { e.target.style.background = modal.type === 'error' ? '#bd2130' : '#1e7e34'; }}
                   onMouseOut={(e) => { e.target.style.background = modal.type === 'error' ? colors.accent : colors.success; }}
@@ -426,12 +426,12 @@ const MagazineEditor = ({ editId }) => {
                   <select
                     value={rubrica}
                     onChange={(e) => setRubrica(e.target.value)}
-                    style={{ 
-                      padding: '5px 10px', 
-                      borderRadius: '4px', 
-                      border: `1px solid ${rubrica ? colors.primary : colors.border}`, 
-                      fontFamily: 'Arial', 
-                      fontSize: '12px', 
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: '4px',
+                      border: `1px solid ${rubrica ? colors.primary : colors.border}`,
+                      fontFamily: 'Arial',
+                      fontSize: '12px',
                       fontWeight: 'bold',
                       backgroundColor: rubrica ? '#e7f1ff' : '#ffffff'
                     }}
@@ -448,11 +448,11 @@ const MagazineEditor = ({ editId }) => {
             <input
               type="text"
               placeholder={
-                tipo === "SONDAGGIO" ? "Inserisci la domanda del sondaggio..." : 
-                tipo === "RUBRICA" ? "Inserisci il titolo della rubrica..." : 
-                tipo === "EVENTO" ? "Inserisci il titolo dell'evento..." :
-                tipo === "EDITORIALE" ? "Inserisci il titolo dell'editoriale..." :
-                "Inserisci il titolo dell'articolo..."
+                tipo === "SONDAGGIO" ? "Inserisci la domanda del sondaggio..." :
+                  tipo === "RUBRICA" ? "Inserisci il titolo della rubrica..." :
+                    tipo === "EVENTO" ? "Inserisci il titolo dell'evento..." :
+                      tipo === "EDITORIALE" ? "Inserisci il titolo dell'editoriale..." :
+                        "Inserisci il titolo dell'articolo..."
               }
               value={titolo}
               onChange={(e) => setTitolo(e.target.value)}
@@ -473,12 +473,12 @@ const MagazineEditor = ({ editId }) => {
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#666', marginBottom: '8px', fontFamily: 'Arial, Helvetica, sans-serif' }}>
                   Immagine di Copertina
                 </label>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleCoverUpload} 
-                  accept="image/*" 
-                  style={{ fontSize: '14px', fontFamily: 'Arial, Helvetica, sans-serif' }} 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleCoverUpload}
+                  accept="image/*"
+                  style={{ fontSize: '14px', fontFamily: 'Arial, Helvetica, sans-serif' }}
                 />
               </div>
               {copertina && (
@@ -519,11 +519,11 @@ const MagazineEditor = ({ editId }) => {
           <div style={{ background: 'white', boxShadow: '0 10px 30px rgba(0,0,0,0.08)', borderRadius: '12px', border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
             <div style={{ padding: '10px 20px', background: colors.lightGray, borderBottom: `1px solid ${colors.border}`, fontSize: '13px', color: '#666', fontFamily: 'Arial' }}>
               {
-                tipo === "SONDAGGIO" ? "⚠️ Importante: Elenca le opzioni di voto usando un elenco puntato" : 
-                tipo === "RUBRICA" ? "Scrivi il contenuto della rubrica qui sotto" : 
-                tipo === "EVENTO" ? "Inserisci i dettagli e la descrizione dell'evento qui sotto" :
-                tipo === "EDITORIALE" ? "Scrivi il corpo dell'editoriale qui sotto" :
-                "Scrivi il corpo dell'articolo qui sotto"
+                tipo === "SONDAGGIO" ? "⚠️ Importante: Elenca le opzioni di voto usando un elenco puntato" :
+                  tipo === "RUBRICA" ? "Scrivi il contenuto della rubrica qui sotto" :
+                    tipo === "EVENTO" ? "Inserisci i dettagli e la descrizione dell'evento qui sotto" :
+                      tipo === "EDITORIALE" ? "Scrivi il corpo dell'editoriale qui sotto" :
+                        "Scrivi il corpo dell'articolo qui sotto"
               }
             </div>
 
@@ -536,7 +536,7 @@ const MagazineEditor = ({ editId }) => {
               }}
               value={content}
               init={{
-                min_height: 1200, 
+                min_height: 1200,
                 menubar: true,
                 language: 'it',
                 language_url: '/tinymce/langs/it.js',
@@ -549,16 +549,36 @@ const MagazineEditor = ({ editId }) => {
                 image_margins: true,
                 image_title: true,
                 automatic_uploads: true,
+                relative_urls: false,
+                remove_script_host: false,
+                convert_urls: true,
+                images_cors_credential_policy: 'same-origin',
+                // ... dentro l'oggetto init del componente Editor
                 images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    resolve(reader.result); 
-                  };
-                  reader.onerror = () => {
-                    reject({ message: 'Errore durante il caricamento dell\'immagine', remove: true });
-                  };
-                  reader.readAsDataURL(blobInfo.blob());
+                  const formData = new FormData();
+                  formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+                  fetch('https://magazine.skillfactory.it/api/uploads/immagine', {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                  })
+                    .then(response => {
+                      if (!response.ok) throw new Error('Errore durante l\'upload: ' + response.status);
+                      return response.json();
+                    })
+                    .then(data => {
+                      // data.location è l'URL restituito dal tuo controller backend
+                      resolve(data.location);
+                    })
+                    .catch(error => {
+                      console.error('Upload Fallito:', error);
+                      reject({ message: 'Errore durante il caricamento dell\'immagine', remove: true });
+                    });
                 }),
+                // ... resto della configurazione
                 valid_children: '+body[style],+p[style],+span[style]',
                 valid_styles: { '*': 'font-family,font-size,color,background-color,text-align,margin,margin-top,margin-right,margin-bottom,margin-left,padding,float,display,width,height,border' },
                 extended_valid_elements: 'p[style|align],div[style|align],span[style],img[class|src|border=0|alt|title|hspace|vspace|width|height|align|style]',
@@ -566,7 +586,7 @@ const MagazineEditor = ({ editId }) => {
                 inline_styles: true,
                 forced_root_block: 'p',
                 font_family_formats: "Arial=arial,helvetica,sans-serif;Arial Black=arial black,avant garde;Book Antiqua=book antiqua,palatino;Comic Sans MS=comic sans ms,sans-serif;Courier New=courier new,courier;Georgia=georgia,palatino;Helvetica=helvetica;Impact=impact,chicago;Inter=Inter,sans-serif;Lato=Lato,sans-serif;Montserrat=Montserrat,sans-serif;Open Sans=Open Sans,sans-serif;Oswald=Oswald,sans-serif;Playfair Display=playfair display,serif;Poppins=Poppins,sans-serif;Roboto=Roboto,sans-serif;Tahoma=tahoma,arial,helvetica,sans-serif;Times New Roman=times new roman,times;Trebuchet MS=trebuchet ms,geneva;Verdana=verdana,geneva;",
-                plugins: ['advlist','autolink','lists','link','image','charmap','anchor','searchreplace','visualblocks','code','fullscreen','insertdatetime','media','table','wordcount','help','autosave','directionality','pagebreak','nonbreaking','visualchars'],
+                plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'wordcount', 'help', 'autosave', 'directionality', 'pagebreak', 'nonbreaking', 'visualchars'],
                 toolbar_mode: 'wrap',
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | charmap anchor pagebreak | visualblocks visualchars code fullscreen | help',
                 content_style: `
@@ -607,6 +627,7 @@ const MagazineEditor = ({ editId }) => {
                     e.content = div.innerHTML;
                   });
                 }
+                
               }}
               onEditorChange={(newContent) => setContent(newContent)}
             />
