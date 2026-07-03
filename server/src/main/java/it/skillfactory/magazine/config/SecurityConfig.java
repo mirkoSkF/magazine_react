@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,11 +31,20 @@ public class SecurityConfig {
         http
         .csrf(csrf -> csrf.disable())
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+        
+        // 🛠️ FIX CORP: Forza l'header Cross-Origin-Resource-Policy per permettere a TinyMCE di leggere le immagini
+        .headers(headers -> headers
+                .frameOptions(frame -> frame.sameOrigin())
+                .addHeaderWriter(new StaticHeadersWriter("Cross-Origin-Resource-Policy", "cross-origin"))
+        )
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+
+                // 🟢 MODIFICATO: Gestito nella catena principale per applicare CORS/CORP e servire i file fisici
+                .requestMatchers("/uploads/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                 // --- DASHBOARD E PROFILO (RICHIESTA AUTENTICAZIONE) ---
                 .requestMatchers("/api/stats/**", "/api/statistiche/**").authenticated()
@@ -81,7 +91,6 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // 🛠️ FIX CORS: Inseriti pattern per consentire le chiamate sia dall'ambiente locale che dal dominio di produzione
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:[*]", 
                 "http://127.0.0.1:[*]",
