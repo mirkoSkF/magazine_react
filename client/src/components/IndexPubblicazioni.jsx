@@ -128,13 +128,11 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       })
       .catch((err) => {
         console.error("Errore caricamento API parallelo:", err);
-        // In caso di errore pesante, puoi resettarlo per permettere un riprovo
-        // fetchAvviata.current = false;
       });
 
     const consent = localStorage.getItem("cookie-consent");
     if (consent) setShowCookieBanner(false);
-  }, []); // Array di dipendenze vuoto
+  }, []);
 
   const acceptCookies = () => {
     localStorage.setItem("cookie-consent", "true");
@@ -185,7 +183,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   // Filtro dinamico: vedi i pubblicati di tutti, ma le bozze SOLO se sono tue
   const contenutiPubblicatiBase = tuttiContenuti.filter(item => {
     const isLoggato = !!localStorage.getItem("token");
-    const mioUsername = localStorage.getItem("username"); // 👈 Recupera il tuo username in sessione
+    const mioUsername = localStorage.getItem("username");
 
     // Se l'articolo NON è una bozza, lo vedono tutti indistintamente
     if (item.bozza === false) {
@@ -197,7 +195,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     return isLoggato && item.autore === mioUsername;
   });
 
-  // Separazione flussi nativi puri
   // Separazione flussi nativi puri (Se siamo in NEWS, escludiamo a monte gli articoli con rubrica)
   const soloArticoli = contenutiPubblicatiBase.filter(c => {
     if (c.tipo?.toUpperCase() !== "ARTICOLO") return false;
@@ -232,7 +229,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   // Le 3 Evidenze sotto il primo piano (in HOME e senza rubriche attive)
   const evidenza = (filtroCorrente === "HOME" && rubricaAttiva === "") ? articoliSenzaCentrale.slice(0, 3) : [];
 
-  // Archivio Articoli (Paginato)
   // Archivio Articoli (Paginato)
   let archivioArtBase = [];
   if (rubricaAttiva === "") {
@@ -309,8 +305,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           <button
             key={i}
             onClick={() => {
-              setPage(i + 1);
-              window.scrollTo({ top: 400, behavior: 'smooth' });
+              setPage(i + 1); // Ora cambia semplicemente la pagina senza muovere la scrollbar
             }}
             className="pagination-btn"
             style={{
@@ -355,11 +350,28 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           .grid-evidenza { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
         }
 
+        .mobile-rubriche {
+          display: none;
+        }
+        
+        .desktop-rubriche {
+          display: block;
+        }
+
+        @media (max-width: 992px) {
+          .mobile-rubriche {
+            display: block;
+            margin-bottom: 30px;
+          }
+          .desktop-rubriche {
+            display: none !important;
+          }
+        }
+
         @media (max-width: 600px) {
           .grid-evidenza { grid-template-columns: 1fr !important; gap: 20px !important; }
           .main-title { font-size: 32px !important; }
-          .main-image-container { height: auto !important; min-height: 250px !important; }
-          .read-more-btn { width: 100%; }
+          .main-image-container { height: auto !important; }
         }
 
         .read-more-btn:hover {
@@ -450,9 +462,9 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         style={{
           marginTop: "5%",
           marginBottom: "30px",
-          display: "flex",          // 👈 Forza un layout Flexbox
-          justifyContent: "center", // 👈 Centra perfettamente l'input in orizzontale
-          width: "100%",            // 👈 Occupa tutto lo spazio del contenitore principale
+          display: "flex",
+          justifyContent: "center",
+          width: "100%",
           boxSizing: "border-box"
         }}
       >
@@ -470,8 +482,8 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
             borderRadius: "30px",
             border: `1px solid ${colors.border}`,
             transition: "all 0.3s",
-            boxSizing: "border-box", // 👈 Evita che il padding alteri la larghezza del 100% su smartphone
-            margin: "0 auto"         // 👈 Ulteriore sicurezza per il centraggio nativo dell'elemento block
+            boxSizing: "border-box",
+            margin: "0 auto"
           }}
         />
       </div>
@@ -490,7 +502,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         </span>
 
         <span
-          style={getNavbarItemStyle(filtroCorrente === "RUBRICA" && rubricaAttiva === "FORMATORE")}
           onClick={() => {
             setFiltroCorrente("RUBRICA");
             setRubricaAttiva("FORMATORE");
@@ -523,7 +534,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         </span>
 
         <span
-          style={getNavbarItemStyle(colors.primary)}
           style={getNavbarItemStyle(filtroCorrente === "HOME" && rubricaAttiva === "")}
           onClick={() => {
             setFiltroCorrente("HOME");
@@ -585,7 +595,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
             <div className="grid-evidenza" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "40px" }}>
               {evidenza.map((a) => (
                 <div key={a.id} style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '8px', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                  {/* MODIFICATO: Inserito objectFit 'contain' e sfondo neutro per le 3 card in evidenza */}
                   <div style={{ width: '100%', height: '200px', backgroundColor: '#f1f3f4', borderRadius: '4px', overflow: 'hidden', marginBottom: '15px' }}>
                     {a.copertina && (
                       <img
@@ -603,7 +612,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>{a.titolo}</h3>
                   <p style={{ fontSize: '12px', color: '#666', marginBottom: '15px', fontStyle: 'italic', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
                     di <span style={{ fontWeight: '600', color: '#444', fontStyle: 'normal' }}>{getAutore(a)}</span>
-                    {/* ⚠️ SE È UNA BOZZA, MOSTRA IL BADGE ANCHE NELLA CARD IN EVIDENZA */}
                     {a.bozza === true && (
                       <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', marginLeft: '8px', display: 'inline-block', fontStyle: 'normal' }}>
                         BOZZA
@@ -618,6 +626,59 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
           <div className="main-layout" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "40px", borderTop: `3px solid ${colors.dark}`, paddingTop: "25px" }}>
             <section>
+
+              {/* Blocco Rubriche visibile SOLO su Smartphone/Tablet in alto */}
+              <div className="mobile-rubriche">
+                {(filtroCorrente === "HOME" || filtroCorrente === "RUBRICA") && (
+                  <div style={{ backgroundColor: "#fff", border: `1px solid ${colors.border}`, padding: "20px", borderRadius: "8px" }}>
+                    <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.rubriche}`, paddingBottom: '8px', marginBottom: '15px', marginTop: 0 }}>
+                      Le Rubriche
+                    </h2>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      {listaRubriche.map((rub) => {
+                        const isActive = rubricaAttiva === rub.key;
+                        return (
+                          <span
+                            key={rub.key}
+                            className="rubrica-item-link"
+                            style={rubricaLinkStyle(isActive)}
+                            onClick={() => {
+                              setRubricaAttiva(rub.key);
+                              setFiltroCorrente("RUBRICA");
+                              setPageRubriche(1);
+                            }}
+                          >
+                            ● {rub.label}
+                          </span>
+                        );
+                      })}
+
+                      {rubricaAttiva !== "" && (
+                        <button
+                          onClick={() => {
+                            setRubricaAttiva("");
+                            setFiltroCorrente("HOME");
+                          }}
+                          style={{
+                            marginTop: '10px',
+                            padding: '10px 12px',
+                            backgroundColor: '#6c757d',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            fontSize: '12px',
+                            width: '100%'
+                          }}
+                        >
+                          ❌ Rimuovi filtro rubrica
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* 1. SEZIONE PRIMO PIANO CENTRALE NATURALE (ARTICOLO O RUBRICA) */}
               {filtroCorrente !== "EDITORIALI" && filtroCorrente !== "EVENTI" && ultimoContenutoPrincipale && (
@@ -639,25 +700,21 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <h1 className="main-title" style={{ fontSize: '32px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
                     {ultimoContenutoPrincipale.titolo}
                   </h1>
-                  {/* 🛑 NUOVO: SOTTOTITOLO DELL'ARTICOLO */}
                   {ultimoContenutoPrincipale.sottotitolo && (
                     <p style={{ fontSize: '15px', color: '#555', margin: '-10px 0 20px 0', lineHeight: '1.4', fontWeight: 'normal', fontStyle: 'italic' }}>
                       {ultimoContenutoPrincipale.sottotitolo}
                     </p>
                   )}
 
-                  {/* L'autore adesso è libero e indipendente: comparirà SEMPRE, anche senza sottotitolo */}
                   <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
                     Scritto da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
-                    {/* Badge visivo bozza per il primo piano */}
                     {ultimoContenutoPrincipale.bozza === true && (
                       <span style={{ marginLeft: '10px', backgroundColor: '#e74c3c', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>
                         BOZZA
                       </span>
                     )}
                   </p>
-                  {/* MODIFICATO: Altezza impostata su 'auto' con altezza massima per rendere l'immagine del primo piano centrale proporzionale e senza tagli */}
-                  <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '2px', overflow: 'hidden', marginBottom: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '2px', overflow: 'hidden', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {ultimoContenutoPrincipale.copertina && (
                       <img
                         src={ultimoContenutoPrincipale.copertina.startsWith('http') ? ultimoContenutoPrincipale.copertina : `data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`}
@@ -675,7 +732,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <button
                     className="read-more-btn"
                     onClick={() => onReadArticle(ultimoContenutoPrincipale.id)}
-                    style={{ padding: '15px 40px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                    style={{ padding: '12px 30px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
                   >
                     Continua a leggere
                   </button>
@@ -729,7 +786,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     EDITORIALE IN EVIDENZA
                   </div>
                   <h2 style={{ fontSize: '32px', fontWeight: '700', marginBottom: '15px', lineHeight: '1.2', color: colors.dark }}>{ultimoEditoriale.titolo}</h2>
-                  {/* ✍️ CORRETTO: Sottotitolo dell'editoriale fuori dal tag h2 */}
                   {ultimoEditoriale.sottotitolo && (
                     <p style={{ fontSize: '15px', color: '#555', margin: '0 0 15px 0', lineHeight: '1.4', fontStyle: 'italic' }}>
                       {ultimoEditoriale.sottotitolo}
@@ -737,7 +793,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   )}
                   <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>Scritto da <strong>{getAutore(ultimoEditoriale)}</strong></p>
                   {ultimoEditoriale.copertina && (
-                    /* MODIFICATO: Modificato il contenitore dell'immagine dell'editoriale portando l'altezza a 'auto' con altezza massima per un ridimensionamento armonioso */
                     <div style={{ width: '100%', height: 'auto', maxHeight: '400px', backgroundColor: 'transparent', borderRadius: '2px', overflow: 'hidden', marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
                       {ultimoEditoriale.copertina && (
                         <img
@@ -812,7 +867,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
               {/* SEZIONE "LE RUBRICHE" - TRASFORMATA IN UN ELENCO DI FILTRAGGIO DIRETTO */}
               {(filtroCorrente === "HOME" || filtroCorrente === "RUBRICA") && (
-                <div style={{ marginBottom: "35px" }}>
+                <div className="desktop-rubriche" style={{ marginBottom: "35px" }}>
                   <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.rubriche}`, paddingBottom: '8px', marginBottom: '15px' }}>
                     Le Rubriche
                   </h2>
@@ -871,7 +926,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                           <li key={a.id} style={listItemStyle}>
                             <span onClick={() => onReadArticle(a.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>{a.titolo}</span>
                             <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(a)}</small>
-                            {/* Badge visivo bozza per l'archivio laterale */}
                             {a.bozza === true && (
                               <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', marginLeft: '8px', display: 'inline-block' }}>
                                 BOZZA
