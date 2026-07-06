@@ -299,6 +299,16 @@ const ArticoloSingolo = ({ id, onBack }) => {
   const articleTitleEncoded = encodeURIComponent(articolo.titolo || '');
   const articleUrlEncoded = encodeURIComponent(currentArticleUrl);
 
+  // Recupera il valore della copertina grezza dalle diverse chiavi possibili
+  const rawCopertina = articolo.immagineCopertina || articolo.immagine || articolo.copertina;
+  
+  // Costruisce la sorgente corretta riconoscendo al volo se è un URL fisico o un Base64 di archivio
+  const copertinaSrc = rawCopertina ? (
+    rawCopertina.startsWith('http') || rawCopertina.startsWith('/') || rawCopertina.startsWith('blob:') || rawCopertina.startsWith('data:')
+      ? rawCopertina
+      : `data:image/jpeg;base64,${rawCopertina}`
+  ) : null;
+
   return (
     <div
       lang="it"
@@ -619,24 +629,24 @@ const ArticoloSingolo = ({ id, onBack }) => {
               </p>
             )}
             
-            {/* IMMAGINE DI COPERTINA (CORRETTA E CON FALLBACK SUI NOMI DEI CAMPI) */}
-{(articolo.immagineCopertina || articolo.immagine || articolo.copertina) && (
-  <div style={{ display: 'block', textAlign: 'center', marginBottom: '40px' }}>
-    <img
-      src={`data:image/jpeg;base64,${articolo.immagineCopertina || articolo.immagine || articolo.copertina}`}
-      alt="Immagine di copertina"
-      style={{
-        width: '70%',        // Ridimensionata al 70% della colonna principale
-        maxHeight: '400px',   // Altezza massima per non renderla mastodontica
-        objectFit: 'cover',   // Mantiene le proporzioni tagliando l'eccesso se necessario
-        borderRadius: '2px', // Angoli arrotondati in linea con lo stile del layout
-        display: 'block',
-        marginLeft: '0',      // Allinea a sinistra azzerando il margine sinistro
-        marginRight: 'auto'   // Spinge lo spazio rimanente a destra
-      }}
-    />
-  </div>
-)}
+            {/* IMMAGINE DI COPERTINA INTELLIGENTE (URL / BASE64) */}
+            {copertinaSrc && (
+              <div style={{ display: 'block', textAlign: 'center', marginBottom: '40px' }}>
+                <img
+                  src={copertinaSrc}
+                  alt="Immagine di copertina"
+                  style={{
+                    width: '70%',        // Ridimensionata al 70% della colonna principale
+                    maxHeight: '400px',   // Altezza massima per non renderla mastodontica
+                    objectFit: 'cover',   // Mantiene le proporzioni tagliando l'eccesso se necessario
+                    borderRadius: '2px',  // Angoli arrotondati in linea con lo stile del layout
+                    display: 'block',
+                    marginLeft: '0',      // Allinea a sinistra azzerando il margine sinistro
+                    marginRight: 'auto'   // Spinge lo spazio rimanente a destra
+                  }}
+                />
+              </div>
+            )}
 
             {/* AVVISO EDITORE */}
             {articolo.tipo === "SONDAGGIO" && isEditore && (
@@ -761,24 +771,22 @@ const ArticoloSingolo = ({ id, onBack }) => {
                       height: '80px',
                       borderRadius: '50%',
                       objectFit: 'cover',
-
                       marginRight: '20px'
                     }}
                     alt="Avatar"
-                    />
+                  />
                 ) : (
                   <div
                     className="author-avatar"
                     style={{
                       width: '80px',
-
                       height: '80px',
                       borderRadius: '50%',
                       background: '#ccc',
                       marginRight: '20px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifycontent: 'center',
+                      justifyContent: 'center',
                       fontWeight: 'bold',
                       color: 'white'
                     }}
@@ -795,13 +803,10 @@ const ArticoloSingolo = ({ id, onBack }) => {
                   <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>
                     Pubblicato il{' '}
                     {new Date(articolo.dataPubblicazione).toLocaleDateString('it-IT')}
-
                   </p>
                 </div>
               </div>
-
             )}
-            
           </article>
 
           {/* BANNER IN FONDO */}
