@@ -97,15 +97,32 @@ const MagazineEditor = ({ editId }) => {
     }
   }, [editId]);
 
-  const handleCoverUpload = (e) => {
+  const handleCoverUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result.split(',')[1];
-        setCopertina(base64String);
-      };
-      reader.readAsDataURL(file);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('https://magazine.skillfactory.it/api/uploads/immagine', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Salviamo l'URL reale sul server (es. data.location) invece del Base64
+          setCopertina(data.location || data.url);
+        } else {
+          setModal({ show: true, message: "Errore durante l'upload della copertina sul server.", type: 'error' });
+        }
+      } catch (error) {
+        console.error("Errore upload copertina:", error);
+        setModal({ show: true, message: "Errore di connessione per l'upload della copertina.", type: 'error' });
+      }
     }
   };
 
@@ -483,7 +500,11 @@ const MagazineEditor = ({ editId }) => {
               </div>
               {copertina && (
                 <div style={{ position: 'relative', width: '150px', height: '100px', borderRadius: '8px', border: `1px solid ${colors.border}` }}>
-                  <img src={`data:image/jpeg;base64,${copertina}`} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '7px' }} />
+                  <img
+                    src={typeof copertina === 'string' && (copertina.startsWith('http') || copertina.startsWith('/') || copertina.startsWith('blob:') || copertina.startsWith('data:')) ? copertina : `data:image/jpeg;base64,${copertina}`}
+                    alt="Preview"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '7px' }}
+                  />
                   <button
                     onClick={handleRemoveCover}
                     title="Rimuovi immagine"
@@ -627,7 +648,7 @@ const MagazineEditor = ({ editId }) => {
                     e.content = div.innerHTML;
                   });
                 }
-                
+
               }}
               onEditorChange={(newContent) => setContent(newContent)}
             />
