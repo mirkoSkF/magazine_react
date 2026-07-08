@@ -386,7 +386,7 @@ const navBarStyle = {
 };
 
 const mainContainerStyle = { 
-  paddingTop: '40px', 
+  paddingTop: '55px', 
   paddingBottom: '60px', 
   flex: '1', 
   width: '100%',               // 👈 Prende tutto lo spazio

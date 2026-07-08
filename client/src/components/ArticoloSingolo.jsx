@@ -10,7 +10,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
   // Stato sponsor
   const [sponsors, setSponsors] = useState([]);
 
-  // STATO PER IL BOTTONE TORNA SU (AGGIUNTO)
+  // STATO PER IL BOTTONE TORNA SU
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const token = localStorage.getItem('token');
@@ -138,7 +138,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
     return doc.body.innerHTML;
   };
 
-  // EFFECT PER IL MONITORAGGIO DELLO SCROLL (AGGIUNTO)
+  // EFFECT PER IL MONITORAGGIO DELLO SCROLL
   useEffect(() => {
     const checkScrollTop = () => {
       if (!showScrollTop && window.pageYOffset > 400) {
@@ -152,7 +152,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
     return () => window.removeEventListener('scroll', checkScrollTop);
   }, [showScrollTop]);
 
-  // FUNZIONE DI SCROLL AL TOP (AGGIUNTA)
+  // FUNZIONE DI SCROLL AL TOP
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -318,20 +318,49 @@ const ArticoloSingolo = ({ id, onBack }) => {
         fontFamily: 'Arial, sans-serif'
       }}
     >
+      {}
       <style>{`
-        .module-text {
+        /* Tipografia Standard Ottimizzata Desktop */
+        .article-title {
+          font-size: 36px; /* Ridotto da 42px */
+          font-weight: bold;
+          line-height: 1.25;
+          margin-bottom: 25px;
+          color: #1a1a1a;
+        }
+
+        .article-subtitle {
+          font-size: 18px; /* Ridotto da 20px */
+          color: #555;
+          line-height: 1.5;
+          margin-bottom: 25px;
+          font-style: italic;
+          font-weight: normal;
+        }
+
+        /* 
+          OVERRIDE FORZATO DEGLI STILI DI TINYMCE 
+          Previene i grandi spazi bianchi vuoti forzando la giustificazione corretta su desktop 
+          e sovrascrive i font inline salvati nel database.
+        */
+        .module-text,
+        .module-text p,
+        .module-text span,
+        .module-text div,
+        .module-text li {
+          font-size: 17px !important; /* Ridotto da 18px */
+          line-height: 1.75 !important;
           text-align: justify !important;
           text-justify: inter-word !important;
           hyphens: auto !important;
           overflow-wrap: anywhere !important;
           word-break: normal !important;
           line-break: auto !important;
-          letter-spacing: -0.1px;
-          word-spacing: -1px;
+          color: #2b2b2b !important;
         }
 
         .module-text p {
-          margin-bottom: 20px;
+          margin-bottom: 20px !important;
         }
 
         .banner-container {
@@ -394,7 +423,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
           transform: translateY(0);
         }
 
-        /* Bottone Torna Su con stili e transizioni (AGGIUNTO) */
+        /* Bottone Torna Su */
         .back-to-top-btn {
           position: fixed;
           bottom: 40px;
@@ -455,8 +484,31 @@ const ArticoloSingolo = ({ id, onBack }) => {
           }
         }
 
-        /* TABLET + MOBILE */
+        /* TABLET + MOBILE (ELIMINA GLI SPAZI ANOMALI E RIDUCE IL FONT RESPONSIVAMENTE) */
         @media (max-width: 768px) {
+          .article-title {
+            font-size: 24px !important; /* Ridotto da 28px */
+            line-height: 1.3 !important;
+            margin-bottom: 12px !important;
+          }
+          .article-subtitle {
+            font-size: 15px !important; /* Ridotto da 17px */
+            line-height: 1.45 !important;
+            margin-bottom: 15px !important;
+          }
+          
+          /* Sovrascrittura forzata per mobile per togliere i fiumi di spazio bianco */
+          .module-text,
+          .module-text p,
+          .module-text span,
+          .module-text div,
+          .module-text li {
+            font-size: 15px !important; /* Dimensione ottimale standard per mobile */
+            line-height: 1.6 !important;
+            text-align: left !important; /* Rimuove i buchi bianchi sui lati dovuti al giustificato */
+            hyphens: auto !important;
+          }
+          
           .article-container {
             flex-direction: column !important;
           }
@@ -466,9 +518,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
           article {
             padding: 0 15px !important;
             border-left: none !important;
-          }
-          .article-title {
-            font-size: 28px !important;
           }
           .banner-container {
             width: 100% !important;
@@ -485,13 +534,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
             max-width: 100% !important;
             height: auto !important;
           }
-          .module-text {
-            text-align: justify !important;
-            text-justify: inter-word !important;
-            word-spacing: -0.7px !important;
-            letter-spacing: -0.1px !important;
-            hyphens: auto !important;
-          }
           .back-to-top-btn {
             right: 20px !important;
             bottom: 20px !important;
@@ -504,6 +546,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
         }
       `}</style>
 
+      {}
       {/* NAV */}
       <nav
         style={{
@@ -529,6 +572,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
         </button>
       </nav>
 
+      {}
       {/* CONTENITORE CON LAYOUT A DUE COLONNE */}
       <div
         className="article-container"
@@ -595,36 +639,18 @@ const ArticoloSingolo = ({ id, onBack }) => {
           </button>
         </aside>
 
+        {}
         {/* COLONNA CONTENUTO ARTICOLO */}
         <div style={{ flexGrow: 1, maxWidth: '1200px' }}>
           <article style={{ margin: '40px 0', padding: '0 20px' }}>
             
-
-            <h1
-              className="article-title"
-              style={{
-                fontSize: '42px',
-                fontWeight: 'bold',
-                marginBottom: articolo.sottotitolo ? '10px' : '30px',
-                lineHeight: '1.2'
-              }}
-            >
+            <h1 className="article-title">
               {articolo.titolo}
             </h1>
 
-            {/* SOTTOTITOLO (AGGIUNTO SOTTO IL TITOLO) */}
+            {/* SOTTOTITOLO */}
             {articolo.sottotitolo && (
-              <p
-                className="article-subtitle"
-                style={{
-                  fontSize: '20px',
-                  color: '#555',
-                  lineHeight: '1.5',
-                  marginBottom: '30px',
-                  fontStyle: 'italic',
-                  fontWeight: 'normal'
-                }}
-              >
+              <p className="article-subtitle">
                 {articolo.sottotitolo}
               </p>
             )}
@@ -676,6 +702,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
               </div>
             )}
 
+            {}
             <div className="article-body">
               {articolo.moduli?.map((m, i) => {
                 if (articolo.tipo === "SONDAGGIO") {
@@ -742,13 +769,13 @@ const ArticoloSingolo = ({ id, onBack }) => {
                   <div
                     key={i}
                     className="module-text"
-                    style={{ fontSize: '18px', lineHeight: '1.7', marginBottom: '25px' }}
                     dangerouslySetInnerHTML={{ __html: forceHyphenation(m.contenuto) }}
                   />
                 );
               })}
             </div>
             
+            {}
             {/* AUTORE (MOSTRATO SOLO SE NON È UN SONDAGGIO O UN EVENTO) */}
             {articolo.tipo !== "SONDAGGIO" && articolo.tipo !== "EVENTO" && (
               <div
@@ -809,6 +836,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
             )}
           </article>
 
+          {}
           {/* BANNER IN FONDO */}
           {bottomBanners.length > 0 && (
             <div
