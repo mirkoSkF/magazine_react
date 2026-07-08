@@ -194,18 +194,41 @@ public class PaginaController {
     public ResponseEntity<String> renderSharePage(@PathVariable Long id) {
         PaginaMagazine pagina = paginaRepository.findById(id).orElse(null);
         String titolo = "Magazine Skill Factory";
+        String descrizione = "Leggi l'articolo completo sul Magazine ufficiale di Skill Factory.";
         String urlImmagine = "https://magazine.skillfactory.it/logoSF.png"; 
 
         if (pagina != null) {
-            titolo = pagina.getTitolo();
-            if (pagina.getCopertina() != null) urlImmagine = pagina.getCopertina();
+            if (pagina.getTitolo() != null) {
+                titolo = pagina.getTitolo();
+            }
+            if (pagina.getSottotitolo() != null && !pagina.getSottotitolo().trim().isEmpty()) {
+                descrizione = pagina.getSottotitolo();
+            }
+            if (pagina.getCopertina() != null && !pagina.getCopertina().trim().isEmpty()) {
+                urlImmagine = pagina.getCopertina();
+            }
         }
 
-        String html = "<!doctype html><html><head><title>" + titolo + "</title>"
-                + "<meta property='og:title' content='" + titolo + "'>"
+        // Sanitizzazione dei testi per evitare di rompere gli attributi content delle proprietà HTML
+        String titoloSanitizzato = titolo.replace("\"", "&quot;").replace("'", "&#39;");
+        String descSanitizzata = descrizione.replace("\"", "&quot;").replace("'", "&#39;");
+
+        // HTML strutturato secondo le specifiche di LinkedIn e Facebook
+        String html = "<!doctype html><html lang='it'><head>"
+                + "<meta charset='utf-8'>"
+                + "<title>" + titoloSanitizzato + "</title>"
+                + "<meta property='og:title' content='" + titoloSanitizzato + "'>"
+                + "<meta property='og:description' content='" + descSanitizzata + "'>"
                 + "<meta property='og:image' content='" + urlImmagine + "'>"
+                + "<meta property='og:url' content='https://magazine.skillfactory.it/api/pagine/share/" + id + "'>"
+                + "<meta property='og:type' content='article'>"
+                + "<meta name='twitter:card' content='summary_large_image'>"
+                + "<meta name='twitter:title' content='" + titoloSanitizzato + "'>"
+                + "<meta name='twitter:description' content='" + descSanitizzata + "'>"
+                + "<meta name='twitter:image' content='" + urlImmagine + "'>"
                 + "<script>window.location.href = 'https://magazine.skillfactory.it/?articolo=" + id + "';</script>"
                 + "</head><body></body></html>";
+                
         return ResponseEntity.ok(html);
     }
 

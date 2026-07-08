@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +27,16 @@ public class SecurityConfig {
     @Autowired
     private JwtFilter jwtFilter;
 
+    /**
+     * 🟢 BYPASS COMPLETO DEI FILTRI PER LO SHARE DEI CRAWLER (Facebook, LinkedIn, ecc.)
+     * Questo esclude l'endpoint da QUALSIASI filtro (compreso il jwtFilter), garantendo 
+     * l'accesso pubblico immediato senza eccezioni o controlli di sicurezza bloccanti.
+     */
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers("/api/pagine/share/**");
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -42,7 +53,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
 
-                // 🟢 MODIFICATO: Gestito nella catena principale per applicare CORS/CORP e servire i file fisici
+                // 🟢 Gestito nella catena principale per applicare CORS/CORP e servire i file fisici
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
@@ -69,9 +80,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/interviste/prenota").permitAll()
                 .requestMatchers("/api/interviste/elenco").authenticated()
                 .requestMatchers("/api/interviste/*").authenticated()
-
-                // --- AGGIUNTO: ROTTA PUBBLICA PER CONDIVISIONE SOCIAL (CRAWLER) ---
-                .requestMatchers(HttpMethod.GET, "/api/pagine/share/*").permitAll()
 
                 // --- PUBBLICI ---
                 .requestMatchers(HttpMethod.GET, "/api/pagine/**").permitAll()
