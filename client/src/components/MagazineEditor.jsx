@@ -488,7 +488,7 @@ const MagazineEditor = ({ editId }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#666', marginBottom: '8px', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-                  Immagine di Copertina
+                  Immagine di Copertina <span style={{color:'blue'}}>(Risoluzione consigliata: 1200 × 630 pixel)</span>
                 </label>
                 <input
                   type="file"

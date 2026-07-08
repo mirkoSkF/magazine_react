@@ -269,9 +269,9 @@ const ArticoloSingolo = ({ id, onBack }) => {
           .filter(t => t.trim() !== '');
   };
 
-  // FUNZIONE COPIA LINK
+  // FUNZIONE COPIA LINK (punta alla share page del backend)
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(currentArticleUrl)
+    navigator.clipboard.writeText(shareUrl)
       .then(() => {
         setCopiato(true);
         setTimeout(() => setCopiato(false), 2000);
@@ -294,15 +294,13 @@ const ArticoloSingolo = ({ id, onBack }) => {
   const autore = articolo.autore;
   const bottomBanners = sponsors.slice(0, 2);
 
-  // Costruzione corretta degli URL per la condivisione
-  const currentArticleUrl = `${window.location.origin}/?articolo=${id}`;
+  // 🟢 CORRETTO: Adesso punta esattamente a /api/pagine/share/{id} come definito nel controller Java
+  const shareUrl = `https://magazine.skillfactory.it/api/pagine/share/${id}`;
   const articleTitleEncoded = encodeURIComponent(articolo.titolo || '');
-  const articleUrlEncoded = encodeURIComponent(currentArticleUrl);
+  const shareUrlEncoded = encodeURIComponent(shareUrl);
 
-  // Recupera il valore della copertina grezza dalle diverse chiavi possibili
   const rawCopertina = articolo.immagineCopertina || articolo.immagine || articolo.copertina;
   
-  // Costruisce la sorgente corretta riconoscendo al volo se è un URL fisico o un Base64 di archivio
   const copertinaSrc = rawCopertina ? (
     rawCopertina.startsWith('http') || rawCopertina.startsWith('/') || rawCopertina.startsWith('blob:') || rawCopertina.startsWith('data:')
       ? rawCopertina
@@ -318,11 +316,9 @@ const ArticoloSingolo = ({ id, onBack }) => {
         fontFamily: 'Arial, sans-serif'
       }}
     >
-      {}
       <style>{`
-        /* Tipografia Standard Ottimizzata Desktop */
         .article-title {
-          font-size: 36px; /* Ridotto da 42px */
+          font-size: 36px;
           font-weight: bold;
           line-height: 1.25;
           margin-bottom: 25px;
@@ -330,7 +326,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
         }
 
         .article-subtitle {
-          font-size: 18px; /* Ridotto da 20px */
+          font-size: 18px;
           color: #555;
           line-height: 1.5;
           margin-bottom: 25px;
@@ -338,17 +334,12 @@ const ArticoloSingolo = ({ id, onBack }) => {
           font-weight: normal;
         }
 
-        /* 
-          OVERRIDE FORZATO DEGLI STILI DI TINYMCE 
-          Previene i grandi spazi bianchi vuoti forzando la giustificazione corretta su desktop 
-          e sovrascrive i font inline salvati nel database.
-        */
         .module-text,
         .module-text p,
         .module-text span,
         .module-text div,
         .module-text li {
-          font-size: 17px !important; /* Ridotto da 18px */
+          font-size: 17px !important;
           line-height: 1.75 !important;
           text-align: justify !important;
           text-justify: inter-word !important;
@@ -374,7 +365,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
           box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
         }
 
-        /* Effetti hover e transizioni per i bottoni social */
         .social-btn {
           border-radius: 50%;
           width: 46px;
@@ -398,7 +388,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
           transform: translateY(0) scale(1);
         }
 
-        /* Bottoni del sondaggio */
         .poll-option-btn {
           display: block;
           width: 100%;
@@ -423,7 +412,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
           transform: translateY(0);
         }
 
-        /* Bottone Torna Su */
         .back-to-top-btn {
           position: fixed;
           bottom: 40px;
@@ -463,7 +451,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
           transform: translateY(0);
         }
 
-        /* DESKTOP MEDIO */
         @media (min-width: 769px) and (max-width: 1024px) {
           .article-image {
             float: none !important;
@@ -484,29 +471,26 @@ const ArticoloSingolo = ({ id, onBack }) => {
           }
         }
 
-        /* TABLET + MOBILE (ELIMINA GLI SPAZI ANOMALI E RIDUCE IL FONT RESPONSIVAMENTE) */
         @media (max-width: 768px) {
           .article-title {
-            font-size: 24px !important; /* Ridotto da 28px */
+            font-size: 24px !important;
             line-height: 1.3 !important;
             margin-bottom: 12px !important;
           }
           .article-subtitle {
-            font-size: 15px !important; /* Ridotto da 17px */
+            font-size: 15px !important;
             line-height: 1.45 !important;
             margin-bottom: 15px !important;
           }
           
-          /* Sovrascrittura forzata per mobile per togliere i fiumi di spazio bianco */
           .module-text,
           .module-text p,
           .module-text span,
           .module-text div,
           .module-text li {
-            font-size: 15px !important; /* Dimensione ottimale standard per mobile */
+            font-size: 15px !important;
             line-height: 1.6 !important;
-            text-align: left !important; /* Rimuove i buchi bianchi sui lati dovuti al giustificato */
-            hyphens: auto !important;
+            text-align: left !important;
           }
           
           .article-container {
@@ -546,7 +530,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
         }
       `}</style>
 
-      {}
       {/* NAV */}
       <nav
         style={{
@@ -572,8 +555,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
         </button>
       </nav>
 
-      {}
-      {/* CONTENITORE CON LAYOUT A DUE COLONNE */}
+      {/* CONTENITORE */}
       <div
         className="article-container"
         style={{
@@ -585,7 +567,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
           position: 'relative'
         }}
       >
-        {"\n"}
         {/* BARRA LATERALE CONDIVISIONE */}
         <aside
           className="sidebar-share"
@@ -601,9 +582,11 @@ const ArticoloSingolo = ({ id, onBack }) => {
             height: 'fit-content'
           }}
         >
+        
+
           {/* WhatsApp */}
           <a
-            href={`https://api.whatsapp.com/send?text=${articleTitleEncoded}%20${articleUrlEncoded}`}
+            href={`https://api.whatsapp.com/send?text=${articleTitleEncoded}%20${shareUrlEncoded}`}
             target="_blank"
             role="noopener noreferrer"
             title="Condividi su WhatsApp"
@@ -639,8 +622,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
           </button>
         </aside>
 
-        {}
-        {/* COLONNA CONTENUTO ARTICOLO */}
+        {/* CONTENUTO ARTICOLO */}
         <div style={{ flexGrow: 1, maxWidth: '1200px' }}>
           <article style={{ margin: '40px 0', padding: '0 20px' }}>
             
@@ -655,20 +637,20 @@ const ArticoloSingolo = ({ id, onBack }) => {
               </p>
             )}
             
-            {/* IMMAGINE DI COPERTINA INTELLIGENTE (URL / BASE64) */}
+            {/* IMMAGINE DI COPERTINA */}
             {copertinaSrc && (
               <div style={{ display: 'block', textAlign: 'center', marginBottom: '40px' }}>
                 <img
                   src={copertinaSrc}
                   alt="Immagine di copertina"
                   style={{
-                    width: '70%',        // Ridimensionata al 70% della colonna principale
-                    maxHeight: '400px',   // Altezza massima per non renderla mastodontica
-                    objectFit: 'cover',   // Mantiene le proporzioni tagliando l'eccesso se necessario
-                    borderRadius: '2px',  // Angoli arrotondati in linea con lo stile del layout
+                    width: '70%',
+                    maxHeight: '400px',
+                    objectFit: 'cover',
+                    borderRadius: '2px',
                     display: 'block',
-                    marginLeft: '0',      // Allinea a sinistra azzerando il margine sinistro
-                    marginRight: 'auto'   // Spinge lo spazio rimanente a destra
+                    marginLeft: '0',
+                    marginRight: 'auto'
                   }}
                 />
               </div>
@@ -702,7 +684,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
               </div>
             )}
 
-            {}
             <div className="article-body">
               {articolo.moduli?.map((m, i) => {
                 if (articolo.tipo === "SONDAGGIO") {
@@ -775,8 +756,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
               })}
             </div>
             
-            {}
-            {/* AUTORE (MOSTRATO SOLO SE NON È UN SONDAGGIO O UN EVENTO) */}
+            {/* AUTORE */}
             {articolo.tipo !== "SONDAGGIO" && articolo.tipo !== "EVENTO" && (
               <div
                 style={{
@@ -836,8 +816,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
             )}
           </article>
 
-          {}
-          {/* BANNER IN FONDO */}
+          {/* BANNER SPONSOR IN FONDO */}
           {bottomBanners.length > 0 && (
             <div
               style={{
@@ -879,7 +858,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
         </div>
       </div>
 
-      {/* BOTTONE TORNA SU (AGGIUNTO) */}
+      {/* BOTTONE TORNA SU */}
       <button
         onClick={scrollToTop}
         className={`back-to-top-btn ${showScrollTop ? 'visible' : ''}`}
