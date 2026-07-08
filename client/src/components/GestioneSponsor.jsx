@@ -12,6 +12,10 @@ const GestioneSponsor = ({ colors }) => {
   });
 
   const [loading, setLoading] = useState(false);
+  
+  // Stati per gestire il file binario reale e la sua anteprima grafica locale
+  const [immagineFile, setImmagineFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
 
   // --- STATO PER MODAL CUSTOM ---
   const [modal, setModal] = useState({ 
@@ -62,14 +66,12 @@ const GestioneSponsor = ({ colors }) => {
     return () => clearInterval(interval);
   }, []);
 
+  // Gestione del file: estrae il file binario reale e imposta una preview temporanea
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setForm(prev => ({ ...prev, bannerImage: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      setImmagineFile(file);
+      setPreviewUrl(URL.createObjectURL(file)); // Crea un URL locale temporaneo per la preview grafica
     }
   };
 
@@ -94,13 +96,38 @@ const GestioneSponsor = ({ colors }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading || isLimitReached) return;
-    if (!form.bannerImage || form.bannerImage.trim() === '') {
+    if (!immagineFile) {
       return customAlert("Per favore, carica un'immagine per il banner.");
     }
 
     setLoading(true);
     try {
-      const payload = { ...form, posizione: form.tipoPagina === 'ARTICOLO' ? 'BOTTOM' : form.posizione };
+      // 1. CARICAMENTO DEL FILE REALE SUL SERVER MEDIANTE UPLOADCONTROLLER
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", immagineFile);
+
+      const uploadRes = await fetch('https://magazine.skillfactory.it/api/uploads/immagine', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataUpload
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Impossibile caricare il file dell'immagine sul server remoto.");
+      }
+
+      const uploadData = await uploadRes.json();
+      const urlImmagineSalvata = uploadData.location; // Estrae il percorso web assoluto fornito dal server
+
+      // 2. SALVATAGGIO DELLO SPONSOR TRAMITE IL PAYLOAD JSON ORDINARIO
+      const payload = { 
+        ...form, 
+        posizione: form.tipoPagina === 'ARTICOLO' ? 'BOTTOM' : form.posizione,
+        bannerImage: urlImmagineSalvata // Assegna il link reale salvato sul filesystem del server
+      };
+
       const res = await fetch('https://magazine.skillfactory.it/api/sponsors', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -115,11 +142,18 @@ const GestioneSponsor = ({ colors }) => {
         } else {
           await caricaSponsors();
         }
+        
+        // Reset completo del form e degli stati dei file
         setForm({ nomeAzienda: '', linkSito: '', tipoPagina: 'HOME', posizione: 'SIDEBAR', bannerImage: '', attivo: true });
+        setImmagineFile(null);
+        setPreviewUrl('');
         if (fileInputRef.current) fileInputRef.current.value = '';
+      } else {
+        customAlert("Errore durante la registrazione dello sponsor a database.");
       }
     } catch (err) {
       console.error("Errore nel salvataggio:", err);
+      customAlert(err.message || "Errore di connessione durante l'inserimento dello sponsor.");
     } finally {
       setLoading(false);
     }
@@ -223,9 +257,10 @@ const GestioneSponsor = ({ colors }) => {
             <label style={labelStyle}>Nome Azienda</label>
             <input type="text" value={form.nomeAzienda} onChange={e => setForm({ ...form, nomeAzienda: e.target.value })} required style={inputStyle} placeholder="Es: Skill Factory SRL" />
           </div>
+          {/* CAMBIATO IN TYPE="TEXT" PER EVITARE I BLOCCHI SULL'URL SENZA HTTPS:// */}
           <div>
             <label style={labelStyle}>Link Sito Web</label>
-            <input type="url" value={form.linkSito} onChange={e => setForm({ ...form, linkSito: e.target.value })} required style={inputStyle} placeholder="https://..." />
+            <input type="text" value={form.linkSito} onChange={e => setForm({ ...form, linkSito: e.target.value })} required style={inputStyle} placeholder="Es: https://www.google.it" />
           </div>
         </div>
 
@@ -247,10 +282,18 @@ const GestioneSponsor = ({ colors }) => {
             </div>
           )}
           <div>
-            <label style={labelStyle}>Banner (Immagine)</label>
+            <label style={labelStyle}>Banner (Immagine Reale)</label>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} style={{ fontSize: '12px', width: '100%' }} />
           </div>
         </div>
+
+        {/* Anteprima grafica locale dell'immagine prima del salvataggio */}
+        {previewUrl && (
+          <div style={{ marginTop: '10px', marginBottom: '5px', textAlign: 'center', padding: '10px', border: '1px dashed #ccc', borderRadius: '8px', backgroundColor: '#fafafa' }}>
+            <span style={{ ...labelStyle, marginBottom: '8px' }}>Anteprima del Banner caricato:</span>
+            <img src={previewUrl} alt="Anteprima locale" style={{ maxWidth: '100%', maxHeight: '110px', objectFit: 'contain', borderRadius: '4px', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }} />
+          </div>
+        )}
 
         {isLimitReached && (
           <div style={{ background: '#fff3cd', border: '1px solid #ffe69c', color: '#856404', padding: '12px 15px', borderRadius: '8px', fontSize: '13px', fontWeight: '600' }}>
@@ -260,7 +303,7 @@ const GestioneSponsor = ({ colors }) => {
 
         <button type="submit" disabled={isLimitReached || loading} className={`sponsor-btn ${isLimitReached ? 'disabled-btn' : ''}`}
           style={{ background: isLimitReached ? '#b5b5b5' : colors.success, color: 'white', border: 'none', padding: '14px', borderRadius: '8px', cursor: isLimitReached ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '14px', marginTop: '10px' }}>
-          {loading ? 'Caricamento...' : '+ AGGIUNGI SPONSOR NELL\'ELENCO'}
+          {loading ? 'Caricamento file e salvataggio...' : '+ AGGIUNGI SPONSOR NELL\'ELENCO'}
         </button>
       </form>
 
