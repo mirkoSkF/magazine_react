@@ -454,7 +454,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       `}</style>
 
       {/* BARRA NOSTRA IDENTITA' */}
-      <div style={{ width: "100%", marginTop: "20px", marginBottom: "10px", boxSizing: "border-box" }}>
+      <div style={{ width: "100%", margin:"0", padding:"0", boxSizing: "border-box" }}>
         <img
           src="/barra.png"
           alt="Barra Identità Skill Factory"
@@ -700,11 +700,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                           return (
                             <li key={ev.id} style={listItemStyle}>
                               <span onClick={() => onReadArticle(ev.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📅 {ev.titolo}</span>
-                              {dataString && (
-                                <small style={{ color: '#888', fontStyle: 'italic', display: 'block', marginLeft: '22px' }}>
-                                  Pubblicato il: {dataFormattata}
-                                </small>
-                              )}
+                             
                             </li>
                           );
                         })}
