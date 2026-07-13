@@ -205,7 +205,7 @@ const Login = ({ onLoginSuccess, colors }) => {
           <input
             type="text"
             className="login-input"
-            placeholder="nome.cognome"
+            placeholder="User"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             style={{ ...inputStyle(colors), transition: 'all 0.3s', paddingRight: '45px' }}

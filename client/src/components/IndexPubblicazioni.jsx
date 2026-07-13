@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
+
 const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [tuttiContenuti, setTuttiContenuti] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -9,6 +10,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [pageRubriche, setPageRubriche] = useState(1);
   const [pageSondaggi, setPageSondaggi] = useState(1);
   const [pageEditoriali, setPageEditoriali] = useState(1);
+  const [pageEventi, setPageEventi] = useState(1);
   const [showCookieBanner, setShowCookieBanner] = useState(true);
 
   const [sponsorLaterale, setSponsorLaterale] = useState([]);
@@ -16,6 +18,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const itemsPerPage = 5;
+  const eventiPerPage = 3; // <-- Impostato il limite massimo di 3 eventi per pagina
   const fetchAvviata = useRef(false);
   // Lista delle rubriche censite nell'applicazione
   const listaRubriche = [
@@ -194,6 +197,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     }
     return true;
   });
+  
   const soloSondaggi = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
   const soloEditoriali = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "EDITORIALE");
   const soloEventi = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "EVENTO");
@@ -205,13 +209,19 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   let ultimoContenutoPrincipale = null;
   if (rubricaAttiva !== "") {
     ultimoContenutoPrincipale = soloRubriche[0] || null;
+  } else if (filtroCorrente === "EVENTI") {
+    ultimoContenutoPrincipale = soloEventi[0] || null;
   } else {
     ultimoContenutoPrincipale = soloArticoli[0] || null;
   }
 
   const eventiSidebar = soloEventi;
 
-  const idArticoloCentrale = (rubricaAttiva === "" && ultimoContenutoPrincipale) ? ultimoContenutoPrincipale.id : null;
+  // Utilizza eventiPerPage (3) invece di itemsPerPage (5)
+  const totalPagesEventi = Math.ceil(eventiSidebar.length / eventiPerPage);
+  const currentEventiSidebar = eventiSidebar.slice((pageEventi - 1) * eventiPerPage, pageEventi * eventiPerPage);
+
+  const idArticoloCentrale = (rubricaAttiva === "" && ultimoContenutoPrincipale && filtroCorrente !== "EVENTI") ? ultimoContenutoPrincipale.id : null;
   const articoliSenzaCentrale = idArticoloCentrale ? soloArticoli.filter(a => a.id !== idArticoloCentrale) : soloArticoli;
 
   const evidenza = (filtroCorrente === "HOME" && rubricaAttiva === "") ? articoliSenzaCentrale.slice(0, 3) : [];
@@ -242,7 +252,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
   const ultimoSondaggio = soloSondaggi[0];
 
-  const contenutiFiltrati = contenutiPubblicatiBase.filter(item => {
+  const contenidosFiltrati = contenutiPubblicatiBase.filter(item => {
     if (rubricaAttiva !== "") return normalizzaStringa(item.rubrica) === normalizzaStringa(rubricaAttiva);
     if (filtroCorrente === "NEWS") return item.tipo?.toUpperCase() === "ARTICOLO" && (!item.rubrica || item.rubrica.trim() === "");
     if (filtroCorrente === "EVENTI") return item.tipo?.toUpperCase() === "EVENTO";
@@ -321,7 +331,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   };
 
   return (
-    <div lang="it" style={{ maxWidth: "1150px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif", position: "relative" }}>
+    <div className="main-index-container" lang="it" style={{ maxWidth: "1180px", margin: "20px auto", padding: "0 20px", fontFamily: "Arial, sans-serif", position: "relative" }}>
       <style>{`
         @media (max-width: 992px) {
           .main-layout { grid-template-columns: 1fr !important; }
@@ -351,6 +361,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           .grid-evidenza { grid-template-columns: 1fr !important; gap: 20px !important; }
           .main-title { font-size: 32px !important; }
           .main-image-container { height: auto !important; }
+          .main-index-container { max-width: 100% !important; padding: 0 10px !important; margin: 10px auto !important; }
         }
 
         .read-more-btn:hover {
@@ -403,7 +414,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         .back-to-top-btn {
           position: fixed;
           bottom: 40px;
-          right: 20px; /* <--- Fix Mobile: distanza fissa dal bordo destro */
+          right: 20px;
           z-index: 999;
           background-color: #007bff;
           color: white;
@@ -423,7 +434,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           transform: translateY(20px);
         }
 
-        /* <--- Fix Desktop: Riporta la formula originale solo su schermi grandi */
         @media (min-width: 1200px) {
           .back-to-top-btn {
             right: calc(50% - 600px + 20px); 
@@ -443,6 +453,22 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
         }
       `}</style>
 
+      {/* BARRA NOSTRA IDENTITA' */}
+      <div style={{ width: "100%", marginTop: "20px", marginBottom: "10px", boxSizing: "border-box" }}>
+        <img
+          src="/barra.png"
+          alt="Barra Identità Skill Factory"
+          style={{
+            width: window.innerWidth <= 768 ? "92%" : "550px",
+            maxWidth: "100%",
+            height: "auto",
+            display: "block",
+            margin: "0 auto"
+          }}
+        />
+      </div>
+
+
       {/* BARRA DI RICERCA */}
       <div style={{ marginTop: "5%", marginBottom: "30px", display: "flex", justifyContent: "center", width: "100%", boxSizing: "border-box" }}>
         <input
@@ -459,7 +485,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       <div style={{ display: "flex", justifyContent: "center", gap: "30px", marginBottom: "30px", flexWrap: "wrap", fontWeight: "bold" }}>
         <span style={getNavbarItemStyle(filtroCorrente === "NEWS" && rubricaAttiva === "")} onClick={() => { setFiltroCorrente("NEWS"); setRubricaAttiva(""); setPageArticoli(1); }}>News</span>
         <span onClick={() => { setFiltroCorrente("RUBRICA"); setRubricaAttiva("FORMATORE"); setPageRubriche(1); }} style={{ ...getNavbarItemStyle(filtroCorrente === "RUBRICA" && rubricaAttiva === "FORMATORE"), cursor: "pointer" }}>Rubriche</span>
-        <span style={getNavbarItemStyle(filtroCorrente === "EVENTI" && rubricaAttiva === "")} onClick={() => { setFiltroCorrente("EVENTI"); setRubricaAttiva(""); }}>Eventi</span>
+        <span style={getNavbarItemStyle(filtroCorrente === "EVENTI" && rubricaAttiva === "")} onClick={() => { setFiltroCorrente("EVENTI"); setRubricaAttiva(""); setPageEventi(1); }}>Eventi</span>
         <span style={getNavbarItemStyle(filtroCorrente === "EDITORIALI" && rubricaAttiva === "")} onClick={() => { setFiltroCorrente("EDITORIALI"); setRubricaAttiva(""); setPageEditoriali(1); }}>Editoriali</span>
         <span style={getNavbarItemStyle(filtroCorrente === "HOME" && rubricaAttiva === "")} onClick={() => { setFiltroCorrente("HOME"); setRubricaAttiva(""); }}>Tutto</span>
       </div>
@@ -520,17 +546,57 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                 )}
               </div>
 
-              {filtroCorrente !== "EDITORIALI" && filtroCorrente !== "EVENTI" && ultimoContenutoPrincipale && (
+              {filtroCorrente !== "EDITORIALI" && ultimoContenutoPrincipale && (
                 <div style={{ border: `1px solid ${colors.border}`, padding: '20px', borderRadius: '8px', marginBottom: '40px' }}>
-                  <div style={{ backgroundColor: rubricaAttiva !== "" ? colors.rubriche : colors.accent, color: 'white', display: 'inline-block', padding: '4px 12px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', borderRadius: '2px', textTransform: "uppercase" }}>{rubricaAttiva !== "" ? `RUBRICA: ${getNomeRubrica(rubricaAttiva)}` : "ULTIMO ARTICOLO"}</div>
-                  <h1 className="main-title" style={{ fontSize: '32px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>{ultimoContenutoPrincipale.titolo}</h1>
-                  {ultimoContenutoPrincipale.sottotitolo && <p style={{ fontSize: '15px', color: '#555', margin: '-10px 0 20px 0', lineHeight: '1.4', fontWeight: 'normal', fontStyle: 'italic' }}>{ultimoContenutoPrincipale.sottotitolo}</p>}
-                  <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>Scritto da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>{ultimoContenutoPrincipale.bozza === true && <span style={{ marginLeft: '10px', backgroundColor: '#e74c3c', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>BOZZA</span>}</p>
-                  <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '2px', overflow: 'hidden', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {ultimoContenutoPrincipale.copertina && <img src={ultimoContenutoPrincipale.copertina.startsWith('http') ? ultimoContenutoPrincipale.copertina : `data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Main" />}
+                  <div style={{ 
+                    backgroundColor: rubricaAttiva !== "" ? colors.rubriche : (filtroCorrente === "EVENTI" ? colors.accent : colors.accent), 
+                    color: 'white', 
+                    display: 'inline-block', 
+                    padding: '4px 12px', 
+                    fontSize: '12px', 
+                    fontWeight: 'bold', 
+                    marginBottom: '15px', 
+                    borderRadius: '2px', 
+                    textTransform: "uppercase" 
+                  }}>
+                    {rubricaAttiva !== "" ? `RUBRICA: ${getNomeRubrica(rubricaAttiva)}` : (filtroCorrente === "EVENTI" ? "ULTIMO EVENTO" : "ULTIMO ARTICOLO")}
                   </div>
+                  
+                  <h1 className="main-title" style={{ fontSize: '32px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
+                    {ultimoContenutoPrincipale.titolo}
+                  </h1>
+                  
+                  {ultimoContenutoPrincipale.sottotitolo && (
+                    <p style={{ fontSize: '15px', color: '#555', margin: '-10px 0 20px 0', lineHeight: '1.4', fontWeight: 'normal', fontStyle: 'italic' }}>
+                      {ultimoContenutoPrincipale.sottotitolo}
+                    </p>
+                  )}
+                  
+                  <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
+                    Inserito da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
+                    {ultimoContenutoPrincipale.bozza === true && (
+                      <span style={{ marginLeft: '10px', backgroundColor: '#e74c3c', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>BOZZA</span>
+                    )}
+                  </p>
+                  
+                  {ultimoContenutoPrincipale.copertina && (
+                    <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '2px', overflow: 'hidden', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src={ultimoContenutoPrincipale.copertina.startsWith('http') ? ultimoContenutoPrincipale.copertina : `data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Copertina" />
+                    </div>
+                  )}
+                  
                   <div style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }} dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoContenutoPrincipale, 600)) }} />
-                  <button className="read-more-btn" onClick={() => onReadArticle(ultimoContenutoPrincipale.id)} style={{ padding: '12px 30px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>Continua a leggere</button>
+                  
+                  <button className="read-more-btn" onClick={() => onReadArticle(ultimoContenutoPrincipale.id)} style={{ padding: '12px 30px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                    {filtroCorrente === "EVENTI" ? "Dettagli Evento" : "Continua a leggere"}
+                  </button>
+                </div>
+              )}
+
+              {filtroCorrente === "EVENTI" && !ultimoContenutoPrincipale && (
+                <div style={{ border: `1px dashed ${colors.border}`, padding: '40px 20px', borderRadius: '8px', marginBottom: '40px', textAlign: 'center', backgroundColor: colors.lightGray }}>
+                  <h3 style={{ color: '#666', margin: '10px 0' }}>Nessun evento disponibile</h3>
+                  <p style={{ color: '#999', fontSize: '14px' }}>Non ci sono ancora eventi pubblicati in questa sezione.</p>
                 </div>
               )}
 
@@ -549,13 +615,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     ))}
                   </div>
                   <Pagination total={totalPagesRubriche} current={pageRubriche} setPage={setPageRubriche} />
-                </div>
-              )}
-
-              {filtroCorrente === "EVENTI" && (
-                <div style={{ border: `1px solid ${colors.border}`, padding: '30px', borderRadius: '8px', marginBottom: '40px', backgroundColor: colors.lightGray, textAlign: 'center' }}>
-                  <h2 style={{ color: colors.dark, marginBottom: '10px' }}>Calendario Eventi della Skill Factory</h2>
-                  <p style={{ color: '#555', fontSize: '15px' }}>Trovi l'elenco completo di tutti i nostri appuntamenti, workshop e webinar all'interno della barra laterale dedicata.</p>
                 </div>
               )}
 
@@ -620,16 +679,40 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
               {(filtroCorrente === "HOME" || filtroCorrente === "EVENTI") && rubricaAttiva === "" && (
                 <div style={{ marginTop: filtroCorrente === "EVENTI" ? '0px' : '45px' }}>
                   <h2 style={{ fontSize: '20px', borderBottom: `2px solid ${colors.accent}`, paddingBottom: '8px', marginBottom: '15px' }}>Eventi</h2>
-                  {eventiSidebar.length > 0 ? (
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                      {eventiSidebar.map(ev => (
-                        <li key={ev.id} style={listItemStyle}>
-                          <span onClick={() => onReadArticle(ev.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📅 {ev.titolo}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  {currentEventiSidebar.length > 0 ? (
+                    <>
+                      <ul style={{ listStyle: 'none', padding: 0 }}>
+                        {currentEventiSidebar.map(ev => {
+                          const dataString = ev.dataPubblicazione || ev.data;
+                          let dataFormattata = dataString;
+
+                          if (dataString) {
+                            try {
+                              const d = new Date(dataString);
+                              if (!isNaN(d.getTime())) {
+                                dataFormattata = d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" });
+                              }
+                            } catch (e) {
+                              dataFormattata = dataString;
+                            }
+                          }
+
+                          return (
+                            <li key={ev.id} style={listItemStyle}>
+                              <span onClick={() => onReadArticle(ev.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📅 {ev.titolo}</span>
+                              {dataString && (
+                                <small style={{ color: '#888', fontStyle: 'italic', display: 'block', marginLeft: '22px' }}>
+                                  Pubblicato il: {dataFormattata}
+                                </small>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      <Pagination total={totalPagesEventi} current={pageEventi} setPage={setPageEventi} />
+                    </>
                   ) : (
-                    <p style={{ fontSize: '13px', color: '#999' }}>Nessun evento in programma.</p>
+                    <p style={{ fontSize: '13px', color: '#999', marginBottom: '25px' }}>Nessun evento in programma.</p>
                   )}
                 </div>
               )}

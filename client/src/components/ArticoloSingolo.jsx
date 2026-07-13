@@ -264,9 +264,9 @@ const ArticoloSingolo = ({ id, onBack }) => {
     return items.length > 0
       ? items
       : htmlContent
-          .replace(/<[^>]*>/g, '')
-          .split('\n')
-          .filter(t => t.trim() !== '');
+        .replace(/<[^>]*>/g, '')
+        .split('\n')
+        .filter(t => t.trim() !== '');
   };
 
   // FUNZIONE COPIA LINK (punta alla share page del backend)
@@ -294,13 +294,13 @@ const ArticoloSingolo = ({ id, onBack }) => {
   const autore = articolo.autore;
   const bottomBanners = sponsors.slice(0, 2);
 
-  // 🟢 CORRETTO: Adesso punta esattamente a /api/pagine/share/{id} come definito nel controller Java
+  // Punta esattamente a /api/pagine/share/{id} come definito nel controller Java
   const shareUrl = `https://magazine.skillfactory.it/api/pagine/share/${id}`;
   const articleTitleEncoded = encodeURIComponent(articolo.titolo || '');
   const shareUrlEncoded = encodeURIComponent(shareUrl);
 
   const rawCopertina = articolo.immagineCopertina || articolo.immagine || articolo.copertina;
-  
+
   const copertinaSrc = rawCopertina ? (
     rawCopertina.startsWith('http') || rawCopertina.startsWith('/') || rawCopertina.startsWith('blob:') || rawCopertina.startsWith('data:')
       ? rawCopertina
@@ -334,9 +334,20 @@ const ArticoloSingolo = ({ id, onBack }) => {
           font-weight: normal;
         }
 
+        /* Stile per l'immagine di copertina principale */
+        .main-cover-image {
+          width: 70%;
+          max-height: 400px;
+          object-fit: cover;
+          border-radius: 2px;
+          display: block;
+          margin-left: 0;
+          margin-right: auto;
+        }
+
+        /* Stile base del contenuto dell'articolo */
         .module-text,
         .module-text p,
-        .module-text span,
         .module-text div,
         .module-text li {
           font-size: 17px !important;
@@ -347,8 +358,9 @@ const ArticoloSingolo = ({ id, onBack }) => {
           overflow-wrap: anywhere !important;
           word-break: normal !important;
           line-break: auto !important;
-          color: #2b2b2b !important;
+          color: #2b2b2b;
         }
+
 
         .module-text p {
           margin-bottom: 20px !important;
@@ -463,6 +475,10 @@ const ArticoloSingolo = ({ id, onBack }) => {
             max-width: 60% !important;
             height: auto !important;
           }
+          .main-cover-image {
+            width: 100% !important;
+            max-height: 350px !important;
+          }
           .banner-container {
             width: 85% !important;
           }
@@ -483,6 +499,12 @@ const ArticoloSingolo = ({ id, onBack }) => {
             margin-bottom: 15px !important;
           }
           
+          /* Forza la copertina al 100% su smartphone per non farla rimpicciolire */
+          .main-cover-image {
+            width: 100% !important;
+            max-height: 280px !important;
+          }
+
           .module-text,
           .module-text p,
           .module-text span,
@@ -542,7 +564,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
         <button
           onClick={onBack}
           style={{
-            marginTop:'2%',
+            marginTop: '2%',
             background: 'none',
             border: 'none',
             color: '#007bff',
@@ -559,7 +581,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
       <div
         className="article-container"
         style={{
-          maxWidth: '1000px',
+          maxWidth: '1200px',
           margin: '0 auto',
           padding: '0 20px',
           display: 'flex',
@@ -582,8 +604,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
             height: 'fit-content'
           }}
         >
-        
-
           {/* WhatsApp */}
           <a
             href={`https://api.whatsapp.com/send?text=${articleTitleEncoded}%20${shareUrlEncoded}`}
@@ -594,7 +614,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
             style={{ backgroundColor: '#25D366' }}
           >
             <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.503-5.734-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.963C16.528 1.981 14.062.953 11.453.953c-5.441 0-9.866 4.372-9.87 9.802-.001 1.777.475 3.51 1.378 5.042l-.95 3.472 3.593-.933zM17.3 14.38c-.32-.16-1.89-.93-2.185-1.04-.294-.11-.51-.16-.724.16-.214.32-.83 1.04-1.016 1.25-.187.21-.374.24-.694.08-.32-.16-1.353-.5-2.577-1.6-.952-.85-1.594-1.9-1.782-2.22-.187-.32-.02-.49.14-.65.144-.14.32-.37.48-.56.16-.19.21-.32.32-.54.11-.22.05-.41-.03-.57-.08-.16-.724-1.75-.992-2.4-.26-.63-.526-.55-.724-.56-.187-.01-.4-.01-.614-.01-.214 0-.56.08-.854.4-.294.32-1.123 1.1-1.123 2.68 0 1.58 1.15 3.11 1.31 3.32.16.22 2.26 3.45 5.476 4.84.765.33 1.363.53 1.83.68.77.24 1.472.21 2.025.13.617-.09 1.89-.77 2.156-1.48.266-.71.266-1.32.187-1.45-.08-.13-.294-.21-.614-.37z"/>
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.503-5.734-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.963C16.528 1.981 14.062.953 11.453.953c-5.441 0-9.866 4.372-9.87 9.802-.001 1.777.475 3.51 1.378 5.042l-.95 3.472 3.593-.933zM17.3 14.38c-.32-.16-1.89-.93-2.185-1.04-.294-.11-.51-.16-.724.16-.214.32-.83 1.04-1.016 1.25-.187.21-.374.24-.694.08-.32-.16-1.353-.5-2.577-1.6-.952-.85-1.594-1.9-1.782-2.22-.187-.32-.02-.49.14-.65.144-.14.32-.37.48-.56.16-.19.21-.32.32-.54.11-.22.05-.41-.03-.57-.08-.16-.724-1.75-.992-2.4-.26-.63-.526-.55-.724-.56-.187-.01-.4-.01-.614-.01-.214 0-.56.08-.854.4-.294.32-1.123 1.1-1.123 2.68 0 1.58 1.15 3.11 1.31 3.32.16.22 2.26 3.45 5.476 4.84.765.33 1.363.53 1.83.68.77.24 1.472.21 2.025.13.617-.09 1.89-.77 2.156-1.48.266-.71.266-1.32.187-1.45-.08-.13-.294-.21-.614-.37z" />
             </svg>
           </a>
 
@@ -603,8 +623,8 @@ const ArticoloSingolo = ({ id, onBack }) => {
             onClick={handleCopyLink}
             title="Copia link articolo"
             className="social-btn"
-            style={{ 
-              backgroundColor: copiato ? '#28a745' : '#6c757d', 
+            style={{
+              backgroundColor: copiato ? '#28a745' : '#6c757d',
               border: 'none',
               cursor: 'pointer',
               transition: 'background-color 0.3s ease'
@@ -612,11 +632,11 @@ const ArticoloSingolo = ({ id, onBack }) => {
           >
             {copiato ? (
               <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
               </svg>
             ) : (
               <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
               </svg>
             )}
           </button>
@@ -625,7 +645,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
         {/* CONTENUTO ARTICOLO */}
         <div style={{ flexGrow: 1, maxWidth: '1200px' }}>
           <article style={{ margin: '40px 0', padding: '0 20px' }}>
-            
+
             <h1 className="article-title">
               {articolo.titolo}
             </h1>
@@ -636,22 +656,14 @@ const ArticoloSingolo = ({ id, onBack }) => {
                 {articolo.sottotitolo}
               </p>
             )}
-            
+
             {/* IMMAGINE DI COPERTINA */}
             {copertinaSrc && (
               <div style={{ display: 'block', textAlign: 'center', marginBottom: '40px' }}>
                 <img
                   src={copertinaSrc}
                   alt="Immagine di copertina"
-                  style={{
-                    width: '70%',
-                    maxHeight: '400px',
-                    objectFit: 'cover',
-                    borderRadius: '2px',
-                    display: 'block',
-                    marginLeft: '0',
-                    marginRight: 'auto'
-                  }}
+                  className="main-cover-image"
                 />
               </div>
             )}
@@ -755,7 +767,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
                 );
               })}
             </div>
-            
+
             {/* AUTORE */}
             {articolo.tipo !== "SONDAGGIO" && articolo.tipo !== "EVENTO" && (
               <div
