@@ -573,7 +573,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   )}
                   
                   <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
-                    Inserito da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
+                    Scritto da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
                     {ultimoContenutoPrincipale.bozza === true && (
                       <span style={{ marginLeft: '10px', backgroundColor: '#e74c3c', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>BOZZA</span>
                     )}
