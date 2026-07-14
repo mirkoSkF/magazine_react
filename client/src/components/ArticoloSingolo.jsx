@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 
-const ArticoloSingolo = ({ id, onBack }) => {
+const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
+  // Gestiamo l'ID corrente con uno stato interno per slegarci dal Padre ed evitare blocchi di navigazione
+  const [currentId, setCurrentId] = useState(id);
+  
   const [articolo, setArticolo] = useState(null);
   const [votoEffettuato, setVotoEffettuato] = useState(false);
   const [stats, setStats] = useState({});
@@ -12,6 +15,9 @@ const ArticoloSingolo = ({ id, onBack }) => {
 
   // STATO PER IL BOTTONE TORNA SU
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Stato per gli articoli consigliati "Potrebbero interessarti"
+  const [articoliConsigliati, setArticoliConsigliati] = useState([]);
 
   const token = localStorage.getItem('token');
   const ruolo = localStorage.getItem('ruolo');
@@ -37,9 +43,16 @@ const ArticoloSingolo = ({ id, onBack }) => {
     return `dev_${Math.abs(hash)}`;
   }, []);
 
+  // Sincronizziamo lo stato interno se la prop "id" proveniente dal Padre cambia
+  useEffect(() => {
+    if (id) {
+      setCurrentId(id);
+    }
+  }, [id]);
+
   const voteKey = useMemo(
-    () => `poll_voted_${id}_${deviceId}`,
-    [id, deviceId]
+    () => `poll_voted_${currentId}_${deviceId}`,
+    [currentId, deviceId]
   );
 
   // CLICK BANNER
@@ -152,18 +165,22 @@ const ArticoloSingolo = ({ id, onBack }) => {
     return () => window.removeEventListener('scroll', checkScrollTop);
   }, [showScrollTop]);
 
-  // FUNZIONE DI SCROLL AL TOP
+  // FUNZIONE DI SCROLL AL TOP ISTANTANEO
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: 'auto'
     });
   };
 
+  // CARICAMENTO DATI
   useEffect(() => {
-    if (id) {
+    if (currentId) {
+      setArticolo(null);
+      setVotoEffettuato(false);
+
       fetch(
-        `https://magazine.skillfactory.it/api/pagine/${id}/view`,
+        `https://magazine.skillfactory.it/api/pagine/${currentId}/view`,
         { method: 'PUT' }
       ).catch(err => console.error(err));
 
@@ -175,7 +192,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
       }
 
       fetch(
-        `https://magazine.skillfactory.it/api/pagine/${id}?fingerprint=${deviceId}`
+        `https://magazine.skillfactory.it/api/pagine/${currentId}?fingerprint=${deviceId}`
       )
         .then(res => res.json())
         .then(data => {
@@ -207,8 +224,22 @@ const ArticoloSingolo = ({ id, onBack }) => {
         .catch(err =>
           console.error("Errore sponsor:", err)
         );
+
+      // Recupera gli articoli per la sezione "Potrebbero interessarti"
+      fetch('https://magazine.skillfactory.it/api/pagine')
+        .then(res => res.json())
+        .then(data => {
+          const correlati = data
+            .filter(art => art.id !== parseInt(currentId) && art.tipo === 'ARTICOLO')
+            .sort((a, b) => b.id - a.id)
+            .slice(0, 5);
+          setArticoliConsigliati(correlati);
+        })
+        .catch(err =>
+          console.error("Errore recupero articoli consigliati:", err)
+        );
     }
-  }, [id, voteKey, deviceId]);
+  }, [currentId, voteKey, deviceId]);
 
   const handleVote = (opzione) => {
     if (isEditore) return;
@@ -217,7 +248,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
     setIsVoting(true);
 
     fetch(
-      `https://magazine.skillfactory.it/api/pagine/${id}/vota`,
+      `https://magazine.skillfactory.it/api/pagine/${currentId}/vota`,
       {
         method: 'PUT',
         headers: {
@@ -269,7 +300,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
         .filter(t => t.trim() !== '');
   };
 
-  // FUNZIONE COPIA LINK (punta alla share page del backend)
+  // FUNZIONE COPIA LINK
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl)
       .then(() => {
@@ -277,6 +308,21 @@ const ArticoloSingolo = ({ id, onBack }) => {
         setTimeout(() => setCopiato(false), 2000);
       })
       .catch(err => console.error("Errore durante la copia del link:", err));
+  };
+
+  // GESTIONE DEL CLICK SULL'ARTICOLO CONSIGLIATO
+  const handleRecommendedClick = (targetId) => {
+    const newUrl = `${window.location.origin}${window.location.pathname}?articolo=${targetId}`;
+    window.history.pushState({ path: newUrl }, '', newUrl);
+
+    setCurrentId(targetId);
+
+    if (typeof onReadArticle === 'function') {
+      onReadArticle(targetId);
+    }
+
+    // Torna su all'istante senza animazioni (Corretto)
+    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
   if (!articolo) {
@@ -294,8 +340,7 @@ const ArticoloSingolo = ({ id, onBack }) => {
   const autore = articolo.autore;
   const bottomBanners = sponsors.slice(0, 2);
 
-  // Punta esattamente a /api/pagine/share/{id} come definito nel controller Java
-  const shareUrl = `https://magazine.skillfactory.it/api/pagine/share/${id}`;
+  const shareUrl = `https://magazine.skillfactory.it/api/pagine/share/${currentId}`;
   const articleTitleEncoded = encodeURIComponent(articolo.titolo || '');
   const shareUrlEncoded = encodeURIComponent(shareUrl);
 
@@ -334,7 +379,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
           font-weight: normal;
         }
 
-        /* Stile per l'immagine di copertina principale */
         .main-cover-image {
           width: 70%;
           max-height: 400px;
@@ -345,7 +389,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
           margin-right: auto;
         }
 
-        /* Stile base del contenuto dell'articolo */
         .module-text,
         .module-text p,
         .module-text div,
@@ -360,7 +403,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
           line-break: auto !important;
           color: #2b2b2b;
         }
-
 
         .module-text p {
           margin-bottom: 20px !important;
@@ -499,7 +541,6 @@ const ArticoloSingolo = ({ id, onBack }) => {
             margin-bottom: 15px !important;
           }
           
-          /* Forza la copertina al 100% su smartphone per non farla rimpicciolire */
           .main-cover-image {
             width: 100% !important;
             max-height: 280px !important;
@@ -548,6 +589,18 @@ const ArticoloSingolo = ({ id, onBack }) => {
           }
           .author-avatar {
             display: none !important;
+          }
+
+          /* REGOLE RESPONSIVE PER LA SEZIONE "POTREBBERO INTERESSARTI" */
+          .recommended-card {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+          .recommended-img {
+            width: 100% !important;
+            height: 140px !important;
+            object-fit: cover !important;
           }
         }
       `}</style>
@@ -826,6 +879,119 @@ const ArticoloSingolo = ({ id, onBack }) => {
                 </div>
               </div>
             )}
+
+            {/* SEZIONE "POTREBBERO INTERESSARTI" RESPONSIVE */}
+            {articoliConsigliati.length > 0 && (
+              <div
+                style={{
+                  marginTop: '50px',
+                  borderTop: '2px solid #f0f0f0',
+                  paddingTop: '30px',
+                  marginBottom: '30px'
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: '22px',
+                    fontWeight: 'bold',
+                    color: '#1a1a1a',
+                    marginBottom: '20px',
+                    fontFamily: 'Arial, sans-serif'
+                  }}
+                >
+                  Potrebbero interessarti
+                </h3>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '15px'
+                  }}
+                >
+                  {articoliConsigliati.map((art) => {
+                    const rawImg = art.immagineCopertina || art.immagine || art.copertina;
+                    const imgUrl = rawImg ? (
+                      rawImg.startsWith('http') || rawImg.startsWith('/') || rawImg.startsWith('blob:') || rawImg.startsWith('data:')
+                        ? rawImg
+                        : `data:image/jpeg;base64,${rawImg}`
+                    ) : null;
+
+                    return (
+                      <div
+                        key={art.id}
+                        onClick={() => handleRecommendedClick(art.id)}
+                        className="recommended-card"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '15px',
+                          padding: '12px',
+                          borderRadius: '8px',
+                          border: '1px solid #eee',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease-in-out',
+                          backgroundColor: '#fbfbfb'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f1f7ff';
+                          e.currentTarget.style.borderColor = '#007bff';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fbfbfb';
+                          e.currentTarget.style.borderColor = '#eee';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        {imgUrl && (
+                          <img
+                            src={imgUrl}
+                            alt={art.titolo}
+                            className="recommended-img"
+                            style={{
+                              width: '80px',
+                              height: '55px',
+                              objectFit: 'cover',
+                              borderRadius: '4px',
+                              flexShrink: 0
+                            }}
+                          />
+                        )}
+                        <div style={{ flexGrow: 1, width: '100%' }}>
+                          <h4
+                            style={{
+                              margin: 0,
+                              fontSize: '15px',
+                              fontWeight: 'bold',
+                              color: '#333',
+                              lineHeight: '1.3'
+                            }}
+                          >
+                            {art.titolo}
+                          </h4>
+                          {art.sottotitolo && (
+                            <p
+                              style={{
+                                margin: '4px 0 0 0',
+                                fontSize: '13px',
+                                color: '#666',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                maxWidth: '100%'
+                              }}
+                            >
+                              {art.sottotitolo}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
           </article>
 
           {/* BANNER SPONSOR IN FONDO */}
