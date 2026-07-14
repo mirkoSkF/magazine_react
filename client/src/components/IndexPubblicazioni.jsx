@@ -289,30 +289,77 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
   const Pagination = ({ total, current, setPage }) => {
     if (total <= 1) return null;
-    return (
-      <div style={{ display: 'flex', gap: '5px', marginTop: '15px', flexWrap: 'wrap', paddingBottom: '20px' }}>
-        {[...Array(total)].map((_, i) => (
+
+    const renderPageNumbers = () => {
+      const pages = [];
+
+      // 1. Inserisce sempre la PRIMA pagina
+      pages.push(1);
+
+      // 2. Calcola l'intorno della pagina corrente (precedente e successiva)
+      let start = Math.max(2, current - 1);
+      let end = Math.min(total - 1, current + 1);
+
+      // 3. Gestione dei PUNTINI DI SINISTRA
+      if (start > 2) {
+        pages.push("...");
+      }
+
+      // 4. Inserisce le pagine centrali (evitando duplicati con la prima pagina)
+      for (let i = start; i <= end; i++) {
+        if (pages.indexOf(i) === -1) {
+          pages.push(i);
+        }
+      }
+
+      // 5. Gestione dei PUNTINI DI DESTRA
+      if (end < total - 1) {
+        pages.push("...");
+      }
+
+      // 6. Inserisce sempre l'ULTIMA pagina (evitando duplicati se coincide con il centro)
+      if (pages.indexOf(total) === -1) {
+        pages.push(total);
+      }
+
+      return pages.map((page, i) => {
+        if (page === "...") {
+          return (
+            <span 
+              key={`dots-${i}`} 
+              style={{ padding: '5px 8px', color: '#888', fontSize: '13px', display: 'flex', alignItems: 'center' }}
+            >
+              ...
+            </span>
+          );
+        }
+
+        return (
           <button
-            key={i}
-            onClick={() => {
-              setPage(i + 1);
-            }}
+            key={page}
+            onClick={() => setPage(page)}
             className="pagination-btn"
             style={{
               padding: '5px 12px',
               cursor: 'pointer',
-              backgroundColor: current === i + 1 ? colors.primary : 'white',
-              color: current === i + 1 ? 'white' : colors.dark,
-              border: `1px solid ${current === i + 1 ? colors.primary : colors.border}`,
+              backgroundColor: current === page ? colors.primary : 'white',
+              color: current === page ? 'white' : colors.dark,
+              border: `1px solid ${current === page ? colors.primary : colors.border}`,
               borderRadius: '4px',
               fontSize: '13px',
               fontWeight: 'bold',
               transition: 'all 0.2s ease-in-out'
             }}
           >
-            {i + 1}
+            {page}
           </button>
-        ))}
+        );
+      });
+    };
+
+    return (
+      <div style={{ display: 'flex', gap: '5px', marginTop: '15px', flexWrap: 'wrap', paddingBottom: '20px' }}>
+        {renderPageNumbers()}
       </div>
     );
   };

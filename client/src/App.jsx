@@ -274,25 +274,25 @@ function App() {
             }}
           >
             <div
-  onClick={() => setView('home')}
-  style={{
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    height: '100%', 
-    maxWidth: '240px' 
-  }}
->
-  <img 
-    src="/Logo_brand.png" 
-    alt="Logo Skill Factory" 
-    style={{
-      height: '45px', // Mantiene la stessa altezza del precedente SVG
-      width: 'auto',
-      display: 'block'
-    }}
-  />
-</div>
+              onClick={() => setView('home')}
+              style={{
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                height: '100%',
+                maxWidth: '240px'
+              }}
+            >
+              <img
+                src="/Logo_brand.png"
+                alt="Logo Skill Factory"
+                style={{
+                  height: '45px', // Mantiene la stessa altezza del precedente SVG
+                  width: 'auto',
+                  display: 'block'
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -383,7 +383,12 @@ function App() {
               />
             )}
             {view === 'dettaglio-intervista' && <DettaglioIntervista id={selectedArticleId} onBack={() => setView('admin-interviste')} />}
-            {view === 'editor' && <MagazineEditor editId={editId} />}
+            {view === 'editor' && (
+              <MagazineEditor
+                editId={editId}
+                onBack={() => setView('dashboard')}
+              />
+            )}
           </>
         )}
       </main>

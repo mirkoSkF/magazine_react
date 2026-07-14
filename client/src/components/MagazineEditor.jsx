@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 
-const MagazineEditor = ({ editId }) => {
+const MagazineEditor = ({ editId, onBack }) => {
   const editorRef = useRef(null);
   const fileInputRef = useRef(null); // Ref aggiunto per gestire il reset dell'input file
 
@@ -23,6 +23,8 @@ const MagazineEditor = ({ editId }) => {
     type: 'confirm',
     onConfirm: null
   });
+
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const token = localStorage.getItem('token');
   const authHeader = { 'Authorization': `Bearer ${token}` };
@@ -48,6 +50,17 @@ const MagazineEditor = ({ editId }) => {
     { value: 'AI', label: '💻 AI & Formazione' },
     { value: 'LAVORO', label: '📚 Orientamento & Lavoro' }
   ];
+
+  // Funzione per gestire la chiusura delle notifiche (Success/Error) e il reindirizzamento
+  const handleCloseNotification = () => {
+    const isSuccess = modal.type === 'success';
+    setModal({ ...modal, show: false });
+    
+    // Se l'operazione ha avuto successo (creazione o modifica), torna alla dashboard
+    if (isSuccess && onBack) {
+      onBack();
+    }
+  };
 
   useEffect(() => {
     const checkScrollTop = () => {
@@ -261,7 +274,7 @@ const MagazineEditor = ({ editId }) => {
                 </>
               ) : (
                 <button
-                  onClick={() => setModal({ ...modal, show: false })}
+                  onClick={handleCloseNotification}
                   onMouseOver={(e) => { e.target.style.background = modal.type === 'error' ? '#bd2130' : '#1e7e34'; }}
                   onMouseOut={(e) => { e.target.style.background = modal.type === 'error' ? colors.accent : colors.success; }}
                   style={{ ...btnBase, background: modal.type === 'error' ? colors.accent : colors.success, color: 'white' }}
@@ -574,7 +587,6 @@ const MagazineEditor = ({ editId }) => {
                 remove_script_host: false,
                 convert_urls: true,
                 images_cors_credential_policy: 'same-origin',
-                // ... dentro l'oggetto init del componente Editor
                 images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
                   const formData = new FormData();
                   formData.append('file', blobInfo.blob(), blobInfo.filename());
@@ -591,7 +603,6 @@ const MagazineEditor = ({ editId }) => {
                       return response.json();
                     })
                     .then(data => {
-                      // data.location è l'URL restituito dal tuo controller backend
                       resolve(data.location);
                     })
                     .catch(error => {
@@ -599,7 +610,6 @@ const MagazineEditor = ({ editId }) => {
                       reject({ message: 'Errore durante il caricamento dell\'immagine', remove: true });
                     });
                 }),
-                // ... resto della configurazione
                 valid_children: '+body[style],+p[style],+span[style]',
                 valid_styles: { '*': 'font-family,font-size,color,background-color,text-align,margin,margin-top,margin-right,margin-bottom,margin-left,padding,float,display,width,height,border' },
                 extended_valid_elements: 'p[style|align],div[style|align],span[style],img[class|src|border=0|alt|title|hspace|vspace|width|height|align|style]',
@@ -648,7 +658,6 @@ const MagazineEditor = ({ editId }) => {
                     e.content = div.innerHTML;
                   });
                 }
-
               }}
               onEditorChange={(newContent) => setContent(newContent)}
             />
