@@ -708,6 +708,7 @@ const MagazineEditor = ({ editId, onBack }) => {
                 inline_styles: true,
                 forced_root_block: 'p',
                 font_family_formats: "Arial=arial,helvetica,sans-serif;Arial Black=arial black,avant garde;Book Antiqua=book antiqua,palatino;Comic Sans MS=comic sans ms,sans-serif;Courier New=courier new,courier;Georgia=georgia,palatino;Helvetica=helvetica;Impact=impact,chicago;Inter=Inter,sans-serif;Lato=Lato,sans-serif;Montserrat=Montserrat,sans-serif;Open Sans=Open Sans,sans-serif;Oswald=Oswald,sans-serif;Playfair Display=playfair display,serif;Poppins=Poppins,sans-serif;Roboto=Roboto,sans-serif;Tahoma=tahoma,arial,helvetica,sans-serif;Times New Roman=times new roman,times;Trebuchet MS=trebuchet ms,geneva;Verdana=verdana,geneva;",
+                font_size_formats: '10px 11px 12px 13px 14px 15px 16px 18px 20px 22px 24px 28px 32px',
                 plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'wordcount', 'help', 'autosave', 'directionality', 'pagebreak', 'nonbreaking', 'visualchars'],
                 toolbar_mode: 'wrap',
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | charmap anchor pagebreak | visualblocks visualchars code fullscreen | help',
@@ -722,6 +723,11 @@ const MagazineEditor = ({ editId, onBack }) => {
                   figure.image.image-style-align-right, figure.image.image-style-float-right { margin: 10px 0 15px 25px !important; }
                 `,
                 setup: (editor) => {
+                  editor.on('init', () => {
+
+                    editor.execCommand('FontSize', false, '16px');
+
+                  });
                   editor.on('NodeChange', () => {
                     const images = editor.getBody().querySelectorAll('img');
                     images.forEach(img => {
@@ -734,6 +740,19 @@ const MagazineEditor = ({ editId, onBack }) => {
 
                   editor.on('GetContent', (e) => {
                     const div = document.createElement('div');
+                    div.querySelectorAll('*').forEach(el => {
+
+                      if (el.style.fontSize?.includes('pt')) {
+
+                        const pt = parseFloat(el.style.fontSize);
+
+                        const px = Math.round(pt * 96 / 72);
+
+                        el.style.fontSize = `${px}px`;
+
+                      }
+
+                    });
                     div.innerHTML = e.content;
                     div.querySelectorAll('p, span, div, li, td').forEach(el => {
                       if (!el.style.fontFamily) el.style.fontFamily = 'Arial, Helvetica, sans-serif';
