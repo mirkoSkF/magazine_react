@@ -55,7 +55,7 @@ const MagazineEditor = ({ editId, onBack }) => {
   const handleCloseNotification = () => {
     const isSuccess = modal.type === 'success';
     setModal({ ...modal, show: false });
-    
+
     // Se l'operazione ha avuto successo (creazione o modifica), torna alla dashboard
     if (isSuccess && onBack) {
       onBack();
@@ -110,32 +110,123 @@ const MagazineEditor = ({ editId, onBack }) => {
     }
   }, [editId]);
 
+  const optimizeCoverImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        const img = new Image();
+
+        img.onload = () => {
+
+          const MAX_WIDTH = 1300;
+          const MAX_HEIGHT = 680;
+
+          let width = img.width;
+          let height = img.height;
+
+          // Mantiene le proporzioni
+          if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+
+            const ratio = Math.min(
+              MAX_WIDTH / width,
+              MAX_HEIGHT / height
+            );
+
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+
+              if (!blob) {
+                reject(new Error("Errore compressione."));
+                return;
+              }
+
+              const optimizedFile = new File(
+                [blob],
+                file.name.replace(/\.[^.]+$/, ".jpg"),
+                {
+                  type: "image/jpeg",
+                  lastModified: Date.now()
+                }
+              );
+
+              resolve(optimizedFile);
+
+            },
+            "image/jpeg",
+            0.82
+          );
+
+        };
+
+        img.onerror = reject;
+        img.src = event.target.result;
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleCoverUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
 
-      try {
-        const response = await fetch('https://magazine.skillfactory.it/api/uploads/immagine', {
-          method: 'POST',
+    if (!file) return;
+
+    try {
+
+      // Ottimizza automaticamente la copertina
+      const optimizedFile = await optimizeCoverImage(file);
+
+      console.log(
+        `Copertina ottimizzata: ${(file.size / 1024 / 1024).toFixed(2)} MB → ${(optimizedFile.size / 1024).toFixed(0)} KB`
+      );
+
+      const formData = new FormData();
+      formData.append("file", optimizedFile);
+
+      const response = await fetch(
+        "https://magazine.skillfactory.it/api/uploads/immagine",
+        {
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${localStorage.getItem("token")}`
           },
           body: formData
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Salviamo l'URL reale sul server (es. data.location) invece del Base64
-          setCopertina(data.location || data.url);
-        } else {
-          setModal({ show: true, message: "Errore durante l'upload della copertina sul server.", type: 'error' });
         }
-      } catch (error) {
-        console.error("Errore upload copertina:", error);
-        setModal({ show: true, message: "Errore di connessione per l'upload della copertina.", type: 'error' });
+      );
+
+      if (!response.ok) {
+        throw new Error("Errore upload");
       }
+
+      const data = await response.json();
+
+      // Manteniamo lo stesso comportamento di prima
+      setCopertina(data.location || data.url);
+
+    } catch (error) {
+
+      console.error(error);
+
+      setModal({
+        show: true,
+        message: "Errore durante l'upload della copertina.",
+        type: "error"
+      });
+
     }
   };
 
@@ -501,7 +592,7 @@ const MagazineEditor = ({ editId, onBack }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#666', marginBottom: '8px', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-                  Immagine di Copertina <span style={{color:'blue'}}>(Risoluzione consigliata: 1200 × 630 pixel)</span>
+                  Immagine di Copertina <span style={{ color: 'blue' }}>(Risoluzione consigliata: 1200 × 630 pixel)</span>
                 </label>
                 <input
                   type="file"
