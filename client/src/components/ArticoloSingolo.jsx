@@ -84,72 +84,157 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
     }
   };
 
-  // GESTIONE TESTO + IMMAGINI
   const forceHyphenation = (html) => {
-    if (!html) return "";
+  if (!html) return "";
 
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
 
-    // MARGINI AUTOMATICI IMMAGINI
-    doc.querySelectorAll('img').forEach(img => {
-      const currentStyle = img.getAttribute('style') || '';
+  // =====================================================
+  // CONVERSIONE TABELLE IMMAGINE + TESTO
+  // =====================================================
 
-      // Classe responsive
-      img.classList.add('article-image');
+  if (window.innerWidth <= 768) {
 
-      img.setAttribute(
-        'style',
-        `
-          ${currentStyle};
-          max-width:100%;
-          height:auto;
-          border-radius:8px;
-        `
-      );
+    doc.querySelectorAll("table").forEach((table) => {
 
-      const styleLower = currentStyle.toLowerCase();
+      const rows = Array.from(table.querySelectorAll("tr"));
 
-      if (styleLower.includes('float: left')) {
-        img.style.margin = '15px 30px 20px 0';
-      }
-      else if (styleLower.includes('float: right')) {
-        img.style.margin = '15px 0 20px 30px';
-      }
-      else {
-        img.style.display = 'block';
-        img.style.margin = '30px auto';
-      }
+      let convertibile = true;
+
+      rows.forEach((row) => {
+        const celle = row.querySelectorAll("td");
+
+        if (celle.length !== 2) {
+          convertibile = false;
+          return;
+        }
+
+        if (!celle[0].querySelector("img")) {
+          convertibile = false;
+        }
+      });
+
+      if (!convertibile) return;
+
+      const wrapper = doc.createElement("div");
+
+      wrapper.className = "responsive-table-layout";
+
+      rows.forEach((row) => {
+
+        const celle = row.querySelectorAll("td");
+
+        const blocco = doc.createElement("div");
+        blocco.className = "responsive-row";
+
+        const img = doc.createElement("div");
+        img.className = "responsive-image";
+
+        img.innerHTML = celle[0].innerHTML;
+
+        const testo = doc.createElement("div");
+        testo.className = "responsive-text";
+
+        testo.innerHTML = celle[1].innerHTML;
+
+        blocco.appendChild(img);
+        blocco.appendChild(testo);
+
+        wrapper.appendChild(blocco);
+
+      });
+
+      table.replaceWith(wrapper);
+
     });
 
-    const processNode = (node) => {
-      if (node.nodeType === 3) {
-        let text = node.nodeValue.replace(/&nbsp;/g, ' ');
+  }
 
-        node.nodeValue = text.replace(
-          /([a-zA-ZàèéìòùÀÈÉÌÒÙ]{5,})/g,
-          (word) => {
-            if (word.length < 10) return word;
+  // =====================================================
+  // GESTIONE IMMAGINI
+  // =====================================================
 
-            return (
-              word.slice(0, Math.floor(word.length / 2)) +
-              '\u00AD' +
-              word.slice(Math.floor(word.length / 2))
-            );
-          }
-        );
-      } else if (
-        node.nodeType === 1 &&
-        node.tagName !== 'IMG'
-      ) {
-        node.childNodes.forEach(child => processNode(child));
-      }
-    };
+  doc.querySelectorAll("img").forEach((img) => {
 
-    processNode(doc.body);
+    const currentStyle = img.getAttribute("style") || "";
+    const styleLower = currentStyle.toLowerCase();
 
-    return doc.body.innerHTML;
+    img.classList.add("article-image");
+
+    if (
+      styleLower.includes("float:left") ||
+      styleLower.includes("float: left") ||
+      styleLower.includes("float:right") ||
+      styleLower.includes("float: right")
+    ) {
+      img.classList.add("float-image");
+    }
+
+    img.setAttribute(
+      "style",
+      `
+      ${currentStyle};
+      max-width:100%;
+      height:auto;
+      border-radius:8px;
+      `
+    );
+
+    if (styleLower.includes("float:left") || styleLower.includes("float: left")) {
+      img.style.margin = "15px 30px 20px 0";
+    }
+    else if (styleLower.includes("float:right") || styleLower.includes("float: right")) {
+      img.style.margin = "15px 0 20px 30px";
+    }
+    else {
+      img.style.display = "block";
+      img.style.margin = "30px auto";
+    }
+
+  });
+
+  // =====================================================
+  // SILLABAZIONE
+  // =====================================================
+
+  const processNode = (node) => {
+
+    if (node.nodeType === 3) {
+
+      let text = node.nodeValue.replace(/&nbsp;/g, " ");
+
+      node.nodeValue = text.replace(
+        /([a-zA-ZàèéìòùÀÈÉÌÒÙ]{5,})/g,
+        (word) => {
+
+          if (word.length < 10) return word;
+
+          return (
+            word.slice(0, Math.floor(word.length / 2)) +
+            "\u00AD" +
+            word.slice(Math.floor(word.length / 2))
+          );
+
+        }
+      );
+
+    }
+    else if (
+      node.nodeType === 1 &&
+      node.tagName !== "IMG"
+    ) {
+
+      node.childNodes.forEach(processNode);
+
+    }
+
   };
+
+  processNode(doc.body);
+
+  return doc.body.innerHTML;
+};
 
   // EFFECT PER IL MONITORAGGIO DELLO SCROLL
   useEffect(() => {
@@ -583,7 +668,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
           }
           .back-to-top-btn {
             right: 20px !important;
-            bottom: 20px !important;
+            bottom: 120px !important;
             padding: 10px 16px !important;
             font-size: 13px !important;
           }

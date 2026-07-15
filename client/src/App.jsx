@@ -394,32 +394,51 @@ function App() {
       </main>
 
       <footer style={footerStyle}>
-        &copy; Copyright - Skill Factory 2026 |
-        <span
-          onClick={() => setView('privacy')}
-          style={{ cursor: 'pointer', marginLeft: '10px', textDecoration: 'underline' }}
-        >
-          Privacy Policy
-        </span>
-      </footer>
+  <div
+    style={{
+      marginBottom: "15px",
+      fontSize: "15px",
+      fontWeight: "500",
+    }}
+  >
+    <strong>Contatti</strong>
+    <br />
+    <a
+      href="mailto:magazine@edu.skillfactory.it"
+      style={{
+        color: "inherit",
+        textDecoration: "none",
+      }}
+    >
+      ✉️ redazione@skillfactory.it
+    </a>
+  </div>
+
+  <div
+    style={{
+      borderTop: "1px solid rgba(255,255,255,0.2)",
+      paddingTop: "15px",
+      fontSize: "14px",
+    }}
+  >
+    &copy; Copyright - Skill Factory 2026 |
+    <span
+      onClick={() => setView("privacy")}
+      style={{
+        cursor: "pointer",
+        marginLeft: "10px",
+        textDecoration: "underline",
+      }}
+    >
+      Privacy Policy
+    </span>
+  </div>
+</footer>
     </div>
   );
 }
 
-const navBarStyle = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  padding: '0 30px',           // 👈 Padding fisso generoso per staccare il logo dal bordo dello schermo
-  background: colors.white,
-  boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-  position: 'fixed',
-  top: 0,
-  zIndex: 1000,
-  height: '80px',
-  width: '100%',               // 👈 Forza la navbar al 100% del monitor
-  boxSizing: 'border-box'
-};
+
 
 const mainContainerStyle = {
   paddingTop: '55px',
@@ -436,7 +455,9 @@ const mainContainerStyle = {
 const footerStyle = {
   background: colors.dark, color: colors.white, textAlign: 'center',
   padding: '30px 10px', fontSize: '14px', borderTop: `4px solid ${colors.primary}`,
-  marginTop: 'auto'
+  marginTop: 'auto',
+  borderTopLeftRadius: '550px',
+  borderTopRightRadius: '550px',
 };
 
 export default App;

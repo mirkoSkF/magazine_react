@@ -460,7 +460,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
         .back-to-top-btn {
           position: fixed;
-          bottom: 40px;
+          bottom: 120px;
           right: 20px;
           z-index: 999;
           background-color: #007bff;
