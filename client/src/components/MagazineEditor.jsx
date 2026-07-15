@@ -714,7 +714,7 @@ const MagazineEditor = ({ editId, onBack }) => {
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | charmap anchor pagebreak | visualblocks visualchars code fullscreen | help',
                 content_style: `
                   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Playfair+Display:wght@700&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap');
-                  body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.7; color: #333; padding: 40px !important; margin: 0 !important; box-sizing: border-box; }
+                  body { font-family: Arial, Helvetica, sans-serif; font-size: 18px; line-height: 1.7; color: #333; padding: 40px !important; margin: 0 !important; box-sizing: border-box; }
                   img { max-width: 100%; height: auto !important; display: block; margin: 25px auto; border-radius: 8px; transition: margin 0.2s ease; }
                   img[style*="float: left"] { margin: 10px 25px 15px 0 !important; float: left; }
                   img[style*="float: right"] { margin: 10px 0 15px 25px !important; float: right; }
@@ -725,7 +725,7 @@ const MagazineEditor = ({ editId, onBack }) => {
                 setup: (editor) => {
                   editor.on('init', () => {
 
-                    editor.execCommand('FontSize', false, '16px');
+                    editor.execCommand('FontSize', false, '18px');
 
                   });
                   editor.on('NodeChange', () => {
@@ -756,7 +756,7 @@ const MagazineEditor = ({ editId, onBack }) => {
                     div.innerHTML = e.content;
                     div.querySelectorAll('p, span, div, li, td').forEach(el => {
                       if (!el.style.fontFamily) el.style.fontFamily = 'Arial, Helvetica, sans-serif';
-                      if (!el.style.fontSize) el.style.fontSize = '16px';
+                      if (!el.style.fontSize) el.style.fontSize = '18px';
                       if (!el.style.textAlign) el.style.textAlign = 'left';
                     });
                     div.querySelectorAll('img').forEach(img => {
