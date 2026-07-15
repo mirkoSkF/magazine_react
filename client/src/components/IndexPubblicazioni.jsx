@@ -501,7 +501,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       `}</style>
 
       {/* BARRA NOSTRA IDENTITA' */}
-      <div style={{ width: "100%", margin:"0", padding:"0", boxSizing: "border-box" }}>
+      <div style={{ width: "100%", margin:"25px 0 0 0", padding:"0", boxSizing: "border-box" }}>
         <img
           src="/barra.png"
           alt="Barra Identità Skill Factory"
