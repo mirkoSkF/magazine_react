@@ -197,7 +197,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
     }
     return true;
   });
-  
+
   const soloSondaggi = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "SONDAGGIO");
   const soloEditoriali = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "EDITORIALE");
   const soloEventi = contenutiPubblicatiBase.filter(c => c.tipo?.toUpperCase() === "EVENTO");
@@ -252,7 +252,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
   const ultimoSondaggio = soloSondaggi[0];
 
-  const contenidosFiltrati = contenutiPubblicatiBase.filter(item => {
+  const contenutiFiltrati = contenutiPubblicatiBase.filter(item => {
     if (rubricaAttiva !== "") return normalizzaStringa(item.rubrica) === normalizzaStringa(rubricaAttiva);
     if (filtroCorrente === "NEWS") return item.tipo?.toUpperCase() === "ARTICOLO" && (!item.rubrica || item.rubrica.trim() === "");
     if (filtroCorrente === "EVENTI") return item.tipo?.toUpperCase() === "EVENTO";
@@ -325,8 +325,8 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       return pages.map((page, i) => {
         if (page === "...") {
           return (
-            <span 
-              key={`dots-${i}`} 
+            <span
+              key={`dots-${i}`}
               style={{ padding: '5px 8px', color: '#888', fontSize: '13px', display: 'flex', alignItems: 'center' }}
             >
               ...
@@ -501,7 +501,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       `}</style>
 
       {/* BARRA NOSTRA IDENTITA' */}
-      <div style={{ width: "100%", margin:"25px 0 0 0", padding:"0", boxSizing: "border-box" }}>
+      <div style={{ width: "100%", margin: "25px 0 0 0", padding: "0", boxSizing: "border-box" }}>
         <img
           src="/barra.png"
           alt="Barra Identità Skill Factory"
@@ -568,7 +568,17 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     {a.copertina && <img src={a.copertina.startsWith('http') ? a.copertina : `data:image/jpeg;base64,${a.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} alt="Cover" />}
                   </div>
                   <span style={{ fontSize: '11px', fontWeight: '700', color: a.rubrica && a.rubrica.trim() !== "" ? "#ff6b0b" : colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>{a.rubrica && a.rubrica.trim() !== "" ? `Rubrica | ${getNomeRubrica(a.rubrica)}` : "Articolo"}</span>
-                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>{a.titolo}</h3>
+                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', lineHeight: '1.2', color: colors.dark }}>{a.titolo}</h3>
+                  {a.sottotitolo && (
+                    <p style={{
+                      fontSize: '13px',
+                      color: '#666',
+                      margin: '0 0 10px 0',
+                      lineHeight: '1.4'
+                    }}>
+                      {a.sottotitolo}
+                    </p>
+                  )}
                   <p style={{ fontSize: '12px', color: '#666', marginBottom: '15px', fontStyle: 'italic', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>di <span style={{ fontWeight: '600', color: '#444', fontStyle: 'normal' }}>{getAutore(a)}</span>{a.bozza === true && <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', marginLeft: '8px', display: 'inline-block', fontStyle: 'normal' }}>BOZZA</span>}</p>
                   <span onClick={() => onReadArticle(a.id)} style={{ color: colors.primary, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', display: 'inline-block' }}>Leggi →</span>
                 </div>
@@ -595,45 +605,45 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
               {filtroCorrente !== "EDITORIALI" && ultimoContenutoPrincipale && (
                 <div style={{ border: `1px solid ${colors.border}`, padding: '20px', borderRadius: '8px', marginBottom: '40px' }}>
-                  <div style={{ 
-                    backgroundColor: rubricaAttiva !== "" ? colors.rubriche : (filtroCorrente === "EVENTI" ? colors.accent : colors.accent), 
-                    color: 'white', 
-                    display: 'inline-block', 
-                    padding: '4px 12px', 
-                    fontSize: '12px', 
-                    fontWeight: 'bold', 
-                    marginBottom: '15px', 
-                    borderRadius: '2px', 
-                    textTransform: "uppercase" 
+                  <div style={{
+                    backgroundColor: rubricaAttiva !== "" ? colors.rubriche : (filtroCorrente === "EVENTI" ? colors.accent : colors.accent),
+                    color: 'white',
+                    display: 'inline-block',
+                    padding: '4px 12px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    marginBottom: '15px',
+                    borderRadius: '2px',
+                    textTransform: "uppercase"
                   }}>
                     {rubricaAttiva !== "" ? `RUBRICA: ${getNomeRubrica(rubricaAttiva)}` : (filtroCorrente === "EVENTI" ? "ULTIMO EVENTO" : "ULTIMO ARTICOLO")}
                   </div>
-                  
+
                   <h1 className="main-title" style={{ fontSize: '32px', fontWeight: '700', marginBottom: '20px', lineHeight: '1.1' }}>
                     {ultimoContenutoPrincipale.titolo}
                   </h1>
-                  
+
                   {ultimoContenutoPrincipale.sottotitolo && (
                     <p style={{ fontSize: '15px', color: '#555', margin: '-10px 0 20px 0', lineHeight: '1.4', fontWeight: 'normal', fontStyle: 'italic' }}>
                       {ultimoContenutoPrincipale.sottotitolo}
                     </p>
                   )}
-                  
+
                   <p style={{ fontSize: '13px', color: '#555', marginBottom: '20px' }}>
                     Scritto da <strong>{getAutore(ultimoContenutoPrincipale)}</strong>
                     {ultimoContenutoPrincipale.bozza === true && (
                       <span style={{ marginLeft: '10px', backgroundColor: '#e74c3c', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>BOZZA</span>
                     )}
                   </p>
-                  
+
                   {ultimoContenutoPrincipale.copertina && (
                     <div className="main-image-container" style={{ width: '100%', height: 'auto', maxHeight: '500px', backgroundColor: 'transparent', borderRadius: '2px', overflow: 'hidden', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <img src={ultimoContenutoPrincipale.copertina.startsWith('http') ? ultimoContenutoPrincipale.copertina : `data:image/jpeg;base64,${ultimoContenutoPrincipale.copertina}`} style={{ width: '100%', height: 'auto', display: 'block' }} alt="Copertina" />
                     </div>
                   )}
-                  
+
                   <div style={{ fontSize: '19px', color: '#333', lineHeight: '1.8', marginBottom: '35px', textAlign: "justify", textJustify: 'inter-word' }} dangerouslySetInnerHTML={{ __html: forceHyphenation(extractText(ultimoContenutoPrincipale, 600)) }} />
-                  
+
                   <button className="read-more-btn" onClick={() => onReadArticle(ultimoContenutoPrincipale.id)} style={{ padding: '12px 30px', backgroundColor: colors.dark, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', transition: 'all 0.3s ease', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                     {filtroCorrente === "EVENTI" ? "Dettagli Evento" : "Continua a leggere"}
                   </button>
@@ -747,7 +757,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                           return (
                             <li key={ev.id} style={listItemStyle}>
                               <span onClick={() => onReadArticle(ev.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📅 {ev.titolo}</span>
-                             
+
                             </li>
                           );
                         })}
