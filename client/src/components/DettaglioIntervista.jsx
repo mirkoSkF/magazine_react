@@ -13,7 +13,7 @@ const DettaglioIntervista = ({ id, onBack }) => {
         onConfirm: null 
     });
 
-    // Colori di riferimento (coerenti con il resto della dashboard)
+    // Colori di riferimento
     const colors = {
         primary: '#007bff',
         danger: '#dc3545',
@@ -62,7 +62,7 @@ const DettaglioIntervista = ({ id, onBack }) => {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (response.ok) {
-                    onBack(); // Torna indietro dopo l'eliminazione
+                    onBack();
                 } else {
                     customAlert("Impossibile eliminare la candidatura.");
                 }
@@ -96,11 +96,11 @@ const DettaglioIntervista = ({ id, onBack }) => {
     );
 
     return (
-        <div style={containerStyle}>
+        <div className="detail-container" style={containerStyle}>
             {/* --- MODAL RENDERING --- */}
             {modal.show && (
                 <div style={modalOverlayStyle}>
-                    <div style={modalContentStyle}>
+                    <div className="modal-content-custom" style={modalContentStyle}>
                         <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
                             {modal.type === 'alert' ? (
                                 <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke={colors.primary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -117,7 +117,7 @@ const DettaglioIntervista = ({ id, onBack }) => {
                             )}
                         </div>
                         <p style={modalTextStyle}>{modal.message}</p>
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                             {modal.type === 'confirm' && (
                                 <button 
                                     onClick={() => setModal({ ...modal, show: false })} 
@@ -150,7 +150,6 @@ const DettaglioIntervista = ({ id, onBack }) => {
                 .btn-modal-primary { padding: 12px 30px; border-radius: 10px; border: none; background: ${colors.primary}; color: white; cursor: pointer; font-weight: bold; transition: all 0.2s ease; }
                 .btn-modal-primary:hover { transform: scale(1.05); filter: brightness(1.1); }
 
-                /* Hover elegante per il tasto di rimozione */
                 .btn-modal-danger { 
                     padding: 12px 30px; 
                     border-radius: 10px; 
@@ -173,11 +172,52 @@ const DettaglioIntervista = ({ id, onBack }) => {
                     transform: translateY(0);
                     box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
                 }
+
+                /* RESPONSIVE MOBILE OPTIMIZATION */
+                @media (max-width: 600px) {
+                    .detail-container {
+                        padding: 10px !important;
+                    }
+                    .detail-header {
+                        flex-direction: column !important;
+                        align-items: flex-start !important;
+                        gap: 8px !important;
+                    }
+                    .detail-header-info {
+                        text-align: left !important;
+                    }
+                    .detail-card {
+                        padding: 18px !important;
+                        border-radius: 12px !important;
+                    }
+                    .info-row {
+                        flex-direction: column !important;
+                        align-items: flex-start !important;
+                        gap: 4px !important;
+                        padding: 10px 0 !important;
+                    }
+                    .info-value {
+                        word-break: break-word !important;
+                        font-size: 15px !important;
+                    }
+                    .button-container {
+                        flex-direction: column-reverse !important;
+                        gap: 12px !important;
+                        margin-top: 20px !important;
+                    }
+                    .btn-detail {
+                        width: 100% !important;
+                    }
+                    .modal-content-custom {
+                        padding: 25px 20px !important;
+                        border-radius: 15px !important;
+                    }
+                }
             `}</style>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div className="detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={titleStyle}>Dettaglio Candidatura</h2>
-                <div style={{textAlign: 'right'}}>
+                <div className="detail-header-info" style={{textAlign: 'right'}}>
                     <span style={{ color: '#6c757d', display: 'block', fontSize: '12px' }}>ID: #{id}</span>
                     {intervista?.dataInvio && (
                         <span style={{ color: '#6c757d', fontSize: '12px' }}>
@@ -189,26 +229,26 @@ const DettaglioIntervista = ({ id, onBack }) => {
 
             {isDataExpired() && (
                 <div style={warningBannerStyle}>
-                    <strong>⚠️ Dati da aggiornare:</strong> Questa candidatura è stata inviata più di 2 anni fa. 
+                    <strong>⚠️ Dati da aggiornare:</strong> Questa prenotazione è stata inviata più di 2 anni fa. 
                 </div>
             )}
             
-            <div style={cardStyle}>
-                <div style={infoRow}>
-                    <span style={labelStyle}>Azienda:</span>
-                    <span style={{...valueStyle, fontWeight: 'bold'}}>{intervista?.azienda}</span>
+            <div className="detail-card" style={cardStyle}>
+                <div className="info-row" style={infoRow}>
+                    <span style={labelStyle}>Evento:</span>
+                    <span className="info-value" style={{...valueStyle, fontWeight: 'bold'}}>{intervista?.azienda}</span>
                 </div>
-                <div style={infoRow}>
-                    <span style={labelStyle}>Referente:</span>
-                    <span style={valueStyle}>{intervista?.referente}</span>
+                <div className="info-row" style={infoRow}>
+                    <span style={labelStyle}>Nominativo:</span>
+                    <span className="info-value" style={valueStyle}>{intervista?.referente}</span>
                 </div>
-                <div style={infoRow}>
+                <div className="info-row" style={infoRow}>
                     <span style={labelStyle}>Email:</span>
-                    <span style={{ ...valueStyle, color: '#007bff' }}>{intervista?.email}</span>
+                    <span className="info-value" style={{ ...valueStyle, color: '#007bff' }}>{intervista?.email}</span>
                 </div>
-                <div style={infoRow}>
+                <div className="info-row" style={infoRow}>
                     <span style={labelStyle}>Telefono:</span>
-                    <span style={valueStyle}>{intervista?.telefono}</span>
+                    <span className="info-value" style={valueStyle}>{intervista?.telefono || "Non fornito"}</span>
                 </div>
 
                 <div style={consentContainerStyle}>
@@ -226,14 +266,14 @@ const DettaglioIntervista = ({ id, onBack }) => {
                 </div>
 
                 <div style={messaggioSectionStyle}>
-                    <span style={{...labelStyle, display: 'block', marginBottom: '10px'}}>Motivi dell'intervista:</span>
+                    <span style={{...labelStyle, display: 'block', marginBottom: '10px'}}>Domande dell'utente:</span>
                     <div style={messaggioBoxStyle}>
                         {intervista?.messaggio || "Nessuna descrizione fornita."}
                     </div>
                 </div>
             </div>
 
-            <div style={buttonContainer}>
+            <div className="button-container" style={buttonContainer}>
                 <button onClick={onBack} className="btn-detail btn-back" style={backButtonStyle}>
                     Indietro
                 </button>
@@ -257,7 +297,7 @@ const cardStyle = { background: '#fff', padding: '30px', borderRadius: '15px', b
 const infoRow = { display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f8f9fa' };
 const labelStyle = { fontWeight: '600', color: '#888', fontSize: '12px', textTransform: 'uppercase' };
 const valueStyle = { color: '#333', fontSize: '16px' };
-const messaggioBoxStyle = { background: '#f8f9fa', padding: '20px', borderRadius: '10px', fontStyle: 'italic', color: '#555', lineHeight: '1.6', borderLeft: '4px solid #007bff' };
+const messaggioBoxStyle = { background: '#f8f9fa', padding: '20px', borderRadius: '10px', fontStyle: 'italic', color: '#555', lineHeight: '1.6', borderLeft: '4px solid #007bff', wordBreak: 'break-word' };
 const buttonContainer = { marginTop: '30px', display: 'flex', gap: '20px' };
 const consentContainerStyle = { marginTop: '20px', padding: '15px', background: '#fdfdfd', borderRadius: '10px', border: '1px solid #f1f1f1' };
 const consentRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };

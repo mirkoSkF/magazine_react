@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import GestioneSponsor from './GestioneSponsor';
-import DashboardStats from './DashboardStats'; 
-import CalendarioTeams from './CalendarioTeams'; 
+import DashboardStats from './DashboardStats';
+import CalendarioTeams from './CalendarioTeams';
+import DashboardInterviste from './DashboardInterviste';
+import DettaglioIntervista from './DettaglioIntervista';
 
 const DashboardEditore = ({ onEdit }) => {
   const [articoli, setArticoli] = useState([]);
   const [utente, setUtente] = useState(null);
-  
-  // view può essere: 'CONTENUTI', 'SPONSOR', 'STATS', 'CALENDARIO'
-  const [view, setView] = useState('CONTENUTI'); 
+  const [selectedIntervistaId, setSelectedIntervistaId] = useState(null);
+
+  // view può essere: 'CONTENUTI', 'SPONSOR', 'STATS', 'CALENDARIO', 'INTERVISTE'
+  const [view, setView] = useState('CONTENUTI');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState('TUTTI'); // TUTTI, ARTICOLO, EDITORIALE, RUBRICA, SONDAGGIO, EVENTO
@@ -32,7 +35,7 @@ const DashboardEditore = ({ onEdit }) => {
   const [modal, setModal] = useState({
     show: false,
     message: '',
-    type: 'confirm', 
+    type: 'confirm',
     onConfirm: null
   });
 
@@ -78,7 +81,7 @@ const DashboardEditore = ({ onEdit }) => {
       const resUser = await fetch('https://magazine.skillfactory.it/api/profilo', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       let utenteCorrente = null;
       if (resUser.ok) {
         const dataUser = await resUser.json();
@@ -121,8 +124,8 @@ const DashboardEditore = ({ onEdit }) => {
       const dataFormatted = new Date(a.dataPubblicazione).toLocaleDateString('it-IT');
 
       return (
-        titolo.includes(search) || 
-        testoPulito.includes(search) || 
+        titolo.includes(search) ||
+        testoPulito.includes(search) ||
         dataFormatted.includes(search) ||
         autore.includes(search)
       );
@@ -233,7 +236,7 @@ const DashboardEditore = ({ onEdit }) => {
   const pubblicaContenuto = (articolo) => {
     const messaggio = articolo.tipo === 'EVENTO'
       ? "Vuoi pubblicare questo evento? Nota: l'evento pubblicato sarà raggiungibile attraverso il campo 'Eventi' della navbar in modalità utente."
-      : "Vuoi pubblicare questo articolo nella Home del magazine? Nota: effettuando modifiche successive, l'articolo tornerà in modalità bozza e verrà temporaneamente rimosso dalla Home.";
+      : "Vuoi pubblicare questo articolo nella Home del magazine? Nota: effettuando modifiche successive, l'articolo tornerà in bozza e verrà temporaneamente rimosso dalla Home.";
 
     setModal({
       show: true,
@@ -245,7 +248,7 @@ const DashboardEditore = ({ onEdit }) => {
 
   const getTipoBadge = (tipo) => {
     switch (tipo) {
-      case 'EDITORIALE': return { text: 'EDIT', background: '#e11d48' }; // Rosso/Fucsia scuro per differenziarlo
+      case 'EDITORIALE': return { text: 'EDIT', background: '#e11d48' };
       case 'SONDAGGIO': return { text: 'POLL', background: colors.accent };
       case 'RUBRICA': return { text: 'RUB', background: '#17a2b8' };
       case 'EVENTO': return { text: 'EVNT', background: '#fd7e14' };
@@ -255,7 +258,7 @@ const DashboardEditore = ({ onEdit }) => {
 
   return (
     <div className="dashboard-container" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
-      
+
       {/* MODALE */}
       {modal.show && (
         <div style={{
@@ -281,23 +284,23 @@ const DashboardEditore = ({ onEdit }) => {
             <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
               {modal.type === 'confirm' ? (
                 <>
-                  <button 
+                  <button
                     onClick={() => setModal({ ...modal, show: false })}
                     className="btn-aggiorna"
                     style={{ ...btnBaseModal, background: '#e9ecef', color: '#333' }}
                   > Annulla </button>
-                  <button 
+                  <button
                     onClick={() => { modal.onConfirm(); setModal({ ...modal, show: false }); }}
                     className="btn-aggiorna"
-                    style={{ 
-                      ...btnBaseModal, 
-                      background: modal.message.includes("eliminare") ? colors.danger : colors.success, 
-                      color: 'white' 
+                    style={{
+                      ...btnBaseModal,
+                      background: modal.message.includes("eliminare") ? colors.danger : colors.success,
+                      color: 'white'
                     }}
                   > Conferma </button>
                 </>
               ) : (
-                <button 
+                <button
                   onClick={() => setModal({ ...modal, show: false })}
                   className="btn-aggiorna"
                   style={{ ...btnBaseModal, background: colors.primary, color: 'white' }}
@@ -366,40 +369,42 @@ const DashboardEditore = ({ onEdit }) => {
         .btn-view-stats:hover { background-color: #e8590c; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(253, 126, 20, 0.3); }
         .btn-view-calendar { background-color: #00b5ad; color: white; }
         .btn-view-calendar:hover { background-color: #009c95; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 181, 173, 0.3); }
+        .btn-view-interviste { background-color: #e83e8c; color: white; }
+        .btn-view-interviste:hover { background-color: #c2185b; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(232, 62, 140, 0.3); }
 
         .controls-block-container { 
-  display: flex; 
-  flex-direction: row; 
-  justify-content: space-between; 
-  align-items: center; 
-  gap: 15px; 
-  width: 100%; 
-  margin-bottom: 25px; 
-  flex-wrap: wrap;
-}
-.controls-title-section {
-  flex: 1 1 100%;
-  margin-bottom: 5px;
-}
-.controls-actions-section {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  width: 100%;
-  flex-wrap: wrap;
-}
-.buttons-horizontal-row { 
-  display: flex; 
-  gap: 10px; 
-  align-items: center; 
-  justify-content: center; 
-  width: auto; 
-  flex-wrap: nowrap; 
-}
-.search-input, .filter-select { 
-  margin: 0;
-}
+          display: flex; 
+          flex-direction: row; 
+          justify-content: space-between; 
+          align-items: center; 
+          gap: 15px; 
+          width: 100%; 
+          margin-bottom: 25px; 
+          flex-wrap: wrap;
+        }
+        .controls-title-section {
+          flex: 1 1 100%;
+          margin-bottom: 5px;
+        }
+        .controls-actions-section {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 12px;
+          width: 100%;
+          flex-wrap: wrap;
+        }
+        .buttons-horizontal-row { 
+          display: flex; 
+          gap: 10px; 
+          align-items: center; 
+          justify-content: center; 
+          width: auto; 
+          flex-wrap: nowrap; 
+        }
+        .search-input, .filter-select { 
+          margin: 0;
+        }
 
         @media (max-width: 950px) { 
           .dashboard-header { flex-direction: column; } 
@@ -456,30 +461,36 @@ const DashboardEditore = ({ onEdit }) => {
         }
 
         @media (max-width: 576px) {
-  .btn-view-switch {
-    padding: 10px 12px;
-    font-size: 12px;
-    gap: 4px;
-    flex: 1;
-  }
-  .controls-actions-section {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-  }
-  .search-input, .filter-select, .buttons-horizontal-row { 
-    max-width: 100%; 
-    width: 100% !important; 
-  }
-  .buttons-horizontal-row { justify-content: space-between; }
-  .btn-modifica, .btn-elimina, .btn-pubblica {
-    flex: 1 1 100%;
-  }
-}
+          .controls-actions-section {
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
+            gap: 12px;
+          }
+          .buttons-horizontal-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            width: 100% !important;
+          }
+          .btn-view-switch {
+            width: 100%;
+            padding: 12px 10px;
+            font-size: 13px;
+            justify-content: center;
+          }
+          .search-input, .filter-select { 
+            max-width: 100%; 
+            width: 100% !important; 
+          }
+          .btn-modifica, .btn-elimina, .btn-pubblica {
+            flex: 1 1 100%;
+          }
+        }
       `}</style>
 
-      <div className="dashboard-header" style={{marginTop:'2%',}}>
-        <div className="user-panel" style={{flex: 2, display: 'flex', alignItems: 'center', background: colors.white, padding: '20px', borderRadius: '12px', border: `1px solid ${colors.border}` }}>
+      <div className="dashboard-header" style={{ marginTop: '2%', }}>
+        <div className="user-panel" style={{ flex: 2, display: 'flex', alignItems: 'center', background: colors.white, padding: '20px', borderRadius: '12px', border: `1px solid ${colors.border}` }}>
           <div className="user-info-container" style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
             {utente?.fotoProfilo ? (
               <img src={`data:image/jpeg;base64,${utente.fotoProfilo}`} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginRight: '20px' }} alt="Avatar" />
@@ -499,27 +510,27 @@ const DashboardEditore = ({ onEdit }) => {
         <div className="security-panel" style={{ flex: 1, background: colors.white, padding: '20px', borderRadius: '12px', border: `1px solid ${colors.border}` }}>
           <h4 style={{ margin: '0 0 15px 0', fontSize: '14px', textTransform: 'uppercase', color: colors.dark }}>Sicurezza</h4>
           <form onSubmit={handleCambiaPassword} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            
+
             {/* Input Vecchia Password */}
             <div style={{ position: 'relative', width: '100%' }}>
-              <input 
-                type={showVecchia ? "text" : "password"} 
-                placeholder="Vecchia password" 
-                value={pwdForm.vecchiaPassword} 
-                onChange={e => setPwdForm({...pwdForm, vecchiaPassword: e.target.value})} 
-                style={{ ...inputStyle, paddingRight: pwdForm.vecchiaPassword ? '55px' : '35px' }} 
-                required 
+              <input
+                type={showVecchia ? "text" : "password"}
+                placeholder="Vecchia password"
+                value={pwdForm.vecchiaPassword}
+                onChange={e => setPwdForm({ ...pwdForm, vecchiaPassword: e.target.value })}
+                style={{ ...inputStyle, paddingRight: pwdForm.vecchiaPassword ? '55px' : '35px' }}
+                required
               />
               {pwdForm.vecchiaPassword && (
-                <span 
-                  onClick={() => setPwdForm({...pwdForm, vecchiaPassword: ''})} 
+                <span
+                  onClick={() => setPwdForm({ ...pwdForm, vecchiaPassword: '' })}
                   style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#999', fontSize: '14px', userSelect: 'none' }}
                 >
                   ✕
                 </span>
               )}
-              <span 
-                onClick={() => setShowVecchia(!showVecchia)} 
+              <span
+                onClick={() => setShowVecchia(!showVecchia)}
                 onMouseEnter={(e) => e.target.style.opacity = '1'}
                 onMouseLeave={(e) => e.target.style.opacity = '0.4'}
                 style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', fontSize: '14px', userSelect: 'none', color: '#666', opacity: '0.4', transition: 'opacity 0.2s ease' }}
@@ -530,24 +541,24 @@ const DashboardEditore = ({ onEdit }) => {
 
             {/* Input Nuova Password */}
             <div style={{ position: 'relative', width: '100%' }}>
-              <input 
-                type={showNuova ? "text" : "password"} 
-                placeholder="Nuova password" 
-                value={pwdForm.nuovaPassword} 
-                onChange={e => setPwdForm({...pwdForm, nuovaPassword: e.target.value})} 
-                style={{ ...inputStyle, paddingRight: pwdForm.nuovaPassword ? '55px' : '35px' }} 
-                required 
+              <input
+                type={showNuova ? "text" : "password"}
+                placeholder="Nuova password"
+                value={pwdForm.nuovaPassword}
+                onChange={e => setPwdForm({ ...pwdForm, nuovaPassword: e.target.value })}
+                style={{ ...inputStyle, paddingRight: pwdForm.nuovaPassword ? '55px' : '35px' }}
+                required
               />
               {pwdForm.nuovaPassword && (
-                <span 
-                  onClick={() => setPwdForm({...pwdForm, nuovaPassword: ''})} 
+                <span
+                  onClick={() => setPwdForm({ ...pwdForm, nuovaPassword: '' })}
                   style={{ position: 'absolute', right: '35px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#999', fontSize: '14px', userSelect: 'none' }}
                 >
                   ✕
                 </span>
               )}
-              <span 
-                onClick={() => setShowNuova(!showNuova)} 
+              <span
+                onClick={() => setShowNuova(!showNuova)}
                 onMouseEnter={(e) => e.target.style.opacity = '1'}
                 onMouseLeave={(e) => e.target.style.opacity = '0.4'}
                 style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', fontSize: '14px', userSelect: 'none', color: '#666', opacity: '0.4', transition: 'opacity 0.2s ease' }}
@@ -566,58 +577,76 @@ const DashboardEditore = ({ onEdit }) => {
       <div className="controls-block-container">
         <div className="controls-title-section">
           <h2 style={{ color: colors.dark, fontWeight: '700', margin: 0, textAlign: 'left' }}>
-            {view === 'CONTENUTI' ? 'Gestione Contenuti' : view === 'SPONSOR' ? 'Gestione Sponsor' : view === 'STATS' ? 'Report Statistiche' : 'Calendario Editoriale'}
+            {view === 'CONTENUTI' ? 'Gestione Contenuti' : view === 'SPONSOR' ? 'Gestione Sponsor' : view === 'STATS' ? 'Report Statistiche' : view === 'INTERVISTE'
+              ? 'Gestione Prenotazioni' : 'Calendario Editoriale'}
           </h2>
         </div>
-        
+
         <div className="controls-actions-section">
           {view === 'CONTENUTI' && (
-            <input 
-              type="text" 
-              className="search-input" 
-              placeholder="Cerca per titolo o data..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Cerca per titolo o data..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               style={{ maxWidth: '300px' }}
             />
           )}
-          
+
           <div className="buttons-horizontal-row">
             {view === 'CONTENUTI' ? (
-              <button 
-                onClick={() => setView('STATS')}
+              <button
+                onClick={() => { setView('STATS'); setSelectedIntervistaId(null); }}
                 className="btn-view-switch btn-view-stats"
               >
                 📊 Statistiche
               </button>
             ) : view === 'STATS' && (
-              <button 
-                onClick={() => setView('CONTENUTI')}
+              <button
+                onClick={() => { setView('CONTENUTI'); setSelectedIntervistaId(null); }}
                 className="btn-view-switch btn-view-contenuti"
               >
                 📄 Torna ai Contenuti
               </button>
             )}
-            
+
+            {/* Bottone Interviste */}
             {view === 'CONTENUTI' ? (
-              <button 
-                onClick={() => setView('CALENDARIO')}
+              <button
+                onClick={() => { setView('INTERVISTE'); setSelectedIntervistaId(null); }}
+                className="btn-view-switch btn-view-interviste"
+              >
+                🎤 Prenotazioni
+              </button>
+            ) : view === 'INTERVISTE' && (
+              <button
+                onClick={() => { setView('CONTENUTI'); setSelectedIntervistaId(null); }}
+                className="btn-view-switch btn-view-contenuti"
+              >
+                📄 Torna ai Contenuti
+              </button>
+            )}
+
+            {view === 'CONTENUTI' ? (
+              <button
+                onClick={() => { setView('CALENDARIO'); setSelectedIntervistaId(null); }}
                 className="btn-view-switch btn-view-calendar"
               >
                 📅 Calendario
               </button>
             ) : view === 'CALENDARIO' && (
-              <button 
-                onClick={() => setView('CONTENUTI')}
+              <button
+                onClick={() => { setView('CONTENUTI'); setSelectedIntervistaId(null); }}
                 className="btn-view-switch btn-view-contenuti"
               >
                 📄 Torna ai Contenuti
               </button>
             )}
-            
+
             {(view === 'CONTENUTI' || view === 'SPONSOR') && (
-              <button 
-                onClick={() => setView(view === 'CONTENUTI' ? 'SPONSOR' : 'CONTENUTI')}
+              <button
+                onClick={() => { setView(view === 'CONTENUTI' ? 'SPONSOR' : 'CONTENUTI'); setSelectedIntervistaId(null); }}
                 className={`btn-view-switch ${view === 'CONTENUTI' ? 'btn-view-sponsor' : 'btn-view-contenuti'}`}
               >
                 {view === 'CONTENUTI' ? '📢 Sponsor' : '📄 Torna ai Contenuti'}
@@ -626,7 +655,7 @@ const DashboardEditore = ({ onEdit }) => {
           </div>
 
           {view === 'CONTENUTI' && (
-            <select 
+            <select
               className="filter-select"
               value={tipoFiltro}
               onChange={(e) => setTipoFiltro(e.target.value)}
@@ -701,8 +730,8 @@ const DashboardEditore = ({ onEdit }) => {
 
           {totalPages > 1 && (
             <div className="pagination-controls">
-              <button 
-                disabled={currentPage === 1} 
+              <button
+                disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => prev - 1)}
                 className="btn-page"
               >
@@ -711,8 +740,8 @@ const DashboardEditore = ({ onEdit }) => {
               <span style={{ fontSize: '14px', color: colors.dark, fontWeight: '600' }}>
                 Pagina {currentPage} di {totalPages}
               </span>
-              <button 
-                disabled={currentPage === totalPages} 
+              <button
+                disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(prev => prev + 1)}
                 className="btn-page"
               >
@@ -725,6 +754,17 @@ const DashboardEditore = ({ onEdit }) => {
         <GestioneSponsor colors={colors} />
       ) : view === 'STATS' ? (
         <DashboardStats colors={colors} />
+      ) : view === 'INTERVISTE' ? (
+        selectedIntervistaId ? (
+          <DettaglioIntervista 
+            id={selectedIntervistaId} 
+            onBack={() => setSelectedIntervistaId(null)} 
+          />
+        ) : (
+          <DashboardInterviste 
+            onSelectIntervista={(id) => setSelectedIntervistaId(id)} 
+          />
+        )
       ) : (
         <CalendarioTeams colors={colors} />
       )}

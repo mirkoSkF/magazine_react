@@ -104,18 +104,26 @@ function App() {
     // INTERCETTAZIONE LINK DI CONDIVISIONE ALL'AVVIO
     const params = new URLSearchParams(window.location.search);
     const articoloId = params.get('articolo');
+    const vistaParam = params.get('vista');
+
     if (articoloId) {
       setSelectedArticleId(articoloId);
       setView('articolo');
+    } else if (vistaParam === 'prenotazione') {
+      setView('intervista');
     }
 
     // GESTIONE DEL TASTO INDIETRO DEL BROWSER
     const handlePopState = () => {
       const currentParams = new URLSearchParams(window.location.search);
       const currentArticoloId = currentParams.get('articolo');
+      const currentVista = currentParams.get('vista');
+
       if (currentArticoloId) {
         setSelectedArticleId(currentArticoloId);
         setView('articolo');
+      } else if (currentVista === 'prenotazione') {
+        setView('intervista');
       } else {
         setSelectedArticleId(null);
         setView('index');
@@ -187,12 +195,19 @@ function App() {
   const navigateTo = (newView) => {
     setView(newView);
     setIsMobileMenuOpen(false);
+
     if (newView === 'index') {
       setSelectedArticleId(null);
       window.history.pushState({}, '', window.location.origin + window.location.pathname);
+    } else if (newView === 'intervista') {
+      window.history.pushState({}, '', '?vista=prenotazione');
+    } else {
+      window.history.pushState({}, '', window.location.origin + window.location.pathname);
     }
+
     window.scrollTo(0, 0);
   };
+
   const navBarStyle = {
     display: 'flex',
     justifyContent: 'space-between',
@@ -208,6 +223,7 @@ function App() {
     boxSizing: 'border-box',
     transition: 'top 0.3s ease'
   };
+
   return (
     <div style={{
       fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
@@ -262,15 +278,14 @@ function App() {
           style={{ fontWeight: '800', fontSize: '24px', letterSpacing: '-0.5px', color: 'orange', cursor: 'pointer' }}
           onClick={() => navigateTo('index')}
         >
-          {/* CONTENITORE LOGO NELLA NAVBAR */}
           <div
             onClick={() => setView('home')}
             style={{
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              height: '100%', // Sfrutta l'altezza della navbar
-              maxWidth: '240px' // Impedisce al logo di allargarsi troppo
+              height: '100%',
+              maxWidth: '240px'
             }}
           >
             <div
@@ -287,7 +302,7 @@ function App() {
                 src="/Logo_brand.png"
                 alt="Logo Skill Factory"
                 style={{
-                  height: '45px', // Mantiene la stessa altezza del precedente SVG
+                  height: '45px',
                   width: 'auto',
                   display: 'block'
                 }}
@@ -306,18 +321,12 @@ function App() {
               Anteprima Magazine
             </button>
           )}
-          {/* Nuova voce di menu visibile in modalità visitatore / non loggato */}
-          {/*!isLoggedIn && (
-            <button className={`nav-link ${view === 'eventi' ? 'active-link' : ''}`} onClick={() => navigateTo('eventi')}>
-              Eventi
-            </button>
-          )}
 
           {!isLoggedIn && (
             <button className={`nav-link ${view === 'intervista' ? 'active-link' : ''}`} onClick={() => navigateTo('intervista')}>
-              Prenota Intervista
+              Prenotazione eventi
             </button>
-          )*/}
+          )}
 
           {!isLoggedIn ? (
             <button className={`nav-link ${view === 'login' ? 'active-link' : ''}`} onClick={() => navigateTo('login')}>
@@ -348,7 +357,6 @@ function App() {
           />
         )}
 
-        {/* Render del nuovo componente dedicato alla pagina degli eventi */}
         {view === 'eventi' && (
           <PaginaEventi
             onReadEvent={handleReadArticle}
@@ -394,62 +402,60 @@ function App() {
       </main>
 
       <footer style={footerStyle}>
-  <div
-    style={{
-      marginBottom: "15px",
-      fontSize: "15px",
-      fontWeight: "500",
-    }}
-  >
-    <strong>Contatti</strong>
-    <br />
-    <a
-      href="mailto:magazine@edu.skillfactory.it"
-      style={{
-        color: "inherit",
-        textDecoration: "none",
-      }}
-    >
-      ✉️ redazione@skillfactory.it
-    </a>
-  </div>
+        <div
+          style={{
+            marginBottom: "15px",
+            fontSize: "15px",
+            fontWeight: "500",
+          }}
+        >
+          <strong>Contatti</strong>
+          <br />
+          <a
+            href="mailto:magazine@edu.skillfactory.it"
+            style={{
+              color: "inherit",
+              textDecoration: "none",
+            }}
+          >
+            ✉️ redazione@skillfactory.it
+          </a>
+        </div>
 
-  <div
-    style={{
-      borderTop: "1px solid rgba(255,255,255,0.2)",
-      paddingTop: "15px",
-      fontSize: "14px",
-    }}
-  >
-    &copy; Copyright - Skill Factory 2026 |
-    <span
-      onClick={() => setView("privacy")}
-      style={{
-        cursor: "pointer",
-        marginLeft: "10px",
-        textDecoration: "underline",
-      }}
-    >
-      Privacy Policy
-    </span>
-  </div>
-</footer>
+        <div
+          style={{
+            borderTop: "1px solid rgba(255,255,255,0.2)",
+            paddingTop: "15px",
+            fontSize: "14px",
+          }}
+        >
+          &copy; Copyright - Skill Factory 2026 |
+          <span
+            onClick={() => setView("privacy")}
+            style={{
+              cursor: "pointer",
+              marginLeft: "10px",
+              textDecoration: "underline",
+            }}
+          >
+            Privacy Policy
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
-
-
 
 const mainContainerStyle = {
   paddingTop: '55px',
   paddingBottom: '60px',
   flex: '1',
-  width: '100%',               // 👈 Prende tutto lo spazio
-  maxWidth: '100%',            // 👈 Forza l'estensione totale rimuovendo i limiti in % inferiori
-  margin: '0',                 // 👈 Rimuove il "0 auto" che stringe al centro
+  width: '100%',
+  maxWidth: '100%',
+  margin: '0',
   boxSizing: 'border-box',
-  paddingLeft: '30px',         // Stacca i contenuti dal bordo sinistro dello schermo
-  paddingRight: '30px'         // Stacca i contenuti dal bordo destro dello schermo
+  paddingLeft: '30px',
+  paddingRight: '30px'
 };
 
 const footerStyle = {

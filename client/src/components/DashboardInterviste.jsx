@@ -27,10 +27,19 @@ const DashboardInterviste = ({ onSelectIntervista }) => {
   if (loading) return <div style={{textAlign: 'center', padding: '50px'}}>Caricamento...</div>;
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
+    <div className="dashboard-container" style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
       <style>
         {`
           @media (max-width: 600px) {
+            .dashboard-container {
+              padding: 10px !important;
+            }
+
+            .dashboard-title {
+              font-size: 20px !important;
+              margin-bottom: 15px !important;
+            }
+
             thead { display: none; }
             
             tr { 
@@ -52,16 +61,15 @@ const DashboardInterviste = ({ onSelectIntervista }) => {
               font-size: 14px;
               border-bottom: 1px dashed #f0f0f0 !important;
               text-align: right;
+              word-break: break-word;
+              gap: 12px;
             }
 
-            /* CORREZIONE ALLINEAMENTO ULTIMO CAMPO */
             td:last-child {
               border-bottom: none !important;
-              /* Rimuoviamo il padding top extra se presente */
-              padding-top: 10px !important; 
-              /* Assicuriamoci che il contenuto sia spinto a destra */
+              padding-top: 12px !important; 
               justify-content: flex-end; 
-              gap: 15px; /* Distanza tra 'AZIONE' e il bottone */
+              gap: 15px;
             }
 
             td::before {
@@ -70,28 +78,30 @@ const DashboardInterviste = ({ onSelectIntervista }) => {
               color: #888;
               text-transform: uppercase;
               font-size: 11px;
-              /* Forziamo l'etichetta a sinistra senza Flex pesanti */
+              flex-shrink: 0;
               margin-right: auto; 
+              text-align: left;
             }
 
-            /* Forziamo il bottone a non allargarsi e a restare compatto */
             .btn-action-mobile {
-              width: auto !important;
-              margin: 0 !important; /* Rimuove margini che alterano l'allineamento */
-              display: inline-block; /* Comportamento nativo dei bottoni */
+              width: 100% !important;
+              max-width: 120px;
+              text-align: center;
+              margin: 0 !important;
+              display: inline-block;
             }
           }
         `}
       </style>
 
-      <h2 style={{marginBottom: '20px', fontSize: '24px', fontWeight: '800'}}>Richieste Interviste</h2>
+      <h2 className="dashboard-title" style={{marginBottom: '20px', fontSize: '24px', fontWeight: '800'}}>Prenotazioni</h2>
       
       <div className="table-container" style={{ background: 'transparent', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #eee' }}>
-              <th style={cellHead}>Azienda</th>
-              <th style={cellHead}>Referente</th>
+              <th style={cellHead}>Evento</th>
+              <th style={cellHead}>Nominativo</th>
               <th style={cellHead}>Email</th>
               <th style={cellHead}>Azione</th>
             </tr>
@@ -100,11 +110,10 @@ const DashboardInterviste = ({ onSelectIntervista }) => {
             {prenotazioni.length > 0 ? (
               prenotazioni.map(p => (
                 <tr key={p.id} style={{ borderBottom: '1px solid #f1f1f1' }}>
-                  <td style={cellStyle} data-label="Azienda"><strong>{p.azienda}</strong></td>
-                  <td style={cellStyle} data-label="Referente">{p.referente}</td>
+                  <td style={cellStyle} data-label="Evento"><strong>{p.azienda}</strong></td>
+                  <td style={cellStyle} data-label="Nominativo">{p.referente}</td>
                   <td style={cellStyle} data-label="Email">{p.email}</td>
                   <td style={cellStyle} data-label="Azione">
-                    {/* Aggiunta classe specifica per il bottone */}
                     <button 
                       className="btn-action-mobile"
                       onClick={() => onSelectIntervista(p.id)} 
@@ -133,7 +142,6 @@ const DashboardInterviste = ({ onSelectIntervista }) => {
 
 const cellHead = { padding: '15px', textAlign: 'left', color: '#666', fontWeight: 'bold' };
 const cellStyle = { padding: '15px', textAlign: 'left' };
-// Manteniamo lo stile del bottone compatto
 const btnStyle = { padding: '10px 20px', background: '#007bff', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', transition: '0.3s', fontWeight: '600', fontSize: '13px' };
 
 export default DashboardInterviste;

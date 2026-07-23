@@ -568,7 +568,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                     {a.copertina && <img src={a.copertina.startsWith('http') ? a.copertina : `data:image/jpeg;base64,${a.copertina}`} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} alt="Cover" />}
                   </div>
                   <span style={{ fontSize: '11px', fontWeight: '700', color: a.rubrica && a.rubrica.trim() !== "" ? "#ff6b0b" : colors.primary, textTransform: 'uppercase', marginBottom: '8px' }}>{a.rubrica && a.rubrica.trim() !== "" ? `Rubrica | ${getNomeRubrica(a.rubrica)}` : "Articolo"}</span>
-                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', lineHeight: '1.2', color: colors.dark }}>{a.titolo}</h3>
+                  <h3 style={{ fontSize: '16px', margin: '0 0 10px 0', fontWeight: '700', flexGrow: 1, lineHeight: '1.2', color: colors.dark }}>{a.titolo}</h3>
                   {a.sottotitolo && (
                     <p style={{
                       fontSize: '13px',
