@@ -11,7 +11,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [pageSondaggi, setPageSondaggi] = useState(1);
   const [pageEditoriali, setPageEditoriali] = useState(1);
   const [pageEventi, setPageEventi] = useState(1);
-  const [showCookieBanner, setShowCookieBanner] = useState(true);
 
   const [sponsorLaterale, setSponsorLaterale] = useState([]);
   const [sponsorFondo, setSponsorFondo] = useState([]);
@@ -129,15 +128,7 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
       .catch((err) => {
         console.error("Errore caricamento API parallelo:", err);
       });
-
-    const consent = localStorage.getItem("cookie-consent");
-    if (consent) setShowCookieBanner(false);
   }, []);
-
-  const acceptCookies = () => {
-    localStorage.setItem("cookie-consent", "true");
-    setShowCookieBanner(false);
-  };
 
   const extractText = (articolo, length) => {
     if (!articolo || !articolo.moduli || articolo.moduli.length === 0) return "";
@@ -846,13 +837,6 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
             </aside>
           </div>
         </>
-      )}
-
-      {showCookieBanner && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, width: "100%", backgroundColor: "rgba(26, 26, 26, 0.93)", color: "white", padding: "15px 20px", zIndex: 1000, display: "flex", justifyContent: "center", alignItems: "center", gap: "20px", boxShadow: "0 -2px 10px rgba(0,0,0,0.3)", flexWrap: "wrap" }}>
-          <p style={{ fontSize: "13px", margin: 0, maxWidth: "800px" }}>Questo magazine utilizza cookie tecnici per garantirti la migliore esperienza. I dati delle aziende candidate sono trattati in conformità al GDPR.<span className="privacy-link" style={{ marginLeft: "5px", cursor: "pointer", textDecoration: "underline" }} onClick={onPrivacyClick}>Leggi l'informativa</span>.</p>
-          <button onClick={acceptCookies} style={{ backgroundColor: colors.primary, color: "white", border: "none", padding: "8px 20px", borderRadius: "4px", cursor: "pointer", fontWeight: "bold", fontSize: "13px" }}>Accetta tutto</button>
-        </div>
       )}
 
       {/* BOTTONE TORNA SU CORRETTO */}

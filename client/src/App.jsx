@@ -7,7 +7,127 @@ import Login from './components/Login';
 import FormIntervista from './components/FormIntervista';
 import DashboardInterviste from './components/DashboardInterviste';
 import DettaglioIntervista from './components/DettaglioIntervista';
-import PaginaEventi from './components/PaginaEventi'; // Importazione del nuovo componente
+import PaginaEventi from './components/PaginaEventi';
+
+// --- CONFIGURAZIONE GOOGLE ANALYTICS ---
+// Inserisci qui il tuo ID di Google Analytics (es. 'G-1234567890')
+const GA_TRACKING_ID = ''; 
+
+// Funzione helper per caricare Google Analytics dinamicamente in modalità Consent Mode
+const caricaGoogleAnalytics = (consensoDato = false) => {
+  if (!GA_TRACKING_ID) return;
+
+  // Se lo script non è ancora stato caricato nel DOM
+  if (!window.gtag) {
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ window.dataLayer.push(arguments); }
+    window.gtag = gtag;
+
+    // 1. STATO DI DEFAULT GDPR: Blocca lo storage analitico finché non c'è consenso
+    gtag('consent', 'default', {
+      'analytics_storage': consensoDato ? 'granted' : 'denied'
+    });
+
+    // Iniezione dello script di Google Tag Manager / GA4
+    const script = document.createElement('script');
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`;
+    script.async = true;
+    document.head.appendChild(script);
+
+    gtag('js', new Date());
+    gtag('config', GA_TRACKING_ID);
+
+    console.log("Google Analytics caricato con stato consenso:", consensoDato ? 'granted' : 'denied');
+  } else {
+    // Se lo script è già presente, aggiorna semplicemente lo stato del consenso
+    window.gtag('consent', 'update', {
+      'analytics_storage': consensoDato ? 'granted' : 'denied'
+    });
+    console.log("Stato consenso Google Analytics aggiornato a:", consensoDato ? 'granted' : 'denied');
+  }
+};
+
+// --- COMPONENTE COOKIE BANNER ---
+const CookieBanner = ({ onOpenPrivacy, showBanner, setShowBanner }) => {
+  if (!showBanner) return null;
+
+  const handleAccept = () => {
+    localStorage.setItem('consenso_cookie', 'accettati');
+    setShowBanner(false);
+    caricaGoogleAnalytics(true); // Attiva il tracciamento GA al click su "Accetta"
+  };
+
+  const handleReject = () => {
+    localStorage.setItem('consenso_cookie', 'rifiutati');
+    setShowBanner(false);
+    caricaGoogleAnalytics(false); // Mantiene GA bloccato o limita il tracciamento
+  };
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: '#212529',
+      color: '#ffffff',
+      padding: '20px 30px',
+      boxShadow: '0 -4px 20px rgba(0,0,0,0.25)',
+      zIndex: 9999,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '15px',
+      borderTop: '3px solid #007bff'
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+        <p style={{ margin: '0 0 10px 0', fontSize: '14px', lineHeight: '1.5', color: '#e0e0e0' }}>
+          Questo sito utilizza cookie tecnici necessari al suo funzionamento e, previo tuo consenso, cookie di analisi/tracciamento per migliorare l'esperienza di navigazione.
+          Puoi liberamente prestare, rifiutare o revocare il tuo consenso in qualsiasi momento. Per ulteriori dettagli consulta la nostra{' '}
+          <span
+            onClick={onOpenPrivacy}
+            style={{ color: '#4da6ff', textDecoration: 'underline', cursor: 'pointer' }}
+          >
+            Privacy Policy
+          </span>.
+        </p>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          <button
+            onClick={handleReject}
+            style={{
+              padding: '8px 18px',
+              backgroundColor: 'transparent',
+              border: '1px solid #ffffff',
+              color: '#ffffff',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '600',
+              transition: 'all 0.2s'
+            }}
+          >
+            Rifiuta tutti
+          </button>
+          <button
+            onClick={handleAccept}
+            style={{
+              padding: '8px 18px',
+              backgroundColor: '#007bff',
+              border: 'none',
+              color: '#ffffff',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '600',
+              transition: 'all 0.2s'
+            }}
+          >
+            Accetta tutti
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // --- COMPONENTE PRIVACY INTEGRATO CON TESTO INTEGRALE ---
 const PrivacyContent = ({ onBack }) => (
@@ -43,7 +163,7 @@ const PrivacyContent = ({ onBack }) => (
 
     <h3 style={{ fontSize: '18px', marginTop: '20px' }}>A) Finalità del trattamento dei dati e base giuridica</h3>
     <p>I Suoi dati personali sono trattati dalla SKILL FACTORY S.R.L. in qualità di Titolare del trattamento per le seguenti Finalità di Servizio:</p>
-    <p><strong>A1)</strong> Acquisizione, trattamento e conservazione anche digitale di dati personali ai fini della navigazione sul sito www.skillfactory.it onde garantire la sicurezza del Sito e delle informazioni sullo stesso scambiate...</p>
+    <p><strong>A1)</strong> Acquisizione, trattamento e conservazione anche digitale di dati personali ai fini della navigazione sul sito www.skillfactory.it onde garantire la sicurezza del Sito e delle informazioni sullo stesso scambiate. Il sito si avvale inoltre del servizio di analisi statistica Google Analytics (fornito da Google Ireland Limited) per raccogliere dati aggregati sul traffico e sull'utilizzo delle pagine, attivato esclusivamente previo esplicito consenso dell'utente;</p>
     <p><strong>A2)</strong> Acquisizione, trattamento e conservazione anche digitale di dati personali degli interessati (quali dati anagrafici, numero di telefono ed indirizzo e-mail) per consentire l’erogazione dei servizi da lei richiesti...</p>
     <p><strong>A3)</strong> Acquisizione, trattamento e conservazione anche digitale di dati personali degli utenti, quali dati anagrafici, codice fiscale, cv per l’esecuzione di un contratto di cui l’interessato è parte o all’esecuzione di misure precontrattuali dettate su richiesta dello stesso, per l’iscrizione e partecipazione a corsi di formazione di potenziali risorse con inserimento sulla piattaforma Skillbook nella sezione utenti e conseguente inserimento lavorativo;</p>
     <p><strong>A4)</strong> Acquisizione, trattamento e conservazione anche digitale di dati personali dei discenti, quali dati anagrafici, numero di telefono ed indirizzo e-mail per consentire l’erogazione del servizio di newsletter, attivabile con la sua espressa indicazione al momento della compilazione del relativo form;</p>
@@ -54,7 +174,7 @@ const PrivacyContent = ({ onBack }) => (
     <p>Le informazioni che seguono riguardano esclusivamente il predetto Sito. Non riguardano canali diversi dal Sito e, nella specie, non riguardano altri siti internet, pagine e/o servizi raggiungibili tramite link ipertestuali pubblicati in questo Sito.</p>
 
     <h3 style={{ fontSize: '18px', marginTop: '20px' }}>B) Natura del conferimento dei dati</h3>
-    <p>I Suoi dati personali oggetto del trattamento sono raccolti direttamente dal soggetto interessato. La base giuridica per il trattamento dei dati per le finalità di cui al punto A1) è il legittimo interesse del Titolare ai sensi dell’art. 6, comma 1 lett. f del Regolamento e non richiede il suo consenso. La base giuridica per il trattamento dei dati per le finalità di cui ai punti A2), A3) e A4) è l’art. 6 comma 1 lett. b del Regolamento...</p>
+    <p>I Suoi dati personali oggetto del trattamento sono raccolti direttamente dal soggetto interessato. La base giuridica per il trattamento dei dati tecnici di navigazione di cui al punto A1) è il legittimo interesse del Titolare ai sensi dell’art. 6, comma 1 lett. f del Regolamento. L'attivazione dei cookie analitici di Google Analytics per le finalità di analisi del traffico di cui al punto A1) richiede invece il Suo consenso espresso ai sensi dell'art. 6, par. 1, lett. a del Regolamento, prestabile e revocabile in qualsiasi momento tramite il banner cookie o la voce "Gestisci Cookie". La base giuridica per il trattamento dei dati per le finalità di cui ai punti A2), A3) e A4) è l’art. 6 comma 1 lett. b del Regolamento...</p>
     <p>La base giuridica per il trattamento dei dati per le finalità di cui al punto A5) e A6) è l’art.6. par.1 lett. a del Regolamento, in quanto i suoi dati potranno essere trattati lecitamente solo previo suo consenso, specifico, separato, espresso, documentato, preventivo e del tutto facoltativo...</p>
     <p>La base giuridica per il trattamento dei dati per le finalità di cui ai punti A7) e A8) è l’ adempimento di un obbligo legale ai sensi dell’art. 6, comma 1 lett. c del Regolamento.</p>
 
@@ -67,7 +187,7 @@ const PrivacyContent = ({ onBack }) => (
       <li>Dati relativi alla formazione = 2 anni</li>
       <li>CV su Skillbook = 2 anni</li>
       <li>Newsletter = 2 anni</li>
-      <li>Marketing = 2 anni</li>
+      <li>Marketing e Cookie analitici = 2 anni</li>
     </ul>
 
     <h3 style={{ fontSize: '18px', marginTop: '20px' }}>G) Titolare del trattamento e responsabile della protezione dei dati personali</h3>
@@ -93,10 +213,23 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
+  const [showCookieBanner, setShowCookieBanner] = useState(false);
 
   useEffect(() => {
     // CAMBIO TITOLO SCHEDA BROWSER
     document.title = "Magazine SkillFactory";
+
+    // CONTROLLO STATO CONSENSO COOKIE E CARICAMENTO GOOGLE ANALYTICS
+    const consenso = localStorage.getItem('consenso_cookie');
+    if (!consenso) {
+      setShowCookieBanner(true);
+      // Carica lo script di GA in stato bloccato (denied) in attesa della decisione dell'utente
+      caricaGoogleAnalytics(false);
+    } else if (consenso === 'accettati') {
+      caricaGoogleAnalytics(true);
+    } else {
+      caricaGoogleAnalytics(false);
+    }
 
     const token = localStorage.getItem('token');
     if (token) setIsLoggedIn(true);
@@ -322,12 +455,6 @@ function App() {
             </button>
           )}
 
-          {!isLoggedIn && (
-            <button className={`nav-link ${view === 'intervista' ? 'active-link' : ''}`} onClick={() => navigateTo('intervista')}>
-              Prenotazione eventi
-            </button>
-          )}
-
           {!isLoggedIn ? (
             <button className={`nav-link ${view === 'login' ? 'active-link' : ''}`} onClick={() => navigateTo('login')}>
               Area Riservata
@@ -401,6 +528,13 @@ function App() {
         )}
       </main>
 
+      {/* BANNER COOKIE */}
+      <CookieBanner
+        showBanner={showCookieBanner}
+        setShowBanner={setShowCookieBanner}
+        onOpenPrivacy={() => navigateTo('privacy')}
+      />
+
       <footer style={footerStyle}>
         <div
           style={{
@@ -412,7 +546,7 @@ function App() {
           <strong>Contatti</strong>
           <br />
           <a
-            href="mailto:magazine@edu.skillfactory.it"
+            href="mailto:redazione@skillfactory.it"
             style={{
               color: "inherit",
               textDecoration: "none",
@@ -439,6 +573,17 @@ function App() {
             }}
           >
             Privacy Policy
+          </span>
+           &nbsp;|
+          <span
+            onClick={() => setShowCookieBanner(true)}
+            style={{
+              cursor: "pointer",
+              marginLeft: "10px",
+              textDecoration: "underline",
+            }}
+          >
+            Gestisci Cookie
           </span>
         </div>
       </footer>
