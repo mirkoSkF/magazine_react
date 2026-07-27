@@ -314,10 +314,25 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
       fetch('https://magazine.skillfactory.it/api/pagine')
         .then(res => res.json())
         .then(data => {
+          const isLoggato = !!localStorage.getItem("token");
+          const mioUsername = localStorage.getItem("username");
+
           const correlati = data
-            .filter(art => art.id !== parseInt(currentId) && art.tipo === 'ARTICOLO')
+            .filter(art => {
+              // Escludi l'articolo corrente e quelli che non sono di tipo ARTICOLO
+              if (art.id === parseInt(currentId) || art.tipo !== 'ARTICOLO') {
+                return false;
+              }
+              // Mostra gli articoli pubblicati (non bozze)
+              if (art.bozza === false) {
+                return true;
+              }
+              // Mostra le bozze solo se l'utente è loggato ed è l'autore
+              return isLoggato && art.autore === mioUsername;
+            })
             .sort((a, b) => b.id - a.id)
             .slice(0, 5);
+            
           setArticoliConsigliati(correlati);
         })
         .catch(err =>
@@ -1049,10 +1064,20 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                               fontSize: '15px',
                               fontWeight: 'bold',
                               color: '#333',
-                              lineHeight: '1.3'
+                              lineHeight: '1.3',
+                              display: 'flex',
+                              alignItems: 'center',
+                              flexWrap: 'wrap',
+                              gap: '8px'
                             }}
                           >
                             {art.titolo}
+                            {/* BADGE BOZZA NEI CONSIGLIATI */}
+                            {art.bozza === true && (
+                              <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'inline-block' }}>
+                                BOZZA
+                              </span>
+                            )}
                           </h4>
                           {art.sottotitolo && (
                             <p

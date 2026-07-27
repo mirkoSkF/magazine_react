@@ -3,19 +3,21 @@ import { Editor } from '@tinymce/tinymce-react';
 
 const MagazineEditor = ({ editId, onBack }) => {
   const editorRef = useRef(null);
-  const fileInputRef = useRef(null); // Ref aggiunto per gestire il reset dell'input file
+  const fileInputRef = useRef(null); 
 
   const [content, setContent] = useState('');
   const [zoom, setZoom] = useState(100);
 
   const [titolo, setTitolo] = useState('');
-  const [sottotitolo, setSottotitolo] = useState(''); // Stato per il sottotitolo opzionale
-  const [rubrica, setRubrica] = useState('');          // Stato aggiunto per la gestione del campo rubrica (String)
+  const [sottotitolo, setSottotitolo] = useState(''); 
+  const [rubrica, setRubrica] = useState('');          
   const [copertina, setCopertina] = useState(null);
   const [tipo, setTipo] = useState('ARTICOLO');
 
   const [publishHover, setPublishHover] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  
+  const [isFullscreen, setIsFullscreen] = useState(false); 
 
   const [modal, setModal] = useState({
     show: false,
@@ -41,7 +43,6 @@ const MagazineEditor = ({ editId, onBack }) => {
     hoverGray: '#e2e6ea'
   };
 
-  // Array delle 6 rubriche per il menu di selezione
   const opzioniRubriche = [
     { value: 'FORMATORE', label: '📚 Il Formatore' },
     { value: 'QUALITA', label: '📚 Formazione & Qualità' },
@@ -51,12 +52,10 @@ const MagazineEditor = ({ editId, onBack }) => {
     { value: 'LAVORO', label: '📚 Orientamento & Lavoro' }
   ];
 
-  // Funzione per gestire la chiusura delle notifiche (Success/Error) e il reindirizzamento
   const handleCloseNotification = () => {
     const isSuccess = modal.type === 'success';
     setModal({ ...modal, show: false });
 
-    // Se l'operazione ha avuto successo (creazione o modifica), torna alla dashboard
     if (isSuccess && onBack) {
       onBack();
     }
@@ -90,8 +89,8 @@ const MagazineEditor = ({ editId, onBack }) => {
         .then(res => res.json())
         .then(data => {
           setTitolo(data.titolo || '');
-          setSottotitolo(data.sottotitolo || ''); // Carica il sottotitolo se esistente
-          setRubrica(data.rubrica || '');         // Carica il valore della rubrica dal DB
+          setSottotitolo(data.sottotitolo || ''); 
+          setRubrica(data.rubrica || '');         
           setCopertina(data.copertina || null);
           setTipo(data.tipo || 'ARTICOLO');
           if (data.moduli?.length > 0) {
@@ -102,8 +101,8 @@ const MagazineEditor = ({ editId, onBack }) => {
     } else {
       setContent('');
       setTitolo('');
-      setSottotitolo(''); // Reset in caso di nuova pagina
-      setRubrica('');     // Reset della rubrica
+      setSottotitolo(''); 
+      setRubrica('');     
       setCopertina(null);
       setTipo('ARTICOLO');
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -118,16 +117,13 @@ const MagazineEditor = ({ editId, onBack }) => {
         const img = new Image();
 
         img.onload = () => {
-
           const MAX_WIDTH = 1300;
           const MAX_HEIGHT = 680;
 
           let width = img.width;
           let height = img.height;
 
-          // Mantiene le proporzioni
           if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-
             const ratio = Math.min(
               MAX_WIDTH / width,
               MAX_HEIGHT / height
@@ -147,7 +143,6 @@ const MagazineEditor = ({ editId, onBack }) => {
 
           canvas.toBlob(
             (blob) => {
-
               if (!blob) {
                 reject(new Error("Errore compressione."));
                 return;
@@ -163,12 +158,10 @@ const MagazineEditor = ({ editId, onBack }) => {
               );
 
               resolve(optimizedFile);
-
             },
             "image/jpeg",
             0.82
           );
-
         };
 
         img.onerror = reject;
@@ -186,8 +179,6 @@ const MagazineEditor = ({ editId, onBack }) => {
     if (!file) return;
 
     try {
-
-      // Ottimizza automaticamente la copertina
       const optimizedFile = await optimizeCoverImage(file);
 
       console.log(
@@ -213,24 +204,18 @@ const MagazineEditor = ({ editId, onBack }) => {
       }
 
       const data = await response.json();
-
-      // Manteniamo lo stesso comportamento di prima
       setCopertina(data.location || data.url);
 
     } catch (error) {
-
       console.error(error);
-
       setModal({
         show: true,
         message: "Errore durante l'upload della copertina.",
         type: "error"
       });
-
     }
   };
 
-  // Funzione per rimuovere la copertina isolando lo stato del testo
   const handleRemoveCover = () => {
     setCopertina(null);
     if (fileInputRef.current) {
@@ -261,8 +246,6 @@ const MagazineEditor = ({ editId, onBack }) => {
   const executePublish = async () => {
     const currentContent = editorRef.current ? editorRef.current.getContent() : content;
 
-    // Opzione A: Il sottotitolo viene inviato in modo pulito nel suo campo dedicato del payload.
-    // Viene rimossa l'iniezione HTML forzata all'interno del modulo per evitare duplicazioni e bug in modifica.
     const payload = {
       titolo: titolo,
       sottotitolo: sottotitolo.trim(),
@@ -415,19 +398,40 @@ const MagazineEditor = ({ editId, onBack }) => {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
           }
 
+          /* BOTTONI ABBASSATI PER NON SOVRAPPORSI A TINYMCE IN FULLSCREEN */
+          .floating-controls.is-fullscreen {
+            flex-direction: row !important;
+            align-items: center;
+            top: 105px !important; /* Abbassato da 60px a 105px per liberare la barra superiore */
+            right: 25px !important;
+            gap: 10px;
+            z-index: 99999;
+          }
+          .zoom-container.is-fullscreen {
+            flex-direction: row !important;
+            padding: 0 10px !important;
+            border-radius: 6px !important;
+            height: 36px;
+            justify-content: center;
+          }
+          .zoom-container.is-fullscreen button {
+            font-size: 16px !important;
+            padding: 0 4px !important;
+          }
+
           @media (max-width: 768px) {
             .mobile-warning { display: flex; }
             body { overflow: hidden; }
           }
 
           @media (max-width: 1024px) {
-            .floating-controls {
+            .floating-controls:not(.is-fullscreen) {
               position: sticky; top: 10px; right: 0;
               flex-direction: row; justify-content: center;
               margin-bottom: 20px; width: 100%; padding: 10px;
               box-sizing: border-box;
             }
-            .zoom-container { flex-direction: row !important; padding: 5px 15px !important; border-radius: 50px !important; }
+            .zoom-container:not(.is-fullscreen) { flex-direction: row !important; padding: 5px 15px !important; border-radius: 50px !important; }
           }
 
           .back-to-top-btn {
@@ -491,19 +495,19 @@ const MagazineEditor = ({ editId, onBack }) => {
         </button>
       </div>
 
-      <div className="floating-controls">
+      <div className={`floating-controls ${isFullscreen ? 'is-fullscreen' : ''}`}>
         <button
           onClick={handlePublish}
           onMouseEnter={() => setPublishHover(true)}
           onMouseLeave={() => setPublishHover(false)}
-          style={floatingButtonStyle(editId ? colors.success : colors.primary, publishHover)}
+          style={floatingButtonStyle(editId ? colors.success : colors.primary, publishHover, isFullscreen)}
         >
           {editId ? "Salva Modifiche" : "Crea bozza"}
         </button>
 
-        <div className="zoom-container">
+        <div className={`zoom-container ${isFullscreen ? 'is-fullscreen' : ''}`}>
           <button onClick={handleZoomOut} style={zoomButtonStyle}> − </button>
-          <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#666', fontFamily: 'Arial', minWidth: '35px', textAlign: 'center' }}>
+          <span style={{ fontSize: isFullscreen ? '10px' : '11px', fontWeight: 'bold', color: '#666', fontFamily: 'Arial', minWidth: '35px', textAlign: 'center' }}>
             {zoom}%
           </span>
           <button onClick={handleZoomIn} style={zoomButtonStyle}> + </button>
@@ -580,7 +584,6 @@ const MagazineEditor = ({ editId, onBack }) => {
               style={{ width: '100%', fontSize: '28px', fontWeight: 'bold', border: 'none', borderBottom: `2px solid ${tipo === "SONDAGGIO" ? colors.accent : colors.border}`, outline: 'none', marginBottom: '10px', paddingBottom: '10px', fontFamily: 'Arial, Helvetica, sans-serif' }}
             />
 
-            {/* Input per il sottotitolo opzionale - Mostra e aggiorna lo stato corrente del sottotitolo anche in modifica */}
             <input
               type="text"
               placeholder="Inserisci un sottotitolo opzionale..."
@@ -714,7 +717,19 @@ const MagazineEditor = ({ editId, onBack }) => {
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | lineheight removeformat | charmap anchor pagebreak | visualblocks visualchars code fullscreen | help',
                 content_style: `
                   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Playfair+Display:wght@700&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap');
-                  body { font-family: Arial, Helvetica, sans-serif; font-size: 18px; line-height: 1.7; color: #333; padding: 40px !important; margin: 0 !important; box-sizing: border-box; }
+                  
+                  /* MARGINI LATERALI E LARGHEZZA MIGLIORATI PER IL TESTO */
+                  body { 
+                    font-family: Arial, Helvetica, sans-serif; 
+                    font-size: 18px; 
+                    line-height: 1.7; 
+                    color: #333; 
+                    padding: 40px 4% !important; 
+                    max-width: 1000px;
+                    margin: 0 auto !important;
+                    box-sizing: border-box; 
+                  }
+
                   img { max-width: 100%; height: auto !important; display: block; margin: 25px auto; border-radius: 8px; transition: margin 0.2s ease; }
                   img[style*="float: left"] { margin: 10px 25px 15px 0 !important; float: left; }
                   img[style*="float: right"] { margin: 10px 0 15px 25px !important; float: right; }
@@ -724,10 +739,13 @@ const MagazineEditor = ({ editId, onBack }) => {
                 `,
                 setup: (editor) => {
                   editor.on('init', () => {
-
                     editor.execCommand('FontSize', false, '18px');
-
                   });
+
+                  editor.on('FullscreenStateChanged', (e) => {
+                    setIsFullscreen(e.state);
+                  });
+
                   editor.on('NodeChange', () => {
                     const images = editor.getBody().querySelectorAll('img');
                     images.forEach(img => {
@@ -741,17 +759,11 @@ const MagazineEditor = ({ editId, onBack }) => {
                   editor.on('GetContent', (e) => {
                     const div = document.createElement('div');
                     div.querySelectorAll('*').forEach(el => {
-
                       if (el.style.fontSize?.includes('pt')) {
-
                         const pt = parseFloat(el.style.fontSize);
-
                         const px = Math.round(pt * 96 / 72);
-
                         el.style.fontSize = `${px}px`;
-
                       }
-
                     });
                     div.innerHTML = e.content;
                     div.querySelectorAll('p, span, div, li, td').forEach(el => {
@@ -775,7 +787,6 @@ const MagazineEditor = ({ editId, onBack }) => {
         </div>
       </div>
 
-      {/* BOTTONE TORNA SU */}
       <button onClick={scrollToTop} className={`back-to-top-btn ${showScrollTop ? 'visible' : ''}`} title="Torna all'inizio della pagina">
         <span>Torna su</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -798,15 +809,15 @@ const btnBase = {
   fontFamily: 'Inter, Arial, sans-serif'
 };
 
-const floatingButtonStyle = (color, isHover) => ({
+const floatingButtonStyle = (color, isHover, isFullscreen) => ({
   background: isHover ? (color === '#007bff' ? '#0056b3' : '#1e7e34') : color,
   color: 'white',
   border: 'none',
-  padding: '0 25px',
-  height: '48px',
-  borderRadius: '10px',
+  padding: isFullscreen ? '0 15px' : '0 25px',       
+  height: isFullscreen ? '36px' : '48px',            
+  borderRadius: isFullscreen ? '6px' : '10px',       
   cursor: 'pointer',
-  fontSize: '14px',
+  fontSize: isFullscreen ? '12px' : '14px',          
   fontWeight: '700',
   boxShadow: isHover ? '0 12px 24px rgba(0,0,0,0.2)' : '0 4px 12px rgba(0,0,0,0.1)',
   display: 'flex',

@@ -10,12 +10,13 @@ import DettaglioIntervista from './components/DettaglioIntervista';
 import PaginaEventi from './components/PaginaEventi';
 
 // --- CONFIGURAZIONE GOOGLE ANALYTICS ---
-// Inserisci qui il tuo ID di Google Analytics (es. 'G-1234567890')
-const GA_TRACKING_ID = ''; 
+const GA_TRACKING_ID = 'G-QTHTD72WRZ'; 
 
-// Funzione helper per caricare Google Analytics dinamicamente in modalità Consent Mode
+// Funzione helper per caricare Google Analytics dinamicamente in modalità Consent Mode v2
 const caricaGoogleAnalytics = (consensoDato = false) => {
   if (!GA_TRACKING_ID) return;
+
+  const statoConsenso = consensoDato ? 'granted' : 'denied';
 
   // Se lo script non è ancora stato caricato nel DOM
   if (!window.gtag) {
@@ -23,9 +24,12 @@ const caricaGoogleAnalytics = (consensoDato = false) => {
     function gtag(){ window.dataLayer.push(arguments); }
     window.gtag = gtag;
 
-    // 1. STATO DI DEFAULT GDPR: Blocca lo storage analitico finché non c'è consenso
+    // 1. STATO DI DEFAULT GDPR (Consent Mode v2): Blocca lo storage analitico/advertising finché non c'è consenso
     gtag('consent', 'default', {
-      'analytics_storage': consensoDato ? 'granted' : 'denied'
+      'analytics_storage': statoConsenso,
+      'ad_storage': statoConsenso,
+      'ad_user_data': statoConsenso,
+      'ad_personalization': statoConsenso
     });
 
     // Iniezione dello script di Google Tag Manager / GA4
@@ -37,13 +41,16 @@ const caricaGoogleAnalytics = (consensoDato = false) => {
     gtag('js', new Date());
     gtag('config', GA_TRACKING_ID);
 
-    console.log("Google Analytics caricato con stato consenso:", consensoDato ? 'granted' : 'denied');
+    console.log("Google Analytics caricato con stato consenso:", statoConsenso);
   } else {
-    // Se lo script è già presente, aggiorna semplicemente lo stato del consenso
+    // Se lo script è già presente, aggiorna lo stato del consenso (Consent Mode v2)
     window.gtag('consent', 'update', {
-      'analytics_storage': consensoDato ? 'granted' : 'denied'
+      'analytics_storage': statoConsenso,
+      'ad_storage': statoConsenso,
+      'ad_user_data': statoConsenso,
+      'ad_personalization': statoConsenso
     });
-    console.log("Stato consenso Google Analytics aggiornato a:", consensoDato ? 'granted' : 'denied');
+    console.log("Stato consenso Google Analytics aggiornato a:", statoConsenso);
   }
 };
 
@@ -313,6 +320,14 @@ function App() {
     // Sincronizza l'URL in modo che rifletta l'ID dell'articolo letto
     window.history.pushState({}, '', `?articolo=${id}`);
     window.scrollTo(0, 0);
+
+    // Invia l'evento page_view a Google Analytics solo se l'utente ha accettato i cookie
+    if (window.gtag && localStorage.getItem('consenso_cookie') === 'accettati') {
+      window.gtag('event', 'page_view', {
+        page_path: `/?articolo=${id}`,
+        page_title: `Articolo ${id}`
+      });
+    }
   };
 
   const handleEdit = (id) => {
