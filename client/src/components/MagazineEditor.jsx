@@ -469,10 +469,10 @@ const MagazineEditor = ({ editId, onBack }) => {
 
           /* BOTTONI ABBASSATI PER NON SOVRAPPORSI A TINYMCE IN FULLSCREEN */
           .floating-controls.is-fullscreen {
-            flex-direction: row !important;
+            flex-direction: column !important;
             align-items: center;
-            top: 87px !important;
-            right: 25px !important;
+            top: 310px !important;
+            right: 40px !important;
             gap: 10px;
             z-index: 99999;
           }
