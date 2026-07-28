@@ -10,7 +10,7 @@ import DettaglioIntervista from './components/DettaglioIntervista';
 import PaginaEventi from './components/PaginaEventi';
 
 // --- CONFIGURAZIONE GOOGLE ANALYTICS ---
-const GA_TRACKING_ID = 'G-QTHTD72WRZ'; 
+const GA_TRACKING_ID = 'G-QTHTD72WRZ';
 
 // Funzione helper per caricare Google Analytics dinamicamente in modalità Consent Mode v2
 const caricaGoogleAnalytics = (consensoDato = false) => {
@@ -21,7 +21,7 @@ const caricaGoogleAnalytics = (consensoDato = false) => {
   // Se lo script non è ancora stato caricato nel DOM
   if (!window.gtag) {
     window.dataLayer = window.dataLayer || [];
-    function gtag(){ window.dataLayer.push(arguments); }
+    function gtag() { window.dataLayer.push(arguments); }
     window.gtag = gtag;
 
     // 1. STATO DI DEFAULT GDPR (Consent Mode v2): Blocca lo storage analitico/advertising finché non c'è consenso
@@ -576,30 +576,47 @@ function App() {
             borderTop: "1px solid rgba(255,255,255,0.2)",
             paddingTop: "15px",
             fontSize: "14px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "10px",
           }}
         >
-          &copy; Copyright - Skill Factory 2026 |
-          <span
-            onClick={() => setView("privacy")}
+          <div>
+            &copy; Copyright - Skill Factory 2026
+          </div>
+
+          <div
             style={{
-              cursor: "pointer",
-              marginLeft: "10px",
-              textDecoration: "underline",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "12px",
             }}
           >
-            Privacy Policy
-          </span>
-           &nbsp;|
-          <span
-            onClick={() => setShowCookieBanner(true)}
-            style={{
-              cursor: "pointer",
-              marginLeft: "10px",
-              textDecoration: "underline",
-            }}
-          >
-            Gestisci Cookie
-          </span>
+            <span
+              onClick={() => setView("privacy")}
+              style={{
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              Privacy Policy
+            </span>
+
+            <span style={{ opacity: 0.5 }}>|</span>
+
+            <span
+              onClick={() => setShowCookieBanner(true)}
+              style={{
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              Gestisci Cookie
+            </span>
+          </div>
         </div>
       </footer>
     </div>

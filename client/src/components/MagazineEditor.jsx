@@ -18,6 +18,7 @@ const MagazineEditor = ({ editId, onBack }) => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   
   const [isFullscreen, setIsFullscreen] = useState(false); 
+  const [isOsFullscreen, setIsOsFullscreen] = useState(false);
 
   const [modal, setModal] = useState({
     show: false,
@@ -62,23 +63,79 @@ const MagazineEditor = ({ editId, onBack }) => {
   };
 
   useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsOsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  useEffect(() => {
     const checkScrollTop = () => {
-      if (!showScrollTop && window.pageYOffset > 400) {
+      let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      if (isFullscreen && editorRef.current) {
+        try {
+          const win = editorRef.current.getWin();
+          if (win) {
+            const editorScroll = win.pageYOffset || win.scrollY || editorRef.current.getDoc()?.documentElement?.scrollTop || editorRef.current.getDoc()?.body?.scrollTop || 0;
+            if (editorScroll > scrollTop) {
+              scrollTop = editorScroll;
+            }
+          }
+        } catch (e) {
+          // Gestione difensiva
+        }
+      }
+
+      if (!showScrollTop && scrollTop > 400) {
         setShowScrollTop(true);
-      } else if (showScrollTop && window.pageYOffset <= 400) {
+      } else if (showScrollTop && scrollTop <= 400) {
         setShowScrollTop(false);
       }
     };
 
     window.addEventListener('scroll', checkScrollTop);
-    return () => window.removeEventListener('scroll', checkScrollTop);
-  }, [showScrollTop]);
+
+    let editorWin = null;
+    if (isFullscreen && editorRef.current) {
+      try {
+        editorWin = editorRef.current.getWin();
+        if (editorWin) {
+          editorWin.addEventListener('scroll', checkScrollTop);
+        }
+      } catch (e) {
+        // Gestione difensiva
+      }
+    }
+
+    return () => {
+      window.removeEventListener('scroll', checkScrollTop);
+      if (editorWin) {
+        editorWin.removeEventListener('scroll', checkScrollTop);
+      }
+    };
+  }, [showScrollTop, isFullscreen]);
 
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
+
+    if (editorRef.current) {
+      try {
+        const win = editorRef.current.getWin();
+        if (win) {
+          win.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        }
+      } catch (e) {
+        // Gestione difensiva
+      }
+    }
   };
 
   useEffect(() => {
@@ -243,6 +300,18 @@ const MagazineEditor = ({ editId, onBack }) => {
   const handleZoomIn = () => updateEditorZoom(Math.min(zoom + 10, 200));
   const handleZoomOut = () => updateEditorZoom(Math.max(zoom - 10, 50));
 
+  const toggleTrueFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Errore nell'attivazione del fullscreen: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
   const executePublish = async () => {
     const currentContent = editorRef.current ? editorRef.current.getContent() : content;
 
@@ -402,7 +471,7 @@ const MagazineEditor = ({ editId, onBack }) => {
           .floating-controls.is-fullscreen {
             flex-direction: row !important;
             align-items: center;
-            top: 105px !important; /* Abbassato da 60px a 105px per liberare la barra superiore */
+            top: 87px !important;
             right: 25px !important;
             gap: 10px;
             z-index: 99999;
@@ -438,7 +507,7 @@ const MagazineEditor = ({ editId, onBack }) => {
             position: fixed;
             bottom: 40px;
             right: 25px; 
-            z-index: 999;
+            z-index: 99999;
             background-color: #007bff;
             color: white;
             border: none;
@@ -506,11 +575,36 @@ const MagazineEditor = ({ editId, onBack }) => {
         </button>
 
         <div className={`zoom-container ${isFullscreen ? 'is-fullscreen' : ''}`}>
-          <button onClick={handleZoomOut} style={zoomButtonStyle}> − </button>
+          <button onClick={handleZoomOut} style={zoomButtonStyle} title="Riduci Zoom"> − </button>
           <span style={{ fontSize: isFullscreen ? '10px' : '11px', fontWeight: 'bold', color: '#666', fontFamily: 'Arial', minWidth: '35px', textAlign: 'center' }}>
             {zoom}%
           </span>
-          <button onClick={handleZoomIn} style={zoomButtonStyle}> + </button>
+          <button onClick={handleZoomIn} style={zoomButtonStyle} title="Aumenta Zoom"> + </button>
+          
+          <div style={{ width: isFullscreen ? '1px' : '100%', height: isFullscreen ? '15px' : '1px', background: '#ccc', margin: '4px 0' }}></div>
+          
+          <button 
+            onClick={toggleTrueFullscreen} 
+            style={{ 
+              ...zoomButtonStyle, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              padding: '4px',
+              color: '#555'
+            }}
+            title={isOsFullscreen ? "Esci dallo schermo intero" : "Schermo intero (OS)"}
+          >
+            {isOsFullscreen ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+              </svg>
+            )}
+          </button>
         </div>
       </div>
 
@@ -671,7 +765,7 @@ const MagazineEditor = ({ editId, onBack }) => {
                 branding: false,
                 promotion: false,
                 license_key: 'gpl',
-                statusbar: true,
+                statusbar: false,
                 elementpath: true,
                 image_advtab: true,
                 image_margins: true,
@@ -718,6 +812,16 @@ const MagazineEditor = ({ editId, onBack }) => {
                 content_style: `
                   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Playfair+Display:wght@700&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap');
                   
+                  /* LINEA DI INIZIO FOGLIO (INSERITA DIRETTAMENTE NELL'EDITOR) */
+                  body::before {
+                    content: '';
+                    display: block;
+                    border-top: 1px solid #dee2e6;
+                    margin: -10px 0 20px 0;
+                    user-select: none;
+                    pointer-events: none;
+                  }
+
                   /* MARGINI LATERALI E LARGHEZZA MIGLIORATI PER IL TESTO */
                   body { 
                     font-family: Arial, Helvetica, sans-serif; 
@@ -728,6 +832,19 @@ const MagazineEditor = ({ editId, onBack }) => {
                     max-width: 1000px;
                     margin: 0 auto !important;
                     box-sizing: border-box; 
+                  }
+
+                  /* STILI DEDICATI ALLA MODALITÀ FULLSCREEN PER EVIDENZIARE IL FOGLIO */
+                  html.mce-fullscreen-active {
+                    background-color: #e9ecef !important;
+                    min-height: 100%;
+                  }
+
+                  body.is-fullscreen-body {
+                    background-color: #ffffff !important;
+                    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15), 0 0 4px rgba(0, 0, 0, 0.1) !important;
+                    margin: 0 auto !important;
+                    min-height: 100vh;
                   }
 
                   img { max-width: 100%; height: auto !important; display: block; margin: 25px auto; border-radius: 8px; transition: margin 0.2s ease; }
@@ -744,6 +861,16 @@ const MagazineEditor = ({ editId, onBack }) => {
 
                   editor.on('FullscreenStateChanged', (e) => {
                     setIsFullscreen(e.state);
+                    const doc = editor.getDoc();
+                    if (doc) {
+                      if (e.state) {
+                        doc.documentElement.classList.add('mce-fullscreen-active');
+                        doc.body.classList.add('is-fullscreen-body');
+                      } else {
+                        doc.documentElement.classList.remove('mce-fullscreen-active');
+                        doc.body.classList.remove('is-fullscreen-body');
+                      }
+                    }
                   });
 
                   editor.on('NodeChange', () => {

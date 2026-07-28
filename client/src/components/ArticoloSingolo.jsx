@@ -319,15 +319,12 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
 
           const correlati = data
             .filter(art => {
-              // Escludi l'articolo corrente e quelli che non sono di tipo ARTICOLO
               if (art.id === parseInt(currentId) || art.tipo !== 'ARTICOLO') {
                 return false;
               }
-              // Mostra gli articoli pubblicati (non bozze)
               if (art.bozza === false) {
                 return true;
               }
-              // Mostra le bozze solo se l'utente è loggato ed è l'autore
               return isLoggato && art.autore === mioUsername;
             })
             .sort((a, b) => b.id - a.id)
@@ -421,7 +418,6 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
       onReadArticle(targetId);
     }
 
-    // Torna su all'istante senza animazioni (Corretto)
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
@@ -480,13 +476,14 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
         }
 
         .main-cover-image {
-          width: 70%;
-          max-height: 400px;
-          object-fit: cover;
-          border-radius: 2px;
+          width: 100%;
+          max-width: 760px;
+          height: auto;
+          max-height: 450px;
+          object-fit: contain;
+          border-radius: 0;
           display: block;
-          margin-left: 0;
-          margin-right: auto;
+          margin: 0 auto 40px auto;
         }
 
         .module-text,
@@ -509,7 +506,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
         }
 
         .banner-container {
-          width: 70%;
+          width: 100%;
           transition: width 0.3s ease;
         }
 
@@ -526,7 +523,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 15px;
+          margin-bottom: 0;
           text-decoration: none;
           box-shadow: 0 4px 6px rgba(0,0,0,0.1);
           transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
@@ -569,7 +566,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
         .back-to-top-btn {
           position: fixed;
           bottom: 40px;
-          right: calc(50% - 600px + 20px); 
+          right: calc(50% - 525px + 20px); 
           z-index: 999;
           background-color: #007bff;
           color: white;
@@ -613,16 +610,16 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
             margin-right: auto !important;
             margin-top: 25px !important;
             margin-bottom: 25px !important;
-            width: 60% !important;
-            max-width: 60% !important;
+            width: 80% !important;
+            max-width: 80% !important;
             height: auto !important;
           }
           .main-cover-image {
-            width: 100% !important;
-            max-height: 350px !important;
+            max-width: 100% !important;
+            max-height: 380px !important;
           }
           .banner-container {
-            width: 85% !important;
+            width: 100% !important;
           }
           .back-to-top-btn {
             right: 40px !important;
@@ -630,6 +627,12 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
         }
 
         @media (max-width: 768px) {
+          nav {
+            padding: 15px 5px !important;
+          }
+          .article-container {
+            padding: 0 5px 80px 5px !important; /* Spazio extra in mobile */
+          }
           .article-title {
             font-size: 24px !important;
             line-height: 1.3 !important;
@@ -643,7 +646,9 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
           
           .main-cover-image {
             width: 100% !important;
+            height: auto !important;
             max-height: 280px !important;
+            margin-bottom: 25px !important;
           }
 
           .module-text,
@@ -655,15 +660,9 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
             line-height: 1.6 !important;
             text-align: left !important;
           }
-          
-          .article-container {
-            flex-direction: column !important;
-          }
-          .sidebar-share {
-            display: none !important;
-          }
+
           article {
-            padding: 0 15px !important;
+            padding: 0 !important;
             border-left: none !important;
           }
           .banner-container {
@@ -691,7 +690,6 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
             display: none !important;
           }
 
-          /* REGOLE RESPONSIVE PER LA SEZIONE "POTREBBERO INTERESSARTI" */
           .recommended-card {
             flex-direction: column !important;
             align-items: flex-start !important;
@@ -708,9 +706,9 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
       {/* NAV */}
       <nav
         style={{
-          padding: '20px',
+          padding: '20px 10px',
           borderBottom: '1px solid #eee',
-          maxWidth: '1200px',
+          maxWidth: '1050px',
           margin: '0 auto'
         }}
       >
@@ -730,74 +728,19 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
         </button>
       </nav>
 
-      {/* CONTENITORE */}
+      {/* CONTENITORE CENTRATO DELL'ARTICOLO CON PADDING BOTTOM AUMENTATO */}
       <div
         className="article-container"
         style={{
-          maxWidth: '1200px',
+          maxWidth: '1050px',
           margin: '0 auto',
-          padding: '0 20px',
-          display: 'flex',
-          gap: '40px',
+          padding: '0 10px 80px 10px', // <-- Aumentato per dare margine a fine pagina
           position: 'relative'
         }}
       >
-        {/* BARRA LATERALE CONDIVISIONE */}
-        <aside
-          className="sidebar-share"
-          style={{
-            width: '50px',
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            paddingTop: '40px',
-            position: 'sticky',
-            top: '100px',
-            height: 'fit-content'
-          }}
-        >
-          {/* WhatsApp */}
-          <a
-            href={`https://api.whatsapp.com/send?text=${articleTitleEncoded}%20${shareUrlEncoded}`}
-            target="_blank"
-            role="noopener noreferrer"
-            title="Condividi su WhatsApp"
-            className="social-btn"
-            style={{ backgroundColor: '#25D366' }}
-          >
-            <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.503-5.734-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.963C16.528 1.981 14.062.953 11.453.953c-5.441 0-9.866 4.372-9.87 9.802-.001 1.777.475 3.51 1.378 5.042l-.95 3.472 3.593-.933zM17.3 14.38c-.32-.16-1.89-.93-2.185-1.04-.294-.11-.51-.16-.724.16-.214.32-.83 1.04-1.016 1.25-.187.21-.374.24-.694.08-.32-.16-1.353-.5-2.577-1.6-.952-.85-1.594-1.9-1.782-2.22-.187-.32-.02-.49.14-.65.144-.14.32-.37.48-.56.16-.19.21-.32.32-.54.11-.22.05-.41-.03-.57-.08-.16-.724-1.75-.992-2.4-.26-.63-.526-.55-.724-.56-.187-.01-.4-.01-.614-.01-.214 0-.56.08-.854.4-.294.32-1.123 1.1-1.123 2.68 0 1.58 1.15 3.11 1.31 3.32.16.22 2.26 3.45 5.476 4.84.765.33 1.363.53 1.83.68.77.24 1.472.21 2.025.13.617-.09 1.89-.77 2.156-1.48.266-.71.266-1.32.187-1.45-.08-.13-.294-.21-.614-.37z" />
-            </svg>
-          </a>
-
-          {/* Copia Link */}
-          <button
-            onClick={handleCopyLink}
-            title="Copia link articolo"
-            className="social-btn"
-            style={{
-              backgroundColor: copiato ? '#28a745' : '#6c757d',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'background-color 0.3s ease'
-            }}
-          >
-            {copiato ? (
-              <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
-                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
-              </svg>
-            )}
-          </button>
-        </aside>
-
         {/* CONTENUTO ARTICOLO */}
-        <div style={{ flexGrow: 1, maxWidth: '1200px' }}>
-          <article style={{ margin: '40px 0', padding: '0 20px' }}>
+        <div style={{ width: '100%' }}>
+          <article style={{ margin: '40px 0' }}>
 
             <h1 className="article-title">
               {articolo.titolo}
@@ -810,9 +753,9 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
               </p>
             )}
 
-            {/* IMMAGINE DI COPERTINA */}
+            {/* IMMAGINE DI COPERTINA COMPLETA SENZA CUT-OFF */}
             {copertinaSrc && (
-              <div style={{ display: 'block', textAlign: 'center', marginBottom: '40px' }}>
+              <div style={{ display: 'block', textAlign: 'center' }}>
                 <img
                   src={copertinaSrc}
                   alt="Immagine di copertina"
@@ -921,6 +864,60 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
               })}
             </div>
 
+            {/* BOTTONI DI CONDIVISIONE ORIZZONTALI */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '15px',
+                marginTop: '40px',
+                marginBottom: '35px',
+                paddingTop: '20px',
+                borderTop: '1px solid #eee'
+              }}
+            >
+              <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#555' }}>
+                Condividi l'articolo:
+              </span>
+
+              {/* WhatsApp */}
+              <a
+                href={`https://api.whatsapp.com/send?text=${articleTitleEncoded}%20${shareUrlEncoded}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Condividi su WhatsApp"
+                className="social-btn"
+                style={{ backgroundColor: '#25D366' }}
+              >
+                <svg width="22" height="22" fill="white" viewBox="0 0 24 24">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.503-5.734-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.963C16.528 1.981 14.062.953 11.453.953c-5.441 0-9.866 4.372-9.87 9.802-.001 1.777.475 3.51 1.378 5.042l-.95 3.472 3.593-.933zM17.3 14.38c-.32-.16-1.89-.93-2.185-1.04-.294-.11-.51-.16-.724.16-.214.32-.83 1.04-1.016 1.25-.187.21-.374.24-.694.08-.32-.16-1.353-.5-2.577-1.6-.952-.85-1.594-1.9-1.782-2.22-.187-.32-.02-.49.14-.65.144-.14.32-.37.48-.56.16-.19.21-.32.32-.54.11-.22.05-.41-.03-.57-.08-.16-.724-1.75-.992-2.4-.26-.63-.526-.55-.724-.56-.187-.01-.4-.01-.614-.01-.214 0-.56.08-.854.4-.294.32-1.123 1.1-1.123 2.68 0 1.58 1.15 3.11 1.31 3.32.16.22 2.26 3.45 5.476 4.84.765.33 1.363.53 1.83.68.77.24 1.472.21 2.025.13.617-.09 1.89-.77 2.156-1.48.266-.71.266-1.32.187-1.45-.08-.13-.294-.21-.614-.37z" />
+                </svg>
+              </a>
+
+              {/* Copia Link */}
+              <button
+                onClick={handleCopyLink}
+                title="Copia link articolo"
+                className="social-btn"
+                style={{
+                  backgroundColor: copiato ? '#28a745' : '#6c757d',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.3s ease'
+                }}
+              >
+                {copiato ? (
+                  <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
+                    <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
             {/* AUTORE */}
             {articolo.tipo !== "SONDAGGIO" && articolo.tipo !== "EVENTO" && (
               <div
@@ -980,14 +977,14 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
               </div>
             )}
 
-            {/* SEZIONE "POTREBBERO INTERESSARTI" RESPONSIVE */}
+            {/* SEZIONE "POTREBBERO INTERESSARTI" */}
             {articoliConsigliati.length > 0 && (
               <div
                 style={{
                   marginTop: '50px',
                   borderTop: '2px solid #f0f0f0',
                   paddingTop: '30px',
-                  marginBottom: '30px'
+                  marginBottom: '60px' // <-- Aumentato il margine inferiore qui
                 }}
               >
                 <h3
@@ -1072,7 +1069,6 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                             }}
                           >
                             {art.titolo}
-                            {/* BADGE BOZZA NEI CONSIGLIATI */}
                             {art.bozza === true && (
                               <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', display: 'inline-block' }}>
                                 BOZZA
@@ -1128,7 +1124,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                   key={s.id}
                   href={s.linkSito}
                   target="_blank"
-                  role="noopener noreferrer"
+                  rel="noopener noreferrer"
                   onClick={() => handleBannerClick(s.id)}
                   className="banner-container"
                   style={{ display: 'block', marginBottom: '30px', textDecoration: 'none' }}
