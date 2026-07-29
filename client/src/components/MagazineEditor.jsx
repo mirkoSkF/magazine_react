@@ -3,7 +3,8 @@ import { Editor } from '@tinymce/tinymce-react';
 
 const MagazineEditor = ({ editId, onBack }) => {
   const editorRef = useRef(null);
-  const fileInputRef = useRef(null); 
+  const fileInputRef = useRef(null);
+  const isFullscreenRef = useRef(false); // Aggiunto per tracciare lo stato di TinyMCE in modo sicuro
 
   const [content, setContent] = useState('');
   const [zoom, setZoom] = useState(100);
@@ -64,8 +65,16 @@ const MagazineEditor = ({ editId, onBack }) => {
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsOsFullscreen(!!document.fullscreenElement);
+      const isDocFullscreen = !!document.fullscreenElement;
+      setIsOsFullscreen(isDocFullscreen);
+
+      // Se usciamo dallo schermo intero nativo (es. ESC o bottone) 
+      // e TinyMCE è ancora in fullscreen, lo disattiviamo
+      if (!isDocFullscreen && isFullscreenRef.current && editorRef.current) {
+        editorRef.current.execCommand('mceFullScreen');
+      }
     };
+    
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
@@ -305,10 +314,15 @@ const MagazineEditor = ({ editId, onBack }) => {
       document.documentElement.requestFullscreen().catch((err) => {
         console.error(`Errore nell'attivazione del fullscreen: ${err.message}`);
       });
+      // Sincronizziamo: se attiviamo lo schermo intero tramite bottone, attiviamo anche TMCE
+      if (!isFullscreenRef.current && editorRef.current) {
+        editorRef.current.execCommand('mceFullScreen');
+      }
     } else {
       if (document.exitFullscreen) {
         document.exitFullscreen();
       }
+      // Il listener fullscreenchange si occuperà di chiudere anche TinyMCE
     }
   };
 
@@ -861,14 +875,26 @@ const MagazineEditor = ({ editId, onBack }) => {
 
                   editor.on('FullscreenStateChanged', (e) => {
                     setIsFullscreen(e.state);
+                    isFullscreenRef.current = e.state; // Sincronizza il ref con lo stato reale di TinyMCE
+                    
                     const doc = editor.getDoc();
                     if (doc) {
                       if (e.state) {
                         doc.documentElement.classList.add('mce-fullscreen-active');
                         doc.body.classList.add('is-fullscreen-body');
+
+                        // Richiede il fullscreen a livello di browser/OS
+                        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+                          document.documentElement.requestFullscreen().catch(err => console.error("Errore fullscreen nativo:", err));
+                        }
                       } else {
                         doc.documentElement.classList.remove('mce-fullscreen-active');
                         doc.body.classList.remove('is-fullscreen-body');
+
+                        // Esce dal fullscreen a livello di browser/OS se attivo
+                        if (document.fullscreenElement && document.exitFullscreen) {
+                          document.exitFullscreen().catch(err => console.error("Errore uscita fullscreen nativo:", err));
+                        }
                       }
                     }
                   });

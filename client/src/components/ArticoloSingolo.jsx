@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 
 const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
+  // GESTIONE TEMA CHIARO/SCURO
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   // Gestiamo l'ID corrente con uno stato interno per slegarci dal Padre ed evitare blocchi di navigazione
   const [currentId, setCurrentId] = useState(id);
   
@@ -423,7 +426,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
 
   if (!articolo) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
+      <div style={{ textAlign: 'center', padding: '50px', color: isDarkMode ? '#fff' : '#000', backgroundColor: isDarkMode ? '#1e293b' : '#fff', minHeight: '100vh' }}>
         Caricamento...
       </div>
     );
@@ -452,9 +455,10 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
     <div
       lang="it"
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: isDarkMode ? '#1e293b' : '#fff',
         minHeight: '100vh',
-        fontFamily: 'Arial, sans-serif'
+        fontFamily: 'Arial, sans-serif',
+        transition: 'background-color 0.3s ease'
       }}
     >
       <style>{`
@@ -463,16 +467,18 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
           font-weight: bold;
           line-height: 1.25;
           margin-bottom: 25px;
-          color: #1a1a1a;
+          color: ${isDarkMode ? '#ffffff' : '#1a1a1a'};
+          transition: color 0.3s ease;
         }
 
         .article-subtitle {
           font-size: 18px;
-          color: #555;
+          color: ${isDarkMode ? '#cbd5e1' : '#555'};
           line-height: 1.5;
           margin-bottom: 25px;
           font-style: italic;
           font-weight: normal;
+          transition: color 0.3s ease;
         }
 
         .main-cover-image {
@@ -498,7 +504,12 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
           overflow-wrap: anywhere !important;
           word-break: normal !important;
           line-break: auto !important;
-          color: #2b2b2b;
+          color: ${isDarkMode ? '#f8fafc' : '#2b2b2b'} !important;
+          transition: color 0.3s ease;
+        }
+        
+        .module-text h1, .module-text h2, .module-text h3, .module-text h4, .module-text h5, .module-text h6 {
+          color: ${isDarkMode ? '#ffffff' : '#1a1a1a'} !important;
         }
 
         .module-text p {
@@ -544,9 +555,9 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
           width: 100%;
           padding: 16px;
           margin-bottom: 12px;
-          background-color: #fff;
-          border: 2px solid #007bff;
-          color: #007bff;
+          background-color: transparent;
+          border: 2px solid ${isDarkMode ? '#60a5fa' : '#007bff'};
+          color: ${isDarkMode ? '#60a5fa' : '#007bff'};
           border-radius: 10px;
           cursor: pointer;
           font-weight: bold;
@@ -554,7 +565,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
         }
 
         .poll-option-btn:hover:not(:disabled) {
-          background-color: #f0f7ff !important;
+          background-color: ${isDarkMode ? '#334155' : '#f0f7ff'} !important;
           transform: translateY(-1px);
           box-shadow: 0 4px 8px rgba(0, 123, 255, 0.1);
         }
@@ -568,7 +579,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
           bottom: 40px;
           right: calc(50% - 525px + 20px); 
           z-index: 999;
-          background-color: #007bff;
+          background-color: ${isDarkMode ? '#3b82f6' : '#007bff'};
           color: white;
           border: none;
           padding: 12px 20px;
@@ -593,7 +604,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
         }
 
         .back-to-top-btn:hover {
-          background-color: #0056b3;
+          background-color: ${isDarkMode ? '#2563eb' : '#0056b3'};
           transform: translateY(-3px);
           box-shadow: 0 6px 15px rgba(0, 56, 179, 0.3);
         }
@@ -628,10 +639,10 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
 
         @media (max-width: 768px) {
           nav {
-            padding: 15px 5px !important;
+            padding: 15px 10px !important;
           }
           .article-container {
-            padding: 0 5px 80px 5px !important; /* Spazio extra in mobile */
+            padding: 0 10px 80px 10px !important;
           }
           .article-title {
             font-size: 24px !important;
@@ -706,25 +717,66 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
       {/* NAV */}
       <nav
         style={{
-          padding: '20px 10px',
-          borderBottom: '1px solid #eee',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '30px 10px 7px 10px',
+          borderBottom: `1px solid ${isDarkMode ? '#334155' : '#eee'}`,
           maxWidth: '1050px',
-          margin: '0 auto'
+          margin: '0 auto',
+          transition: 'border-color 0.3s ease'
         }}
       >
         <button
           onClick={onBack}
           style={{
-            marginTop: '2%',
             background: 'none',
             border: 'none',
-            color: '#007bff',
+            color: isDarkMode ? '#60a5fa' : '#007bff',
             fontWeight: 'bold',
             cursor: 'pointer',
-            fontSize: '16px'
+            fontSize: '16px',
+            transition: 'color 0.3s ease'
           }}
         >
           &larr; Torna al Magazine
+        </button>
+
+        {/* TOGGLE TEMA CHIARO / SCURO SPOSTATO NELLA NAV */}
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          title={isDarkMode ? "Passa al tema chiaro" : "Passa al tema scuro"}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '8px',
+            borderRadius: '50%',
+            transition: 'background-color 0.3s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+          {isDarkMode ? (
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          ) : (
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="black" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          )}
         </button>
       </nav>
 
@@ -734,13 +786,13 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
         style={{
           maxWidth: '1050px',
           margin: '0 auto',
-          padding: '0 10px 80px 10px', // <-- Aumentato per dare margine a fine pagina
+          padding: '0 10px 80px 10px',
           position: 'relative'
         }}
       >
         {/* CONTENUTO ARTICOLO */}
         <div style={{ width: '100%' }}>
-          <article style={{ margin: '40px 0' }}>
+          <article style={{ margin: '10px 0' }}>
 
             <h1 className="article-title">
               {articolo.titolo}
@@ -770,7 +822,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  background: 'linear-gradient(to right, #fff9e6, #fff)',
+                  background: isDarkMode ? '#332701' : 'linear-gradient(to right, #fff9e6, #fff)',
                   borderLeft: '5px solid #ffc107',
                   padding: '20px',
                   borderRadius: '12px',
@@ -778,12 +830,12 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                   gap: '15px'
                 }}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#856404" strokeWidth="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={isDarkMode ? '#fde047' : '#856404'} strokeWidth="2">
                   <circle cx="12" cy="12" r="10"></circle>
                   <line x1="12" y1="8" x2="12" y2="12"></line>
                   <line x1="12" y1="16" x2="12.01" y2="16"></line>
                 </svg>
-                <span style={{ color: '#856404', fontWeight: '600', fontSize: '15px' }}>
+                <span style={{ color: isDarkMode ? '#fde047' : '#856404', fontWeight: '600', fontSize: '15px' }}>
                   Modalità Visualizzazione:{' '}
                   <span style={{ fontWeight: '400' }}>
                     Come Editore, puoi consultare i risultati ma non partecipare alla votazione.
@@ -801,21 +853,22 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                     <div
                       key={i}
                       style={{
-                        background: '#f8f9fa',
+                        background: isDarkMode ? '#334155' : '#f8f9fa',
                         padding: '30px',
                         borderRadius: '15px',
-                        border: '2px solid #007bff',
-                        marginBottom: '40px'
+                        border: `2px solid ${isDarkMode ? '#3b82f6' : '#007bff'}`,
+                        marginBottom: '40px',
+                        transition: 'background-color 0.3s ease, border-color 0.3s ease'
                       }}
                     >
-                      <h3 style={{ marginBottom: '10px', color: '#333' }}>
+                      <h3 style={{ marginBottom: '10px', color: isDarkMode ? '#ffffff' : '#333' }}>
                         {(votoEffettuato || isEditore)
                           ? "Risultati in tempo reale"
                           : "Esprimi la tua preferenza"}
                       </h3>
 
-                      <p style={{ color: '#666', marginBottom: '25px', fontSize: '14px' }}>
-                        Partecipanti totali: <b>{totalVoti}</b>
+                      <p style={{ color: isDarkMode ? '#cbd5e1' : '#666', marginBottom: '25px', fontSize: '14px' }}>
+                        Partecipanti totali: <b style={{color: isDarkMode ? '#fff' : '#000'}}>{totalVoti}</b>
                       </p>
 
                       {opzioni.map((opt, idx) => {
@@ -826,16 +879,16 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                           ? (
                             <div key={idx} style={{ marginBottom: '20px' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', gap: '15px' }}>
-                                <span style={{ fontSize: '15px' }}>{opt}</span>
+                                <span style={{ fontSize: '15px', color: isDarkMode ? '#f8fafc' : '#000' }}>{opt}</span>
                                 <div style={{ textAlign: 'right' }}>
-                                  <span style={{ color: '#666', fontSize: '13px', marginRight: '8px' }}>
+                                  <span style={{ color: isDarkMode ? '#94a3b8' : '#666', fontSize: '13px', marginRight: '8px' }}>
                                     ({nVoti} {nVoti === 1 ? 'voto' : 'voti'})
                                   </span>
-                                  <b style={{ color: '#007bff' }}>{percent}%</b>
+                                  <b style={{ color: isDarkMode ? '#60a5fa' : '#007bff' }}>{percent}%</b>
                                 </div>
                               </div>
-                              <div style={{ height: '10px', background: '#e9ecef', borderRadius: '5px', overflow: 'hidden' }}>
-                                <div style={{ width: `${percent}%`, height: '100%', background: '#007bff', transition: 'width 1s' }} />
+                              <div style={{ height: '10px', background: isDarkMode ? '#475569' : '#e9ecef', borderRadius: '5px', overflow: 'hidden' }}>
+                                <div style={{ width: `${percent}%`, height: '100%', background: isDarkMode ? '#60a5fa' : '#007bff', transition: 'width 1s' }} />
                               </div>
                             </div>
                           )
@@ -873,10 +926,11 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                 marginTop: '40px',
                 marginBottom: '35px',
                 paddingTop: '20px',
-                borderTop: '1px solid #eee'
+                borderTop: `1px solid ${isDarkMode ? '#334155' : '#eee'}`,
+                transition: 'border-color 0.3s ease'
               }}
             >
-              <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#555' }}>
+              <span style={{ fontSize: '15px', fontWeight: 'bold', color: isDarkMode ? '#cbd5e1' : '#555' }}>
                 Condividi l'articolo:
               </span>
 
@@ -924,11 +978,12 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  background: '#f8f9fa',
+                  background: isDarkMode ? '#334155' : '#f8f9fa',
                   padding: '20px',
                   borderRadius: '8px',
-                  border: '1px solid #dee2e6',
-                  marginBottom: '30px'
+                  border: `1px solid ${isDarkMode ? '#475569' : '#dee2e6'}`,
+                  marginBottom: '30px',
+                  transition: 'background-color 0.3s ease, border-color 0.3s ease'
                 }}
               >
                 {autore?.fotoProfilo ? (
@@ -951,7 +1006,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                       width: '80px',
                       height: '80px',
                       borderRadius: '50%',
-                      background: '#ccc',
+                      background: isDarkMode ? '#64748b' : '#ccc',
                       marginRight: '20px',
                       display: 'flex',
                       alignItems: 'center',
@@ -966,10 +1021,10 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                 )}
 
                 <div>
-                  <h3 style={{ margin: 0 }}>
+                  <h3 style={{ margin: 0, color: isDarkMode ? '#ffffff' : '#000' }}>
                     {autore?.nome} {autore?.cognome}
                   </h3>
-                  <p style={{ color: '#666', margin: '5px 0', fontSize: '14px' }}>
+                  <p style={{ color: isDarkMode ? '#94a3b8' : '#666', margin: '5px 0', fontSize: '14px' }}>
                     Pubblicato il{' '}
                     {new Date(articolo.dataPubblicazione).toLocaleDateString('it-IT')}
                   </p>
@@ -982,18 +1037,20 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
               <div
                 style={{
                   marginTop: '50px',
-                  borderTop: '2px solid #f0f0f0',
+                  borderTop: `2px solid ${isDarkMode ? '#334155' : '#f0f0f0'}`,
                   paddingTop: '30px',
-                  marginBottom: '60px' // <-- Aumentato il margine inferiore qui
+                  marginBottom: '60px',
+                  transition: 'border-color 0.3s ease'
                 }}
               >
                 <h3
                   style={{
                     fontSize: '22px',
                     fontWeight: 'bold',
-                    color: '#1a1a1a',
+                    color: isDarkMode ? '#ffffff' : '#1a1a1a',
                     marginBottom: '20px',
-                    fontFamily: 'Arial, sans-serif'
+                    fontFamily: 'Arial, sans-serif',
+                    transition: 'color 0.3s ease'
                   }}
                 >
                   Potrebbero interessarti
@@ -1024,19 +1081,19 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                           gap: '15px',
                           padding: '12px',
                           borderRadius: '8px',
-                          border: '1px solid #eee',
+                          border: `1px solid ${isDarkMode ? '#475569' : '#eee'}`,
                           cursor: 'pointer',
                           transition: 'all 0.2s ease-in-out',
-                          backgroundColor: '#fbfbfb'
+                          backgroundColor: isDarkMode ? '#334155' : '#fbfbfb'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f1f7ff';
-                          e.currentTarget.style.borderColor = '#007bff';
+                          e.currentTarget.style.backgroundColor = isDarkMode ? '#1e293b' : '#f1f7ff';
+                          e.currentTarget.style.borderColor = isDarkMode ? '#60a5fa' : '#007bff';
                           e.currentTarget.style.transform = 'translateY(-2px)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#fbfbfb';
-                          e.currentTarget.style.borderColor = '#eee';
+                          e.currentTarget.style.backgroundColor = isDarkMode ? '#334155' : '#fbfbfb';
+                          e.currentTarget.style.borderColor = isDarkMode ? '#475569' : '#eee';
                           e.currentTarget.style.transform = 'translateY(0)';
                         }}
                       >
@@ -1060,7 +1117,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                               margin: 0,
                               fontSize: '15px',
                               fontWeight: 'bold',
-                              color: '#333',
+                              color: isDarkMode ? '#f8fafc' : '#333',
                               lineHeight: '1.3',
                               display: 'flex',
                               alignItems: 'center',
@@ -1080,7 +1137,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                               style={{
                                 margin: '4px 0 0 0',
                                 fontSize: '13px',
-                                color: '#666',
+                                color: isDarkMode ? '#94a3b8' : '#666',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
@@ -1107,15 +1164,16 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                 width: '100%',
                 marginTop: '40px',
                 marginBottom: '60px',
-                borderTop: '1px solid #eee',
+                borderTop: `1px solid ${isDarkMode ? '#334155' : '#eee'}`,
                 paddingTop: '35px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                clear: 'both'
+                clear: 'both',
+                transition: 'border-color 0.3s ease'
               }}
             >
-              <p style={{ fontSize: '10px', color: '#999', textAlign: 'center', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '2px' }}>
+              <p style={{ fontSize: '10px', color: isDarkMode ? '#94a3b8' : '#999', textAlign: 'center', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '2px' }}>
                 Sponsor
               </p>
 
@@ -1133,7 +1191,7 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
                     className="banner-hover"
                     src={s.bannerImage}
                     alt={s.nomeAzienda}
-                    style={{ width: '100%', height: 'auto', borderRadius: '10px', border: '1px solid #eee', transition: 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)' }}
+                    style={{ width: '100%', height: 'auto', borderRadius: '10px', border: `1px solid ${isDarkMode ? '#475569' : '#eee'}`, transition: 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)' }}
                   />
                 </a>
               ))}
