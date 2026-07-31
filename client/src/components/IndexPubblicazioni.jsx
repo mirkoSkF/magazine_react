@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 
-
 const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const [tuttiContenuti, setTuttiContenuti] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -261,7 +260,10 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
   const listItemStyle = {
     marginBottom: '12px',
     paddingBottom: '8px',
-    borderBottom: '1px solid #f0f0f0'
+    borderBottom: '1px solid #f0f0f0',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px'
   };
 
   const rubricaLinkStyle = (isActive) => ({
@@ -534,13 +536,18 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
           {contenutiFiltrati.length > 0 ? (
             <div style={{ display: "grid", gap: "20px" }}>
               {contenutiFiltrati.map(item => (
-                <div key={item.id} onClick={() => onReadArticle(item.id)} style={{ padding: "20px", backgroundColor: colors.lightGray, borderRadius: "8px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", border: `1px solid ${colors.border}` }}>
-                  <div>
+                <div key={item.id} onClick={() => onReadArticle(item.id)} style={{ padding: "20px", backgroundColor: colors.lightGray, borderRadius: "8px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "15px", border: `1px solid ${colors.border}` }}>
+                  {item.copertina && (
+                    <div style={{ width: "80px", height: "60px", minWidth: "80px", borderRadius: "4px", overflow: "hidden", backgroundColor: "#e9ecef" }}>
+                      <img src={item.copertina.startsWith('http') ? item.copertina : `data:image/jpeg;base64,${item.copertina}`} alt={item.titolo} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  )}
+                  <div style={{ flexGrow: 1 }}>
                     <span style={{ fontSize: "10px", fontWeight: "bold", color: colors.primary, textTransform: "uppercase" }}>{item.tipo || "ARTICOLO"}</span>
                     <h3 style={{ margin: "5px 0", fontSize: "18px" }}>{item.titolo}</h3>
                     <small>di {getAutore(item)}</small>
                   </div>
-                  <span style={{ color: colors.primary, fontWeight: "bold" }}>Leggi →</span>
+                  <span style={{ color: colors.primary, fontWeight: "bold", whiteSpace: "nowrap" }}>Leggi →</span>
                 </div>
               ))}
             </div>
@@ -653,12 +660,17 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <h3 style={{ fontSize: "22px", borderBottom: `2px solid ${colors.rubriche}`, paddingBottom: "10px", marginBottom: "20px" }}>Altri articoli di questa rubrica</h3>
                   <div style={{ display: "grid", gap: "15px" }}>
                     {currentRubriche.map(r => (
-                      <div key={r.id} onClick={() => onReadArticle(r.id)} style={{ padding: "15px", backgroundColor: colors.lightGray, borderRadius: "6px", cursor: "pointer", border: `1px solid ${colors.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div>
+                      <div key={r.id} onClick={() => onReadArticle(r.id)} style={{ padding: "15px", backgroundColor: colors.lightGray, borderRadius: "6px", cursor: "pointer", border: `1px solid ${colors.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", gap: "15px" }}>
+                        {r.copertina && (
+                          <div style={{ width: "80px", height: "60px", minWidth: "80px", borderRadius: "4px", overflow: "hidden", backgroundColor: "#e9ecef" }}>
+                            <img src={r.copertina.startsWith('http') ? r.copertina : `data:image/jpeg;base64,${r.copertina}`} alt={r.titolo} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          </div>
+                        )}
+                        <div style={{ flexGrow: 1 }}>
                           <h4 style={{ margin: "0 0 5px 0", fontSize: "16px" }}>{r.titolo}</h4>
                           <small>di {getAutore(r)}</small>
                         </div>
-                        <span style={{ color: colors.rubriche, fontWeight: "bold" }}>Leggi →</span>
+                        <span style={{ color: colors.rubriche, fontWeight: "bold", whiteSpace: "nowrap" }}>Leggi →</span>
                       </div>
                     ))}
                   </div>
@@ -747,8 +759,14 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
 
                           return (
                             <li key={ev.id} style={listItemStyle}>
-                              <span onClick={() => onReadArticle(ev.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📅 {ev.titolo}</span>
-
+                              {ev.copertina && (
+                                <div style={{ width: '50px', height: '50px', minWidth: '50px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#e9ecef' }}>
+                                  <img src={ev.copertina.startsWith('http') ? ev.copertina : `data:image/jpeg;base64,${ev.copertina}`} alt={ev.titolo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </div>
+                              )}
+                              <div style={{ flexGrow: 1 }}>
+                                <span onClick={() => onReadArticle(ev.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>📅 {ev.titolo}</span>
+                              </div>
                             </li>
                           );
                         })}
@@ -782,9 +800,16 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                       <ul style={{ listStyle: 'none', padding: 0 }}>
                         {currentArchivioArt.map(a => (
                           <li key={a.id} style={listItemStyle}>
-                            <span onClick={() => onReadArticle(a.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>{a.titolo}</span>
-                            <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(a)}</small>
-                            {a.bozza === true && <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', marginLeft: '8px', display: 'inline-block' }}>BOZZA</span>}
+                            {a.copertina && (
+                              <div style={{ width: '50px', height: '50px', minWidth: '50px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#e9ecef' }}>
+                                <img src={a.copertina.startsWith('http') ? a.copertina : `data:image/jpeg;base64,${a.copertina}`} alt={a.titolo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              </div>
+                            )}
+                            <div style={{ flexGrow: 1 }}>
+                              <span onClick={() => onReadArticle(a.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>{a.titolo}</span>
+                              <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(a)}</small>
+                              {a.bozza === true && <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', marginLeft: '8px', display: 'inline-block' }}>BOZZA</span>}
+                            </div>
                           </li>
                         ))}
                       </ul>
@@ -804,8 +829,15 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                       <ul style={{ listStyle: 'none', padding: 0 }}>
                         {currentEditoriali.map(e => (
                           <li key={e.id} style={listItemStyle}>
-                            <span onClick={() => onReadArticle(e.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>✍️ {e.titolo}</span>
-                            <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(e)}</small>
+                            {e.copertina && (
+                              <div style={{ width: '50px', height: '50px', minWidth: '50px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#e9ecef' }}>
+                                <img src={e.copertina.startsWith('http') ? e.copertina : `data:image/jpeg;base64,${e.copertina}`} alt={e.titolo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              </div>
+                            )}
+                            <div style={{ flexGrow: 1 }}>
+                              <span onClick={() => onReadArticle(e.id)} style={{ cursor: 'pointer', fontSize: '15px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '4px' }}>✍️ {e.titolo}</span>
+                              <small style={{ color: '#888', fontStyle: 'italic' }}>di {getAutore(e)}</small>
+                            </div>
                           </li>
                         ))}
                       </ul>
@@ -827,7 +859,9 @@ const IndexPubblicazioni = ({ onReadArticle, onPrivacyClick }) => {
                   <ul style={{ listStyle: 'none', padding: 0 }}>
                     {currentSondaggi.map(s => (
                       <li key={s.id} style={listItemStyle}>
-                        <span onClick={() => onReadArticle(s.id)} style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#444' }}>📊 {s.titolo}</span>
+                        <div style={{ flexGrow: 1 }}>
+                          <span onClick={() => onReadArticle(s.id)} style={{ cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#444' }}>📊 {s.titolo}</span>
+                        </div>
                       </li>
                     ))}
                   </ul>

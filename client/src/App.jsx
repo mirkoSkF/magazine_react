@@ -639,8 +639,6 @@ const footerStyle = {
   background: colors.dark, color: colors.white, textAlign: 'center',
   padding: '30px 10px', fontSize: '14px', borderTop: `4px solid ${colors.primary}`,
   marginTop: 'auto',
-  borderTopLeftRadius: '550px',
-  borderTopRightRadius: '550px',
 };
 
 export default App;

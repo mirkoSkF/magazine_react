@@ -1,8 +1,14 @@
 import React, { useEffect, useState, useMemo } from 'react';
 
 const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
-  // GESTIONE TEMA CHIARO/SCURO
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // GESTIONE TEMA CHIARO/SCURO CON SALVATAGGIO IN LOCALSTORAGE
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('isDarkMode') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('isDarkMode', isDarkMode);
+  }, [isDarkMode]);
 
   // Gestiamo l'ID corrente con uno stato interno per slegarci dal Padre ed evitare blocchi di navigazione
   const [currentId, setCurrentId] = useState(id);
@@ -621,9 +627,10 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
             margin-right: auto !important;
             margin-top: 25px !important;
             margin-bottom: 25px !important;
-            width: 80% !important;
-            max-width: 80% !important;
-            height: auto !important;
+            width: auto !important;
+            max-width: 70% !important;
+            max-height: 450px !important;
+            object-fit: contain !important;
           }
           .main-cover-image {
             max-width: 100% !important;
@@ -687,9 +694,10 @@ const ArticoloSingolo = ({ id, onBack, onReadArticle }) => {
             margin-right: auto !important;
             margin-top: 20px !important;
             margin-bottom: 20px !important;
-            width: 100% !important;
+            width: auto !important;
             max-width: 100% !important;
-            height: auto !important;
+            max-height: 400px !important;
+            object-fit: contain !important;
           }
           .back-to-top-btn {
             right: 20px !important;

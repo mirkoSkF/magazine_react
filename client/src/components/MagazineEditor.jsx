@@ -4,7 +4,7 @@ import { Editor } from '@tinymce/tinymce-react';
 const MagazineEditor = ({ editId, onBack }) => {
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
-  const isFullscreenRef = useRef(false); // Aggiunto per tracciare lo stato di TinyMCE in modo sicuro
+  const isFullscreenRef = useRef(false);
 
   const [content, setContent] = useState('');
   const [zoom, setZoom] = useState(100);
@@ -68,8 +68,6 @@ const MagazineEditor = ({ editId, onBack }) => {
       const isDocFullscreen = !!document.fullscreenElement;
       setIsOsFullscreen(isDocFullscreen);
 
-      // Se usciamo dallo schermo intero nativo (es. ESC o bottone) 
-      // e TinyMCE è ancora in fullscreen, lo disattiviamo
       if (!isDocFullscreen && isFullscreenRef.current && editorRef.current) {
         editorRef.current.execCommand('mceFullScreen');
       }
@@ -300,8 +298,7 @@ const MagazineEditor = ({ editId, onBack }) => {
       images.forEach(img => {
         img.style.height = 'auto';
         img.style.maxWidth = '100%';
-        if (img.style.float === 'left') img.style.margin = '10px 25px 15px 0';
-        if (img.style.float === 'right') img.style.margin = '10px 0 15px 25px';
+        // Rimossa la forzatura dei margini per permettere il posizionamento libero
       });
     }
   };
@@ -314,7 +311,6 @@ const MagazineEditor = ({ editId, onBack }) => {
       document.documentElement.requestFullscreen().catch((err) => {
         console.error(`Errore nell'attivazione del fullscreen: ${err.message}`);
       });
-      // Sincronizziamo: se attiviamo lo schermo intero tramite bottone, attiviamo anche TMCE
       if (!isFullscreenRef.current && editorRef.current) {
         editorRef.current.execCommand('mceFullScreen');
       }
@@ -322,7 +318,6 @@ const MagazineEditor = ({ editId, onBack }) => {
       if (document.exitFullscreen) {
         document.exitFullscreen();
       }
-      // Il listener fullscreenchange si occuperà di chiudere anche TinyMCE
     }
   };
 
@@ -481,7 +476,6 @@ const MagazineEditor = ({ editId, onBack }) => {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
           }
 
-          /* BOTTONI ABBASSATI PER NON SOVRAPPORSI A TINYMCE IN FULLSCREEN */
           .floating-controls.is-fullscreen {
             flex-direction: column !important;
             align-items: center;
@@ -826,7 +820,6 @@ const MagazineEditor = ({ editId, onBack }) => {
                 content_style: `
                   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Playfair+Display:wght@700&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap');
                   
-                  /* LINEA DI INIZIO FOGLIO (INSERITA DIRETTAMENTE NELL'EDITOR) */
                   body::before {
                     content: '';
                     display: block;
@@ -836,7 +829,6 @@ const MagazineEditor = ({ editId, onBack }) => {
                     pointer-events: none;
                   }
 
-                  /* MARGINI LATERALI E LARGHEZZA MIGLIORATI PER IL TESTO */
                   body { 
                     font-family: Arial, Helvetica, sans-serif; 
                     font-size: 18px; 
@@ -848,7 +840,6 @@ const MagazineEditor = ({ editId, onBack }) => {
                     box-sizing: border-box; 
                   }
 
-                  /* STILI DEDICATI ALLA MODALITÀ FULLSCREEN PER EVIDENZIARE IL FOGLIO */
                   html.mce-fullscreen-active {
                     background-color: #e9ecef !important;
                     min-height: 100%;
@@ -861,12 +852,16 @@ const MagazineEditor = ({ editId, onBack }) => {
                     min-height: 100vh;
                   }
 
-                  img { max-width: 100%; height: auto !important; display: block; margin: 25px auto; border-radius: 8px; transition: margin 0.2s ease; }
-                  img[style*="float: left"] { margin: 10px 25px 15px 0 !important; float: left; }
-                  img[style*="float: right"] { margin: 10px 0 15px 25px !important; float: right; }
-                  figure.image { margin: 25px auto !important; }
-                  figure.image.image-style-align-left, figure.image.image-style-float-left { margin: 10px 25px 15px 0 !important; }
-                  figure.image.image-style-align-right, figure.image.image-style-float-right { margin: 10px 0 15px 25px !important; }
+                  /* MODIFICATO: inline-block per permettere affiancamento a liste/testi */
+                  img { max-width: 100%; height: auto !important; display: inline-block; vertical-align: middle; margin: 5px; border-radius: 8px; transition: margin 0.2s ease; }
+                  
+                  /* MODIFICATO: rimosso !important dai margini in modo da permettere allo stile in linea dell'utente di sovrascrivere */
+                  img[style*="float: left"] { margin: 10px 25px 15px 0; float: left; }
+                  img[style*="float: right"] { margin: 10px 0 15px 25px; float: right; }
+                  
+                  figure.image { margin: 25px auto !important; display: block; }
+                  figure.image.image-style-align-left, figure.image.image-style-float-left { margin: 10px 25px 15px 0 !important; float: left; }
+                  figure.image.image-style-align-right, figure.image.image-style-float-right { margin: 10px 0 15px 25px !important; float: right; }
                 `,
                 setup: (editor) => {
                   editor.on('init', () => {
@@ -875,7 +870,7 @@ const MagazineEditor = ({ editId, onBack }) => {
 
                   editor.on('FullscreenStateChanged', (e) => {
                     setIsFullscreen(e.state);
-                    isFullscreenRef.current = e.state; // Sincronizza il ref con lo stato reale di TinyMCE
+                    isFullscreenRef.current = e.state; 
                     
                     const doc = editor.getDoc();
                     if (doc) {
@@ -883,7 +878,6 @@ const MagazineEditor = ({ editId, onBack }) => {
                         doc.documentElement.classList.add('mce-fullscreen-active');
                         doc.body.classList.add('is-fullscreen-body');
 
-                        // Richiede il fullscreen a livello di browser/OS
                         if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
                           document.documentElement.requestFullscreen().catch(err => console.error("Errore fullscreen nativo:", err));
                         }
@@ -891,7 +885,6 @@ const MagazineEditor = ({ editId, onBack }) => {
                         doc.documentElement.classList.remove('mce-fullscreen-active');
                         doc.body.classList.remove('is-fullscreen-body');
 
-                        // Esce dal fullscreen a livello di browser/OS se attivo
                         if (document.fullscreenElement && document.exitFullscreen) {
                           document.exitFullscreen().catch(err => console.error("Errore uscita fullscreen nativo:", err));
                         }
@@ -904,8 +897,7 @@ const MagazineEditor = ({ editId, onBack }) => {
                     images.forEach(img => {
                       img.style.maxWidth = '100%';
                       img.style.height = 'auto';
-                      if (img.style.float === 'left') img.style.margin = '10px 25px 15px 0';
-                      if (img.style.float === 'right') img.style.margin = '10px 0 15px 25px';
+                      // Rimossa la forzatura dei margini per permettere il posizionamento libero
                     });
                   });
 
@@ -927,8 +919,7 @@ const MagazineEditor = ({ editId, onBack }) => {
                     div.querySelectorAll('img').forEach(img => {
                       img.style.maxWidth = '100%';
                       img.style.height = 'auto';
-                      if (img.style.float === 'left') img.style.margin = '10px 25px 15px 0';
-                      if (img.style.float === 'right') img.style.margin = '10px 0 15px 25px';
+                      // Rimossa la forzatura dei margini
                     });
                     e.content = div.innerHTML;
                   });
