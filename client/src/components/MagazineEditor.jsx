@@ -203,6 +203,22 @@ const MagazineEditor = ({ editId, onBack }) => {
 
           const ctx = canvas.getContext("2d");
 
+          // Determina il formato di output in base al file originale per mantenere la trasparenza
+          let outputMimeType = "image/jpeg";
+          let outputExtension = ".jpg";
+
+          if (file.type === "image/png" || file.type === "image/webp") {
+            outputMimeType = file.type;
+            outputExtension = file.type === "image/png" ? ".png" : ".webp";
+          }
+
+          // Se esportiamo in JPEG, riempiamo lo sfondo di bianco PRIMA di disegnare l'immagine
+          // In questo modo, le aree trasparenti non diventeranno nere
+          if (outputMimeType === "image/jpeg") {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, width, height);
+          }
+
           ctx.drawImage(img, 0, 0, width, height);
 
           canvas.toBlob(
@@ -214,17 +230,17 @@ const MagazineEditor = ({ editId, onBack }) => {
 
               const optimizedFile = new File(
                 [blob],
-                file.name.replace(/\.[^.]+$/, ".jpg"),
+                file.name.replace(/\.[^.]+$/, outputExtension),
                 {
-                  type: "image/jpeg",
+                  type: outputMimeType,
                   lastModified: Date.now()
                 }
               );
 
               resolve(optimizedFile);
             },
-            "image/jpeg",
-            0.82
+            outputMimeType,
+            0.82 // Viene ignorato dai browser per i PNG, ma funziona ottimamente per JPEG e WEBP
           );
         };
 
